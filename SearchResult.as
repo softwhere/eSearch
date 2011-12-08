@@ -44,11 +44,17 @@ package widgets.eSearch
 		
 		public var selected:Boolean;
 		
-		public var gid:Number;
+		public var oid:Number;
 		
 		public var multi:String;
 		
 		public var linkicon:String;
+		
+		public var relateicon:String;
+		
+		public var relates:Array;
+		
+		public var relatetooltip:String;
 	}
 
 }

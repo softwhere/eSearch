@@ -17,17 +17,14 @@ package widgets.eSearch
 	import spark.components.DataGroup;
 	
 	// these events bubble up from the SearchResultItemRenderer
-	[Event(name="searchResultClick", type="flash.events.Event")]
-	[Event(name="searchResultMouseOver", type="flash.events.Event")]
-	[Event(name="searchResultMouseOut", type="flash.events.Event")]
-	[Event(name="searchResultRelateClick", type="flash.events.Event")]
+	[Event(name="relateClick", type="flash.events.Event")]
 	
-	public class SearchResultDataGroup extends DataGroup
+	public class RelateResultDataGroup extends DataGroup
 	{
-	    public function SearchResultDataGroup()
+	    public function RelateResultDataGroup()
 	    {
 	        super();
-	        this.itemRenderer = new ClassFactory(SearchResultItemRenderer);
+	        this.itemRenderer = new ClassFactory(RelateResultItemRenderer);
 	    }
 	}
 }

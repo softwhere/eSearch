@@ -1,3 +1,30 @@
+﻿Version 2.5.0.5 - 12/8/2011
+* Fixed relates button not showing up unless you first do a text search.
+* re-enabled the polygon and polyline graphical search abilities.
+* When "enable multi-part graphics" is selected and then the Search button is pushed 
+  the graphical searches draw tool is now turned off. Meaning after you click search 
+  you will have to choose a search geometry type button to perform another search.
+* If using the Fixed Datagrid and a relate is chosen then the relate tab is activated. 
+
+Version 2.5.0.4 - 12/7/2011
+* Fixed a relate query error that only ocurred in certain situations
+
+Version 2.5.0.3 - 12/6/2011
+* Fixed Coded domains bug introduced in version 2.5.0.1
+* Relates Sum field does not clear when choosing a relate that has no sum field
+  specified.
+
+Version 2.5.0.2 - 12/5/2011
+* Depreciated tolerance. Now just use toleranceforpointgraphicalselection
+* Added a tolerancebydefault option to the SearchWidget.xml.
+
+Version 2.5.0.1 - 12/5/2011
+  * Fixes bug where subtype was not displayed correctly in the 2 datagrid types.
+
+Version 2.5 - 12/2/2011
+  * Added Related table display capabilities for searched features
+  * Added support for domains that come from subtypes.
+
 Version 2.4.0.14 - 11/19/2011
   * Grid auto sizes to the hyperlink alias if that length is smaller than the column header
   * Fixed issues with alias not getting set for hyperlinkalias if the column name alias was

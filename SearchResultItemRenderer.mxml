@@ -25,10 +25,12 @@
     <fx:Script>
         <![CDATA[
             import com.esri.ags.symbols.Symbol;
-
+            
             import mx.events.FlexEvent;
 
             private const SEARCH_RESULT_CLICK:String = "searchResultClick";
+			
+			private const SEARCH_RESULT_RELATE_CLICK:String = "searchResultRelateClick";
 
             private const SEARCH_RESULT_MOUSE_OVER:String = "searchResultMouseOver";
 
@@ -42,6 +44,12 @@
 			
 			[Bindable]
 			private var linkicon:String;
+			
+			[Bindable]
+			private var relateicon:String;
+			
+			[Bindable]
+			private var relatetooltip:String;
 
             private function itemrenderer_dataChangeHandler(event:FlexEvent):void
             {
@@ -61,6 +69,8 @@
                     resultIcon.addChild(lastResultSwatch);
 					selected = searchResult.selected;
 					linkicon = (searchResult.linkicon != null)?searchResult.linkicon:"assets/images/w_link.png";
+					relateicon = (searchResult.relateicon != null)?searchResult.relateicon:"widgets/eSearch/assets/images/i_relate.png";
+					relatetooltip = (searchResult.relatetooltip != null)?searchResult.relatetooltip:"Show relates";
                 }
             }
 
@@ -84,6 +94,12 @@
                 event.stopImmediatePropagation(); // don't dispatch SEARCH_RESULT_CLICK since we don't want to zoom to feature
                 navigateToURL(new URLRequest(searchResult.link));
             }
+			
+			private function showRelate(event:MouseEvent):void
+			{
+				event.stopImmediatePropagation(); // don't dispatch SEARCH_RESULT_CLICK since we don't want to zoom to feature
+				dispatchEvent(new Event(SEARCH_RESULT_RELATE_CLICK, true)); // bubbles
+			}
         ]]>
     </fx:Script>
 
@@ -147,5 +163,13 @@
 				  source="{linkicon}"
                   useHandCursor="true"
                   visible="{searchResult.link != null}"/>
+		<mx:Image width="20" height="20"
+				  buttonMode="true"
+				  click="showRelate(event)"
+				  includeInLayout="{searchResult.relates != null}"
+				  source="{relateicon}"
+				  useHandCursor="true"
+				  toolTip="{relatetooltip}"
+				  visible="{searchResult.relates != null}"/>
     </s:HGroup>
 </s:ItemRenderer>

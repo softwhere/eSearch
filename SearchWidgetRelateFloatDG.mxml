@@ -7,34 +7,25 @@
 						   xmlns:mx="library://ns.adobe.com/flex/mx"
 						   xmlns:Search="widgets.eSearch.*"
 						   xmlns:esri="http://www.esri.com/2008/ags"
-						   width="622" 
-						   height="300" 
-						   title="Search Results"
+						   width="600" 
+						   height="320" 
+						   title="Relate Results"
 						   close="closeMe()" 
 						   creationComplete="init()" 
 						   cornerRadius="6"
-						   skinClass="widgets.eSearch.ResizeTitleWindowSkin">
+						   skinClass="widgets.eSearch.ResizeTitleWindowSkin"
+						   titleIcon="@Embed('widgets/eSearch/assets/images/i_relate2.png')">
 	<Search:layout>
 		<s:VerticalLayout horizontalAlign="center" verticalAlign="middle" />
 	</Search:layout>
 	<fx:Script>
 		<![CDATA[
-			import com.esri.ags.layers.supportClasses.Field;
-			import com.esri.ags.layers.supportClasses.FeatureType;
-			import com.esri.ags.Graphic;
 			import com.esri.ags.Map;
-			import com.esri.ags.geometry.Geometry;
-			import com.esri.ags.geometry.MapPoint;
-			import com.esri.ags.layers.GraphicsLayer;
 			import com.esri.ags.layers.supportClasses.CodedValue;
 			import com.esri.ags.layers.supportClasses.CodedValueDomain;
 			import com.esri.ags.layers.supportClasses.LayerDetails;
-			import com.esri.ags.webmap.PopUpRenderer;
-			import com.esri.ags.webmap.supportClasses.PopUpInfo;
-			import com.esri.ags.webmap.supportClasses.PopUpMediaInfo;
 			import com.esri.viewer.AppEvent;
-			import com.esri.viewer.BaseWidget;
-			import com.esri.viewer.IBaseWidget;
+
 			import com.esri.viewer.ViewerContainer;
 			
 			import mx.collections.ArrayCollection;
@@ -55,15 +46,9 @@
 			import mx.utils.ObjectUtil;
 			
 			import spark.components.Button;
-			
-			import widgets.eSearch.SearchWidget;
 		
 			private var _data:Object;
-			private var _graLyr:GraphicsLayer;
 			private var _resultsGrid:DataGrid;
-			private var highlightedGraphic:Graphic;
-			private var _zoomScale:Number = 5000;
-			private var _bWidget:BaseWidget;
 			private var _dgColumns:Array=[];
 			private var _dgFieldAliases:Object;
 			private var _dgHyperColumns:Array=[];
@@ -97,14 +82,8 @@
 			
 			private var uic:UIComponent;
 			
-			private var popUpRenderer:PopUpRenderer = new PopUpRenderer();
-			
 			private var map:Map = ViewerContainer.getInstance().mapManager.map;
 			
-			public function set graphicslayer(value:GraphicsLayer):void
-			{
-				_graLyr = value;
-			}
 			
 			public function set dgtitle(value:String):void
 			{
@@ -129,11 +108,6 @@
 			public function set enableExport(value:Boolean):void
 			{
 				_enableExport = value;
-			}
-			
-			public function set ownerWidget(value:BaseWidget):void
-			{
-				_bWidget = value;
 			}
 			
 			public function set csvName(value:String):void
@@ -244,6 +218,7 @@
 				dgCol.visible = false;
 				dgColArr.push(dgCol);
 				resultsGrid.columns = dgColArr;
+				//resultsGrid.validateNow();
 			}
 			
 			public function set dgFieldAliases(value:Object):void
@@ -666,11 +641,6 @@
 				resultsGrid.columns = dgColArr;
 			}
 			
-			public function set zoomScale(value:Number):void
-			{
-				_zoomScale = value;
-			}
-			
 			public function set dProvider(value:Object):void
 			{
 				_data = ObjectUtil.copy(value);
@@ -690,30 +660,13 @@
 						var cVal:CodedValue;
 						var cDomain:CodedValueDomain;
 						for each (fld in _layerDetails.fields)
-						{							
-							var typeID:String = _layerDetails.typeIdField ? attributes[_layerDetails.typeIdField] : null;
-							if (fld.name == _layerDetails.typeIdField){
-								// replace value with feature type name
-								var featureType:FeatureType = getFeatureType(typeID);
-								if (featureType && featureType.name)
-									attributes[fld.name] = featureType.name;
-							}else{
-								// replace value with coded value name if one exists
-								if (typeID){
-									var fType:FeatureType = getFeatureType(typeID);
-									if (fType)
-										cDomain = fType.domains[fld.name] as CodedValueDomain;
-								}else{
-									cDomain = fld.domain as CodedValueDomain;
-								}
-								
-								if (cDomain){
-									for each (var codedValue:CodedValue in cDomain.codedValues){
-										if (attributes[fld.name] == codedValue.code){
-											attributes[fld.name] = codedValue.name;
-											break;
-										}
-									}
+						{
+							cDomain = fld.domain;
+							if (cDomain){
+								for each (cVal in cDomain.codedValues)
+								{
+									if(cVal.code == attributes[fld.name])
+										attributes[fld.name] = cVal.name;
 								}
 							}
 						}
@@ -772,20 +725,6 @@
 				}
 			}
 			
-			private function getFeatureType(typeID:String):FeatureType
-			{
-				var result:FeatureType;
-				
-				for each (var featureType:FeatureType in _layerDetails.types){
-					if (typeID == featureType.id){
-						result = featureType;
-						break;
-					}
-				}
-				
-				return result;
-			}
-			
 			private function init():void
 			{
 				_resultsGrid = resultsGrid;
@@ -800,163 +739,12 @@
 			{
 				PopUpManager.removePopUp(this);
 			}
-			
-			private function onItemRollOver(event:ListEvent):void
-            {
-            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-            	var vSW:SearchWidget = _bWidget as SearchWidget;
-				vSW.highlightDataGroupItem(highlightedGraphic);
-            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-				if(highlightedGraphic){
-            		var infoData:Object = highlightedGraphic.attributes;
-					if (map.extent.containsXY(infoData.point.x, infoData.point.y)){
-						showInfoWindow(infoData);
-					}else{
-						hideInfoWindow();
-					}
-				}
-            }
-			
-			private function hideInfoWindow():void
-			{
-				if (map.infoWindow.contentOwner &&
-					((map.infoWindow.contentOwner is Graphic && Graphic(map.infoWindow.contentOwner).graphicsLayer === _graLyr) || map.infoWindow.contentOwner is Map))
-				{
-					map.infoWindow.hide();
-				}
-			}
-			
-			private function showInfoWindow(infoData:Object):void
-			{
-				var showHighlightPoint:MapPoint = infoData.point as MapPoint;
-				
-				popUpRenderer.popUpInfo = configurePopUpInfo(infoData.graphic.attributes.link, infoData.graphic.attributes.linkalias);
-				popUpRenderer.graphic = infoData.graphic;
-				popUpRenderer.setStyle("skinClass", widgets.eSearch.PopUpRendererSkin);
-				map.infoWindow.content = popUpRenderer;
-				map.infoWindow.contentOwner = popUpRenderer.graphic;
-				map.infoWindow.show(showHighlightPoint);
-			}
-			
-			private function configurePopUpInfo(link:String, linkalias:String=""):PopUpInfo
-			{
-				var popUpInfo:PopUpInfo = new PopUpInfo;
-				
-				popUpInfo.title = "{title}";
-				popUpInfo.description = "{content}";
-				
-				if (link)
-				{
-					var pos:Number = link.length - 4;
-					var sfx:String = link.substr(pos, 4).toLowerCase();
-					if ((sfx == ".jpg") || (sfx == ".png") || (sfx == ".gif")) // use PopUpMediaInfo if it is an image
-					{
-						var popUpMediaInfo:PopUpMediaInfo = new PopUpMediaInfo;
-						popUpMediaInfo.type = PopUpMediaInfo.IMAGE;
-						popUpMediaInfo.imageLinkURL = link;
-						popUpMediaInfo.imageSourceURL = link;
-						popUpInfo.popUpMediaInfos = [ popUpMediaInfo ];
-					}
-					else
-					{
-						if(linkalias!=""){
-							popUpInfo.description += "<br/><a href='{link}'>" + linkalias + "</a>";
-						}else{
-							popUpInfo.description += "<br/><a href='{link}'>{link}</a>";
-						}
-					}
-				}
-				
-				return popUpInfo;
-			}
-            
-            private function highLightSel(event:Event):void
-            {
-            	resultsGrid.selectedItem
-            	if(resultsGrid.selectedItem){
-	            	highlightedGraphic = findGraphicByAttribute(resultsGrid.selectedItem.oid)
-					var vSW:SearchWidget = _bWidget as SearchWidget;
-					vSW.highlightDataGroupItem(highlightedGraphic);
-            	}
-            }
-            
-            private function unhighLightSel(event:Event):void
-            {
-            	if(resultsGrid.selectedItem){
-            		highlightedGraphic = findGraphicByAttribute(resultsGrid.selectedItem.oid);
-            		var vSW:SearchWidget = _bWidget as SearchWidget;
-					vSW.unhighlightDataGroupItems();
-            	}
-            }
-            
-            private function onItemRollOut(event:ListEvent):void
-            {
-            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-				var vSW:SearchWidget = _bWidget as SearchWidget;
-				vSW.unhighlightDataGroupItems();
-            }
-
-            public function findGraphicByAttribute(attributes:Object):Graphic
-            {
-                for each( var graphic:Graphic in _graLyr.graphicProvider)
-                {
-                    if ( graphic.attributes.oid === attributes)
-                    { 
-                        return graphic;
-                    }
-                }            
-                return null;
-            }
-            
-            private function clickRow(event:ListEvent):void
-            {
-            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-            	var infoData:Object = highlightedGraphic.attributes;
-				var pt:MapPoint = infoData.point;
-				var map:Map = ViewerContainer.getInstance().mapManager.map;
-				if (infoData.geometry)
-				{
-					if (infoData.geometry.type == Geometry.MAPPOINT)
-					{
-						if (map.scale > _zoomScale)
-						{
-							map.scale = _zoomScale;
-						}
-						
-						map.centerAt(infoData.point);
-					}
-					else
-					{
-						if(isNaN(_zoomScale)){
-							map.extent = infoData.geometry.extent;
-							
-							if (!map.extent.contains(infoData.geometry))
-							{
-								map.level--;
-							}
-						}else{
-							if (map.scale > _zoomScale)
-							{
-								map.scale = _zoomScale;
-							}
-							
-							map.centerAt(infoData.point);
-						}
-					}
-				}
-            }
-
 		]]>
 	</fx:Script>
 	<fx:Declarations>
 		<s:RadioButtonGroup id="optiongroup"/>
 	</fx:Declarations>
 	<mx:DataGrid id="resultsGrid" height="100%" width="100%"
-					  itemRollOver="onItemRollOver(event)"
-					  itemRollOut="onItemRollOut(event)" 
-					  itemClick="clickRow(event)"
-					  rollOut="highLightSel(event)" 
-					  rollOver="unhighLightSel(event)"
 					  wordWrap="false"
 					  horizontalScrollPolicy="auto"/>
 	<Search:controlBarContent>

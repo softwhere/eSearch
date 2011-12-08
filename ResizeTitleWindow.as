@@ -16,6 +16,7 @@ package widgets.eSearch
 	
 	import spark.components.TitleWindow;
 	import spark.primitives.BitmapImage;
+	import flash.events.Event;
 	
 	public class ResizeTitleWindow extends TitleWindow
 	{

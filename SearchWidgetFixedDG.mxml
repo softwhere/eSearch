@@ -16,6 +16,7 @@
 			import com.esri.ags.layers.GraphicsLayer;
 			import com.esri.ags.layers.supportClasses.CodedValue;
 			import com.esri.ags.layers.supportClasses.CodedValueDomain;
+			import com.esri.ags.layers.supportClasses.FeatureType;
 			import com.esri.ags.layers.supportClasses.LayerDetails;
 			import com.esri.ags.webmap.PopUpRenderer;
 			import com.esri.ags.webmap.supportClasses.PopUpInfo;
@@ -47,16 +48,22 @@
 			import widgets.eSearch.SearchWidget;
 			
 			private var _data:Object;
+			private var _rdata:Object;
 			private var _graLyr:GraphicsLayer;
-			private var _resultsGrid:DataGrid;
 			private var highlightedGraphic:Graphic;
 			private var _zoomScale:Number = 5000;
 			private var _bWidget:*;
 			private var _dgColumns:Array=[];
 			private var _dgFieldAliases:Object;
 			private var _dgHyperColumns:Array=[];
+			
+			private var _rdgColumns:Array=[];
+			private var _rdgFieldAliases:Object;
+			private var _rdgHyperColumns:Array=[];
+			private var rhypercols:ArrayCollection;
 			private var hypercols:ArrayCollection;
 			private var _csvName:String;
+			private var _rcsvName:String;
 			private var dateFormatter:DateFormatter = new DateFormatter();
 			private var numFormatter:NumberFormatter = new NumberFormatter();
 			private var currFormatter:CurrencyFormatter = new CurrencyFormatter();
@@ -65,6 +72,7 @@
 			private var _numFormat:String = "";
 			private var _csvSep:String = ",";
 			private var _layerDetails:LayerDetails = null;
+			private var _rlayerDetails:LayerDetails = null;
 			[Bindable]
 			private var _exp2csvBtnLbl:String;
 			[Bindable]
@@ -78,7 +86,18 @@
 			[Bindable]
 			private var _labelSum:String;
 			private var _sumField:String = "";
+			
+			[Bindable]
+			private var _renableExport:Boolean;
+			[Bindable]
+			private var rsumVisible:Boolean;
+			[Bindable]
+			private var _rlabelSum:String;
+			private var _rsumField:String = "";
+			
 			private var sumFormat:String;
+			
+			private var rsumFormat:String;
 			
 			private var mWidgetTitle:String;
 			
@@ -99,6 +118,14 @@
 					sumVisible = false;
 			}
 			
+			private function rsumField(value:String):void
+			{
+				_rsumField = value;
+				if(value != "")
+					rsumVisible = true;
+				else
+					rsumVisible = false;
+			}
 			
 			private function dgColumns(value:Array):void
 			{
@@ -174,10 +201,90 @@
 						dgColArr.push(dgCol);
 					}
 				}
-				dgCol= new DataGridColumn("gid");
+				dgCol= new DataGridColumn("oid");
 				dgCol.visible = false;
 				dgColArr.push(dgCol);
 				resultsGrid.columns = dgColArr;
+			}
+
+			private function rdgColumns(value:Array):void
+			{
+				relatesGrid.columns = [];
+				rsumFormat = "";
+				_rdgColumns = value;
+				var dgCol:DataGridColumn;
+				var jdgCol:joinDataGridColumn;
+				var dgColArr:Array = [];
+				for(var i:int=0; i < _rdgColumns.length; i++)
+				{
+					var cArr:Array = _rdgColumns[i].split("~");						
+					dgCol= new DataGridColumn(cArr[0]);
+					if(cArr[0].indexOf( "." ) != -1){
+						jdgCol= new joinDataGridColumn(cArr[0]);
+						jdgCol.labelFunction = getLabel;
+						if (cArr[2] != "NA"){
+							jdgCol.labelFunction = getDateLbl;
+							_dateFormat = cArr[2];
+						}
+						if (cArr[3] != "NA"){
+							jdgCol.labelFunction = getCurrLbl;
+							_currFormat = cArr[3];
+							if(cArr[0] == _sumField)
+								sumFormat = "cur";
+						}
+						if (cArr[4] != "NA"){
+							jdgCol.labelFunction = getNumLbl;
+							_numFormat = cArr[4];
+							if(cArr[0] == _sumField)
+								sumFormat = "num";
+						}
+						if (cArr[5] != "NA"){
+							if(cArr[5] =="true")
+								useUTC = true;
+							else
+								useUTC = false;
+						}
+						if (_dgFieldAliases)
+							jdgCol.headerText = _dgFieldAliases[cArr[0]];
+						if (cArr[1] != "NA")
+							jdgCol.headerText = cArr[1];
+						dgColArr.push(jdgCol);
+					}else{
+						dgCol= new DataGridColumn(cArr[0]);
+						dgCol.labelFunction = getLabel;
+						if (cArr[2] != "NA"){
+							dgCol.labelFunction = getDateLbl;
+							_dateFormat = cArr[2];
+						}
+						if (cArr[3] != "NA"){
+							dgCol.labelFunction = getCurrLbl;
+							_currFormat = cArr[3];
+							if(cArr[0] == _sumField)
+								sumFormat = "cur";
+						}
+						if (cArr[4] != "NA"){
+							dgCol.labelFunction = getNumLbl;
+							_numFormat = cArr[4];
+							if(cArr[0] == _sumField)
+								sumFormat = "num";
+						}
+						if (cArr[5] != "NA"){
+							if(cArr[5] =="true")
+								useUTC = true;
+							else
+								useUTC = false;
+						}
+						if (_rdgFieldAliases)
+							dgCol.headerText = _rdgFieldAliases[cArr[0]];
+						if (cArr[1] != "NA")
+							dgCol.headerText = cArr[1];
+						dgColArr.push(dgCol);
+					}
+				}
+				dgCol= new DataGridColumn("oid");
+				dgCol.visible = false;
+				dgColArr.push(dgCol);
+				relatesGrid.columns = dgColArr;
 			}
 		
 			private function exportTo(event:Event):void
@@ -192,6 +299,28 @@
 					}else{
 						data = exportTXT(resultsGrid);
 						defaultFileName = _csvName + ".txt";
+					}
+					
+					var fileReference:FileReference = new FileReference();
+					fileReference.save(data,defaultFileName);
+				}
+				catch(error:Error)
+				{
+					Alert.show(error.message);
+				}
+			}
+			
+			private function rexportTo(event:Event):void
+			{
+				try{
+					var data:String;
+					var defaultFileName:String;
+					if(roptiongroup.selectedValue == _exp2csvBtnLbl){
+						data = exportCSV(relatesGrid,_csvSep);
+						defaultFileName = _rcsvName + ".csv";
+					}else{
+						data = exportTXT(relatesGrid);
+						defaultFileName = _rcsvName + ".txt";
 					}
 					
 					var fileReference:FileReference = new FileReference();
@@ -236,8 +365,7 @@
 			
 			private function exportCSV(dataGrid:DataGrid, csvSeparator:String=",", lineSeparator:String="\n"):String
 			{
-				try
-				{
+				try{
 					var data:String = "";
 					var columnArray:Array = dataGrid.columns;
 					var columnCount:int = columnArray.length;
@@ -392,7 +520,7 @@
 				return (header + lineSeparator + data);
 			}
 			
-			// this is going to be executed whenever the data provider changes:
+			// this is going to be executed when ever the data provider changes:
 			[Bindable("dataChange")]
 			private function calcMaxLengths(input:Object):Object {
 				// if there are items in the DP:
@@ -457,10 +585,7 @@
 					for ( i=0; i<resultsGrid.columnCount; i++ ) {
 						// if the column actually exists:
 						if ( DataGridColumn(resultsGrid.columns[i]).dataField.toUpperCase() == key.toUpperCase() ) {
-//My Change 10-13-11
-							//var cellMetrics2:TextLineMetrics = renderer.measureText(DataGridColumn(key+"");
 							var cellMetrics2:TextLineMetrics = renderer.measureText(DataGridColumn(resultsGrid.columns[i]).headerText+"");
-//End My Change 10-13-11
 							if ( cellMetrics2.width + 18 > Number(maxLengths[key]) + 12 ) {
 								DataGridColumn(resultsGrid.columns[i]).width = cellMetrics2.width + 18;
 							} else {
@@ -480,6 +605,101 @@
 									DataGridColumn(resultsGrid.columns[i]).width = cellMetrics2.width + 18;
 								}else{
 									DataGridColumn(resultsGrid.columns[i]).width = cellMetrics3.width + 18;
+								}
+							}
+						}
+					}
+				}
+				// cleanup:
+				removeElement(uic);
+			}
+			
+			
+			// this is going to be executed when ever the data provider changes:
+			[Bindable("dataChange")]
+			private function rcalcMaxLengths(input:Object):Object {
+				// if there are items in the DP:
+				if ( input.length > 0 ) {
+					// and no SPECIAL child exists:
+					if ( getChildByName("$rsomeTempUICToRemoveAfterFinished") == null ) {
+						// create new SPECIAL child
+						// this is required to call measureText
+						// if you use custom data grid item renderer
+						// then create instance of it instead of UIComponent:
+						uic = new UIComponent();
+						// do not show and do not mess with the sizes:
+						uic.includeInLayout = false;
+						uic.visible = false;
+						// name it to leverage get getChildByName method:
+						uic.name = "$rsomeTempUICToRemoveAfterFinished";
+						// add event listener:
+						uic.addEventListener(FlexEvent.CREATION_COMPLETE, ronTempUICCreated);
+						// add to parent:
+						this.addElement(uic);
+					}
+				}
+				// return an input:
+				return input;
+			}
+			
+			// called when SPECIAL child is created:
+			private function ronTempUICCreated(event:FlexEvent):void {
+				// keep the ref to the SPECIAL child:
+				var renderer:UIComponent = UIComponent(event.target);
+				// output - this will contain max size for each column:
+				var maxLengths:Object = {};
+				// temp variables:
+				var key:String = "";
+				var i:int=0;
+				var h:int=0;
+				var dp:Object = relatesGrid.dataProvider;
+				// for each item in the DP:
+				for ( i=0; i<dp.length; i++ ) {
+					var o:Object = dp[i];
+					// for each key in the DP row:
+					for ( key in o ) {
+						// if the output doesn't have current key yet create it and set to 0:
+						if ( !maxLengths.hasOwnProperty(key) ) {
+							maxLengths[key] = 0;
+						}
+						// check if it's simple object (may cause unexpected issues for Boolean):
+						if ( ObjectUtil.isSimple(o[key]) ) {
+							// measure the text:
+							var cellMetrics:TextLineMetrics = renderer.measureText(o[key]+"");
+							// and if the width is greater than longest found up to now:
+							if ( cellMetrics.width > maxLengths[key] ) {
+								// set it as the longest one:
+								maxLengths[key] = cellMetrics.width;
+							}
+						}
+					}
+				}
+				
+				// apply column sizes:
+				for ( key in maxLengths ) {
+					for ( i=0; i<relatesGrid.columnCount; i++ ) {
+						// if the column actually exists:
+						if ( DataGridColumn(relatesGrid.columns[i]).dataField.toUpperCase() == key.toUpperCase() ) {
+							var cellMetrics2:TextLineMetrics = renderer.measureText(DataGridColumn(relatesGrid.columns[i]).headerText+"");
+							if ( cellMetrics2.width + 18 > Number(maxLengths[key]) + 12 ) {
+								DataGridColumn(relatesGrid.columns[i]).width = cellMetrics2.width + 18;
+							} else {
+								DataGridColumn(relatesGrid.columns[i]).width = Number(maxLengths[key]) + 12;
+							}							
+						}
+					}
+				}
+				//Now check if a hyperlink field has an alias and set the field width based on that alias or the header text
+				for each (var obj:Object in rhypercols){
+					for ( i=0; i<relatesGrid.columnCount; i++ ) {
+						if ( DataGridColumn(relatesGrid.columns[i]).dataField.toUpperCase() == obj.field.toUpperCase()) {
+							if(obj.alias != "NA"){
+								cellMetrics2 = renderer.measureText(DataGridColumn(relatesGrid.columns[i]).headerText+"");
+								var cellMetrics3:TextLineMetrics = renderer.measureText(obj.alias + "");
+								if(cellMetrics3.width + 18 < cellMetrics2.width + 18){
+									DataGridColumn(relatesGrid.columns[i]).width = cellMetrics2.width + 18;
+								}else{
+									DataGridColumn(relatesGrid.columns[i]).width = cellMetrics3.width + 18;
 								}
 							}
 						}
@@ -592,6 +812,30 @@
 				}
 				resultsGrid.columns = dgColArr;
 			}
+			
+			private function rdgHyperColumns(value:Array):void
+			{
+				_rdgHyperColumns = value;
+				var dgCol:DataGridColumn;
+				var dgColArr:Array = relatesGrid.columns;
+				rhypercols = new ArrayCollection();
+				for(var i:int=0; i < _rdgHyperColumns.length; i++)
+				{
+					var cArr:Array = _rdgHyperColumns[i].split("~");
+					hypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4]});
+					dgCol= new DataGridColumn(cArr[0]);
+					dgCol.labelFunction = labelFunc2;
+					if (cArr[2] != "NA")
+						dgCol.labelFunction = labelFunc;
+					if (_dgFieldAliases)
+						dgCol.headerText = _rdgFieldAliases[cArr[0]];
+					if (cArr[1] != "NA")
+						dgCol.headerText = cArr[1];
+					dgCol.itemRenderer = new ClassFactory(HyperLinkColumn);						
+					dgColArr.push(dgCol);
+				}
+				relatesGrid.columns = dgColArr;
+			}
 
 			private function dProvider(value:Object):void
 			{
@@ -613,12 +857,29 @@
 						var cDomain:CodedValueDomain;
 						for each (fld in _layerDetails.fields)
 						{
-							cDomain = fld.domain;
-							if (cDomain){
-								for each (cVal in cDomain.codedValues)
-								{
-									if(cVal.code == attributes[fld.name])
-										attributes[fld.name] = cVal.name;
+							var typeID:String = _layerDetails.typeIdField ? attributes[_layerDetails.typeIdField] : null;
+							if (fld.name == _layerDetails.typeIdField){
+								// replace value with feature type name
+								var featureType:FeatureType = getFeatureType(typeID,_layerDetails);
+								if (featureType && featureType.name)
+									attributes[fld.name] = featureType.name;
+							}else{
+								// replace value with coded value name if one exists
+								if (typeID){
+									var fType:FeatureType = getFeatureType(typeID,_layerDetails);
+									if (fType)
+										cDomain = fType.domains[fld.name] as CodedValueDomain;
+								}else{
+									cDomain = fld.domain as CodedValueDomain;
+								}
+								
+								if (cDomain){
+									for each (var codedValue:CodedValue in cDomain.codedValues){
+										if (attributes[fld.name] == codedValue.code){
+											attributes[fld.name] = codedValue.name;
+											break;
+										}
+									}
 								}
 							}
 						}
@@ -675,10 +936,121 @@
 				}
 			}
 			
+			private function getFeatureType(typeID:String, lDtls:LayerDetails):FeatureType
+			{
+				var result:FeatureType;
+				
+				for each (var featureType:FeatureType in lDtls.types){
+					if (typeID == featureType.id){
+						result = featureType;
+						break;
+					}
+				}
+				
+				return result;
+			}
+			
+			private function rdProvider(value:Object):void
+			{
+				_rdata = ObjectUtil.copy(value);
+				for each(var attributes:Object in _rdata)
+				{
+					for(var i:int=0; i<rhypercols.length; i++){
+						//concatenate if
+						if(attributes[rhypercols[i].field] != "" && attributes[rhypercols[i].field] != " " && attributes[rhypercols[i].field] != null){
+							var pre:String = (rhypercols[i].pre == "NA") ? "" : rhypercols[i].pre;
+							var suf:String = (rhypercols[i].suf == "NA") ? "" : rhypercols[i].suf;
+							attributes[rhypercols[i].field] = String(pre + attributes[rhypercols[i].field] + suf);
+						}
+					}
+					
+					if(_rlayerDetails){
+						var fld:Object;
+						var cVal:CodedValue;
+						var cDomain:CodedValueDomain;
+						for each (fld in _rlayerDetails.fields)
+						{
+							var typeID:String = _rlayerDetails.typeIdField ? attributes[_rlayerDetails.typeIdField] : null;
+							if (fld.name == _rlayerDetails.typeIdField){
+								// replace value with feature type name
+								var featureType:FeatureType = getFeatureType(typeID,_rlayerDetails);
+								if (featureType && featureType.name)
+									attributes[fld.name] = featureType.name;
+							}else{
+								// replace value with coded value name if one exists
+								if (typeID){
+									var fType:FeatureType = getFeatureType(typeID,_rlayerDetails);
+									if (fType)
+										cDomain = fType.domains[fld.name] as CodedValueDomain;
+								}else{
+									cDomain = fld.domain as CodedValueDomain;
+								}
+								
+								if (cDomain){
+									for each (var codedValue:CodedValue in cDomain.codedValues){
+										if (attributes[fld.name] == codedValue.code){
+											attributes[fld.name] = codedValue.name;
+											break;
+										}
+									}
+								}
+							}
+						}
+					} 
+				} 
+				relatesGrid.dataProvider = rcalcMaxLengths(_rdata);
+				if(_rsumField){
+					try{
+						var total:Number = 0;
+						for each (var row:Object in relatesGrid.dataProvider) {
+							total += Number(row[_rsumField]);
+						}
+						if(rsumFormat == "num"){
+							var args:Array = _numFormat.split("|");
+							if(args[0])
+								numFormatter.precision = args[0];
+							if(args[1]){
+								numFormatter.thousandsSeparatorFrom = args[1];
+								numFormatter.thousandsSeparatorTo = args[1];
+							}else{
+								numFormatter.useThousandsSeparator = false;
+							}
+							if(args[2]){
+								numFormatter.decimalSeparatorFrom = args[2];
+								numFormatter.decimalSeparatorTo = args[2];
+							}
+							rtaSum.text = numFormatter.format(total);
+						}else if(rsumFormat == "cur"){
+							var args2:Array = _currFormat.split("|");
+							if(args2[0])
+								currFormatter.currencySymbol = args2[0];
+							if(args2[1])
+								currFormatter.precision = args2[1];
+							if(args2[2]){
+								currFormatter.thousandsSeparatorFrom = args2[2];
+								currFormatter.thousandsSeparatorTo = args2[2];
+							}else{
+								currFormatter.useThousandsSeparator = false;
+							}
+							if(args2[3]){
+								currFormatter.decimalSeparatorFrom = args2[3];
+								currFormatter.decimalSeparatorTo = args2[3];
+							}
+							rtaSum.text = currFormatter.format(total);
+						}else{
+							rtaSum.text = total.toString();
+						}
+					}
+					catch (error:Error)
+					{
+						rsumVisible = false;
+					}
+				} 
+			}
+			
 			private function init():void
 			{
 				AppEvent.addListener(AppEvent.DATA_PUBLISH, sharedDataUpdated);
-				_resultsGrid = resultsGrid;
 			}
 			
 			private function sharedDataUpdated(event:AppEvent):void
@@ -709,11 +1081,38 @@
 						_enableExport = theObj.enableExport;
 					}
 				}
+				if (data.key == "configRelateFixedDatagrid")
+				{
+					if (data.collection[0])
+					{
+						var therObj:Object = data.collection[0];
+						_rlayerDetails = therObj.layerDetails;
+						_rdgFieldAliases = therObj.dgFieldAliases;
+						_rcsvName = therObj.csvName;
+						rsumField(therObj.sumField);
+						_rlabelSum = therObj.labelSum;
+						rdgColumns(therObj.dgColumns);
+						rdgHyperColumns(therObj.dgHyperColumns);
+						rdProvider(therObj.dProvider);
+						_renableExport = therObj.enableExport;
+					}
+				}
+				if (data.key == "clearRelateFixedDatagrid")
+				{
+					if(relatesGrid.dataProvider == null || relatesGrid.dataProvider.length == 0){
+					}else{
+						relatesGrid.dataProvider.removeAll();
+						rsumVisible = false;
+						_renableExport = false;
+					}
+				}
 				if (data.key == "clearFixedDatagrid")
 				{
 					if(resultsGrid.dataProvider == null || resultsGrid.dataProvider.length == 0){
 					}else{
 						resultsGrid.dataProvider.removeAll();
+						sumVisible = false;
+						_enableExport = false;
 					}
 				}
 				if (data.key == "scrollFixedDataGrid")
@@ -723,11 +1122,11 @@
 						Hits.length = 0;
 						for each(var attributes:Object in resultsGrid.dataProvider)
 						{
-							if (attributes.gid === theObj2.searchResultgid)
+							if (attributes.oid === theObj2.searchResultoid)
 							{
 								var myCursor:IViewCursor = resultsGrid.dataProvider.createCursor();
 								while(!myCursor.afterLast){
-									if(myCursor.current.gid == attributes.gid)
+									if(myCursor.current.oid == attributes.oid)
 										Hits.push(myCursor.current);
 									myCursor.moveNext();
 								}
@@ -738,13 +1137,18 @@
 							resultsGrid.scrollToIndex(resultsGrid.selectedIndex);
 					}
 				}
+				if (data.key == "switch2RelateTabFixedDataGrid")
+				{
+					if(tabs.selectedIndex != 1)
+						tabs.selectedIndex = 1;
+				}
 			}
 	
 			private function onItemRollOver(event:ListEvent):void
 			{  
-				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.gid)
+				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
 				_bWidget.highlightDataGroupItem(highlightedGraphic);
-				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.gid)
+				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
 				if(highlightedGraphic){
 					var infoData:Object = highlightedGraphic.attributes;
 					if (map.extent.containsXY(infoData.point.x, infoData.point.y)){
@@ -812,7 +1216,7 @@
 			{
 				resultsGrid.selectedItem
 				if(resultsGrid.selectedItem){
-					highlightedGraphic = findGraphicByAttribute(resultsGrid.selectedItem.gid)
+					highlightedGraphic = findGraphicByAttribute(resultsGrid.selectedItem.oid)
 					_bWidget.highlightDataGroupItem(highlightedGraphic);
 				}
 			}
@@ -820,14 +1224,14 @@
 			private function unhighLightSel(event:Event):void
 			{
 				if(resultsGrid.selectedItem){
-					highlightedGraphic = findGraphicByAttribute(resultsGrid.selectedItem.gid);
+					highlightedGraphic = findGraphicByAttribute(resultsGrid.selectedItem.oid);
 					_bWidget.unhighlightDataGroupItems();
 				}
 			}
 			
 			private function onItemRollOut(event:ListEvent):void
 			{
-				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.gid)
+				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
 				_bWidget.unhighlightDataGroupItems();
 				//hideInfoWindow();
 			}
@@ -836,7 +1240,7 @@
 			{
 				for each( var graphic:Graphic in _graLyr.graphicProvider)
 				{
-					if ( graphic.attributes.gid === attributes)
+					if ( graphic.attributes.oid === attributes)
 					{ 
 						return graphic;
 					}
@@ -846,7 +1250,7 @@
 			
 			private function clickRow(event:ListEvent):void
 			{            		
-				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.gid)
+				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
 				var infoData:Object = highlightedGraphic.attributes;
 				var pt:MapPoint = infoData.point;
 				var map:Map = ViewerContainer.getInstance().mapManager.map;
@@ -886,27 +1290,54 @@
 	</fx:Script>
 	<fx:Declarations>
 		<s:RadioButtonGroup id="optiongroup"/>
+		<s:RadioButtonGroup id="roptiongroup"/>
 	</fx:Declarations>
-	<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}">
-		<s:VGroup gap="0" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" >
-			<mx:DataGrid id="resultsGrid" height="100%" width="100%"
-						 itemRollOver="onItemRollOver(event)"
-						 itemRollOut="onItemRollOut(event)" 
-						 itemClick="clickRow(event)"
-						 rollOut="highLightSel(event)" 
-						 rollOver="unhighLightSel(event)"
-						 wordWrap="false"
-						 horizontalScrollPolicy="auto"
-						 contentBackgroundAlpha="{getStyle('styleAlpha')}"
-						 contentBackgroundColor="{getStyle('chromeColor')}"
-						 alternatingItemColors="{[getStyle('chromeColor'),getStyle('chromeColor')]}"/>
-			<s:HGroup verticalAlign="middle" paddingLeft="4" paddingTop="3" paddingBottom="3" paddingRight="30" horizontalAlign="right" height="34" width="100%" visible="{_enableExport || sumVisible}" includeInLayout="{_enableExport || sumVisible}">
-				<s:Label id="lblSum" text="{_labelSum}" visible="{sumVisible}" includeInLayout="{sumVisible}"/>
-				<s:TextArea id="taSum" heightInLines="1" editable="false" borderVisible="false" visible="{sumVisible}" includeInLayout="{sumVisible}"/>
-				<s:RadioButton label="{_exp2csvBtnLbl}" groupName="optiongroup" selected="true" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
-				<s:RadioButton label="{_exp2txtBtnLbl}" groupName="optiongroup" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
-				<s:Button label="{_exportButtonLbl}" id="Export" click="exportTo(event)" skinClass="widgets.eSearch.ExportButtonSkin" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
-			</s:HGroup>
-		</s:VGroup>
-	</s:SkinnableContainer>
+	<s:VGroup gap="-1" height="100%" width="100%">
+		<s:TabBar id="tabs" dataProvider="{vs}" skinClass="widgets.eSearch.TabBarSkin"/>
+		<mx:ViewStack id="vs" height="100%" width="100%" creationPolicy="all">
+			<s:NavigatorContent label="Search Results" width="100%" height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}">
+				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}">
+					<s:VGroup gap="0" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" >
+						<mx:DataGrid id="resultsGrid" height="100%" width="100%"
+									 itemRollOver="onItemRollOver(event)"
+									 itemRollOut="onItemRollOut(event)" 
+									 itemClick="clickRow(event)"
+									 rollOut="highLightSel(event)" 
+									 rollOver="unhighLightSel(event)"
+									 wordWrap="false"
+									 horizontalScrollPolicy="auto"
+									 contentBackgroundAlpha="{getStyle('styleAlpha')}"
+									 contentBackgroundColor="{getStyle('chromeColor')}"
+									 alternatingItemColors="{[getStyle('chromeColor'),getStyle('chromeColor')]}"/>
+						<s:HGroup verticalAlign="middle" paddingLeft="4" paddingTop="3" paddingBottom="3" paddingRight="30" horizontalAlign="right" height="34" width="100%" visible="{_enableExport || sumVisible}" includeInLayout="{_enableExport || sumVisible}">
+							<s:Label id="lblSum" text="{_labelSum}" visible="{sumVisible}" includeInLayout="{sumVisible}"/>
+							<s:TextArea id="taSum" heightInLines="1" editable="false" borderVisible="false" visible="{sumVisible}" includeInLayout="{sumVisible}"/>
+							<s:RadioButton label="{_exp2csvBtnLbl}" groupName="optiongroup" selected="true" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
+							<s:RadioButton label="{_exp2txtBtnLbl}" groupName="optiongroup" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
+							<s:Button label="{_exportButtonLbl}" id="Export" click="exportTo(event)" skinClass="widgets.eSearch.ExportButtonSkin" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
+						</s:HGroup>
+					</s:VGroup>
+				</s:SkinnableContainer>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Relate Results" width="100%" height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}">
+				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}">
+					<s:VGroup gap="0" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" >
+						<mx:DataGrid id="relatesGrid" height="100%" width="100%"
+									 wordWrap="false"
+									 horizontalScrollPolicy="auto"
+									 contentBackgroundAlpha="{getStyle('styleAlpha')}"
+									 contentBackgroundColor="{getStyle('chromeColor')}"
+									 alternatingItemColors="{[getStyle('chromeColor'),getStyle('chromeColor')]}"/>
+						<s:HGroup verticalAlign="middle" paddingLeft="4" paddingTop="3" paddingBottom="3" paddingRight="30" horizontalAlign="right" height="34" width="100%" visible="{_renableExport || rsumVisible}" includeInLayout="{_renableExport || rsumVisible}">
+							<s:Label id="rlblSum" text="{_rlabelSum}" visible="{rsumVisible}" includeInLayout="{rsumVisible}"/>
+							<s:TextArea id="rtaSum" heightInLines="1" editable="false" borderVisible="false" visible="{rsumVisible}" includeInLayout="{rsumVisible}"/>
+							<s:RadioButton label="{_exp2csvBtnLbl}" groupName="roptiongroup" selected="true" visible="{_renableExport}" includeInLayout="{_renableExport}"/>
+							<s:RadioButton label="{_exp2txtBtnLbl}" groupName="roptiongroup" visible="{_renableExport}" includeInLayout="{_renableExport}"/>
+							<s:Button label="{_exportButtonLbl}" id="rExport" click="rexportTo(event)" skinClass="widgets.eSearch.ExportButtonSkin" visible="{_renableExport}" includeInLayout="{_renableExport}"/>
+						</s:HGroup>
+					</s:VGroup>
+				</s:SkinnableContainer>
+			</s:NavigatorContent>
+		</mx:ViewStack>
+	</s:VGroup>
 </viewer:BaseWidget>
