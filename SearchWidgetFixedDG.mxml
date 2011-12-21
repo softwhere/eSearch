@@ -32,6 +32,7 @@
 			import mx.controls.DataGrid;
 			import mx.controls.Menu;
 			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.core.FlexGlobals;
 			import mx.core.Repeater;
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
@@ -46,6 +47,9 @@
 			import spark.components.Button;
 			
 			import widgets.eSearch.SearchWidget;
+			
+			[Bindable]
+			private var appWidth:Number;
 			
 			private var _data:Object;
 			private var _rdata:Object;
@@ -1051,6 +1055,7 @@
 			private function init():void
 			{
 				AppEvent.addListener(AppEvent.DATA_PUBLISH, sharedDataUpdated);
+				appWidth = FlexGlobals.topLevelApplication.width;
 			}
 			
 			private function sharedDataUpdated(event:AppEvent):void
@@ -1233,7 +1238,6 @@
 			{
 				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
 				_bWidget.unhighlightDataGroupItems();
-				//hideInfoWindow();
 			}
 			
 			public function findGraphicByAttribute(attributes:Object):Graphic
@@ -1295,7 +1299,7 @@
 	<s:VGroup gap="-1" height="100%" width="100%">
 		<s:TabBar id="tabs" dataProvider="{vs}" skinClass="widgets.eSearch.TabBarSkin"/>
 		<mx:ViewStack id="vs" height="100%" width="100%" creationPolicy="all">
-			<s:NavigatorContent label="Search Results" width="100%" height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}">
+			<s:NavigatorContent label="Search Results" width="100%"  height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}">
 				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}">
 					<s:VGroup gap="0" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" >
 						<mx:DataGrid id="resultsGrid" height="100%" width="100%"
@@ -1319,16 +1323,17 @@
 					</s:VGroup>
 				</s:SkinnableContainer>
 			</s:NavigatorContent>
-			<s:NavigatorContent label="Relate Results" width="100%" height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}">
-				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}">
-					<s:VGroup gap="0" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" >
+			<s:NavigatorContent label="Relate Results" width="100%" height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}" maxWidth="{appWidth}">
+				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}" maxWidth="{appWidth}">
+					<s:VGroup gap="0" height="100%" width="100%" horizontalAlign="center" verticalAlign="middle" maxWidth="{appWidth}">
 						<mx:DataGrid id="relatesGrid" height="100%" width="100%"
 									 wordWrap="false"
 									 horizontalScrollPolicy="auto"
 									 contentBackgroundAlpha="{getStyle('styleAlpha')}"
 									 contentBackgroundColor="{getStyle('chromeColor')}"
 									 alternatingItemColors="{[getStyle('chromeColor'),getStyle('chromeColor')]}"/>
-						<s:HGroup verticalAlign="middle" paddingLeft="4" paddingTop="3" paddingBottom="3" paddingRight="30" horizontalAlign="right" height="34" width="100%" visible="{_renableExport || rsumVisible}" includeInLayout="{_renableExport || rsumVisible}">
+						<s:HGroup verticalAlign="middle" paddingLeft="4" paddingTop="3" paddingBottom="3" paddingRight="30" horizontalAlign="right" height="34" width="100%"
+								  visible="{_renableExport || rsumVisible}" includeInLayout="{_renableExport || rsumVisible}">
 							<s:Label id="rlblSum" text="{_rlabelSum}" visible="{rsumVisible}" includeInLayout="{rsumVisible}"/>
 							<s:TextArea id="rtaSum" heightInLines="1" editable="false" borderVisible="false" visible="{rsumVisible}" includeInLayout="{rsumVisible}"/>
 							<s:RadioButton label="{_exp2csvBtnLbl}" groupName="roptiongroup" selected="true" visible="{_renableExport}" includeInLayout="{_renableExport}"/>

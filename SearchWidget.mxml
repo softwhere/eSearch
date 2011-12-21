@@ -15,13 +15,9 @@
 
 <!-- 
 
-Version 2.5.0.5 - 12/8/2011
-* Fixed relates button not showing up unless you first do a text search.
-* re-enabled the polygon and polyline graphical search abilities.
-* When "enable multi-part graphics" is selected and then the Search button is pushed 
-  the graphical searches draw tool is now turned off. Meaning after you click search 
-  you will have to choose a search geometry type button to perform another search.
-* If using the Fixed Datagrid and a relate is chosen then the relate tab is activated. 
+Version 2.5.0.6 - 12/21/2011
+* Fixed issue where in some circumstances the Fixed Data Grid could extent past 
+  the applications width.
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -302,9 +298,9 @@ Version 2.5.0.5 - 12/8/2011
 			private var resultFillSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.0.5";
+			protected const VERSION:String = "2.5.0.6";
 			
-			protected const BUILDDATE:String = "12/8/2011";
+			protected const BUILDDATE:String = "12/21/2011";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;

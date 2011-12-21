@@ -1,4 +1,8 @@
-﻿Version 2.5.0.5 - 12/8/2011
+﻿Version 2.5.0.6 - 12/21/2011
+* Fixed issue where in some circumstances the Fixed Data Grid could 
+  extent past the applications width.
+
+Version 2.5.0.5 - 12/8/2011
 * Fixed relates button not showing up unless you first do a text search.
 * re-enabled the polygon and polyline graphical search abilities.
 * When "enable multi-part graphics" is selected and then the Search button is pushed 

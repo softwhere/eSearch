@@ -130,6 +130,7 @@
 				<field name="ZIP_R" gridfield="true" />
 			</fields>
 			<linkfield></linkfield>
+			<multifieldlink linkalias="View Mon. Ref Sheet" fulllink="http://surveyor.slco.org/gis/map/map_search/mrs_test.cfm?mrspoint=[NAME]&lat=[Length_]&long=[width]" />
 			<icon isfield="false"></icon>
 			<zoomscale usegeometry="true" />
 			<autoopendatagrid>true</autoopendatagrid>
