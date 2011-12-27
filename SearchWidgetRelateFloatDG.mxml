@@ -532,7 +532,10 @@
 					}
 				} 
 				// cleanup:
-				removeElement(uic);
+				try{
+					removeElement(uic);
+				}
+				catch(error:Error){};
 			}
 			
 			private function getLabel(item:Object,column:DataGridColumn):String

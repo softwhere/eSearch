@@ -23,9 +23,16 @@
 				Zoning</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
 			<titlefield>ZONING_NAME</titlefield>
-			<linkfield linkprefix="" linksuffix=""></linkfield>
-			<icon isfield="true" iconprefix="" iconsuffix=""></icon>
 			<fields all="true" />
+			<links>
+				<link includeinresults="false" field="" alias="">
+					<linkprefix></linkprefix>
+					<linksuffix></linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix></iconsuffix>
+				</link>
+			</links>
 			<zoomscale usegeometry="true">10000</zoomscale>
 		</layer>
 		<layer>
@@ -45,8 +52,15 @@
 			<fields all="false">
 				<field name="PARCELID" alias="Parcel Id" />
 			</fields>
-			<linkfield></linkfield>
-			<icon isfield="true"></icon>
+			<links>
+				<link includeinresults="false" field="" alias="">
+					<linkprefix></linkprefix>
+					<linksuffix></linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix></iconsuffix>
+				</link>
+			</links>
 			<zoomscale usegeometry="true">40000</zoomscale>
 		</layer>
 		<layer>
@@ -67,8 +81,15 @@
 				<field name="PD_NAME" alias="Police Dept. Name" />
 				<field name="ADDRESS" alias="Dept. Address" />
 			</fields>
-			<linkfield></linkfield>
-			<icon isfield="true"></icon>
+			<links>
+				<link includeinresults="false" field="" alias="">
+					<linkprefix></linkprefix>
+					<linksuffix></linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix></iconsuffix>
+				</link>
+			</links>
 			<zoomscale usegeometry="true">1000</zoomscale>
 		</layer>
 		<layer>
@@ -91,12 +112,19 @@
 				<field name="URL" alias="Show Image" hyperlinkgridfield="true"
 					hyperlinkaliastext="Get Traffic Image" />
 				<field name="ONLINE" alias="Online" gridfield="true"
-					gridfieldonly="true" />
+					gridfieldonly="false" />
 				<field name="LAST_UPDATED" alias="Last Updated" gridfield="true"
-					gridfieldonly="true" dateformat="MM/DD/YYYY" useutc="true" />
+					gridfieldonly="false" dateformat="MM/DD/YYYY" useutc="true" />
 			</fields>
-			<linkfield>URL</linkfield>
-			<icon isfield="false">assets/images/i_camera.png</icon>
+			<links>
+				<link includeinresults="false" field="URL" alias="">
+					<linkprefix></linkprefix>
+					<linksuffix></linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix>assets/images/i_camera.png</iconsuffix>
+				</link>
+			</links>
 			<zoomscale>5000</zoomscale>
 		</layer>
 		<!-- <layer>
@@ -129,9 +157,15 @@
 				<field name="ZIP_L" gridfield="true" />
 				<field name="ZIP_R" gridfield="true" />
 			</fields>
-			<linkfield></linkfield>
-			<multifieldlink linkalias="View Mon. Ref Sheet" fulllink="http://surveyor.slco.org/gis/map/map_search/mrs_test.cfm?mrspoint=[NAME]&lat=[Length_]&long=[width]" />
-			<icon isfield="false"></icon>
+			<links>
+				<link includeinresults="false" field="" alias="">
+					<linkprefix></linkprefix>
+					<linksuffix></linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix></iconsuffix>
+				</link>
+			</links>
 			<zoomscale usegeometry="true" />
 			<autoopendatagrid>true</autoopendatagrid>
 			<relates>
@@ -194,58 +228,65 @@
 			<spatialsearchlayer>false</spatialsearchlayer> 
 			<titlefield>Type</titlefield>
 			<fields all="false">
-				<field name="URL" alias="Website 
-					Link" hyperlinkgridfield="true" linkprefix="http://someWebSite/aspx/web/details.aspx?p_entity=" 
+				<field name="URL" alias="Website Link" hyperlinkgridfield="true" linkprefix="http://someWebSite/aspx/web/details.aspx?p_entity=" 
 					linksuffix=".aspx"/> <field name="Type" gridfield="true"/>
 				<field name="Temp" gridfield="true"/>
 			</fields>
-			<linkfield linkprefix="http://someWebSite/aspx/web/details.aspx?p_entity=" 
-				linksuffix=".apsx" linkaliastext="Get Site Info">URL</linkfield>
-			<icon isfield="true"/> 
+			<links>
+				<link includeinresults="false" field="URL" alias="Get Site Info">
+					<linkprefix>http://someWebSite/aspx/web/details.aspx?p_entity=</linkprefix>
+					<linksuffix>.apsx</linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix></iconsuffix>
+				</link>
+			</links>
 			<zoomscale>5000</zoomscale>
 		</layer> -->
 		<!-- <layer>
 			<definitionexpression></definitionexpression>
 			<name>Owner Parcels</name> 
 			<enableexport>true</enableexport>
-			<url>http://gislap134/ArcGIS/rest/services/Join_Test/MapServer/0</url> 
+			<url>http://gislap134/ArcGIS/rest/services/ParcelViewer/MapServer/67</url> 
 			<expressions>
-				<expression alias="Parcel PPIN" textsearchlabel="Search Parcel 
-					by PPIN... [ Example: 1234 ]">Upper(parcels2.NAME) LIKE Upper('[value]%')</expression> 
+				<expression alias="Parcel PPIN" textsearchlabel="Search Parcel by PPIN... [ Example: 1234 ]">PPIN = '[value]'</expression> 
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select Parcel</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer> 
 			<titlefield>Objectid</titlefield>
 			<fields all="false">
-				<field name="parcels2.PPIN" gridfield="true" />
-				<field name="parcels2.NAME" gridfield="true" />
-				<field name="parcels2.STREET_ADDRESS" gridfield="true" />
-				<field name="parcels2.USE_CODE" gridfield="true" />
-				<field name="parcels2.CALC_ACRES" gridfield="true" /> 
-				<field name="parcels2.EXEMPTION_CODE1" gridfield="true" />
-				<field name="parcels2.ADDRESS_1" gridfield="true" gridfieldonly="true" />
-				<field name="parcels2.ADDRESS_3" gridfield="true" gridfieldonly="true" />
-				<field name="parcels2.PRIOR_TAX_YEAR" gridfield="true" />
-				<field name="parcels2.SALE_DATE" gridfield="true" dateformat="MM/DD/YYYY" useutc="true"/>
-				<field name="parcels2.LAST_DEED_BOOK" gridfield="true"/> 
-				<field name="parcels2.LAST_DEED_PAGE" gridfield="true"/>
-				<field name="parcels2.ZIPCODE_1" gridfield="true" gridfieldonly="true"/>
-				<field name="parcels2.NEIGHBORHOOD" gridfield="true" gridfieldonly="true"/>
-				<field name="parcels2.SUBDIVISION" gridfield="true"/>
-				<field name="parcels2.SALE_PRICE" gridfield="true" currencyformat="$|2|,|." 
-					sum="true" sumlabel="Sales Price: "/>
-				<field name="parcels2.TOTAL_TRUE" gridfield="true" currencyformat="$|2|,|." />
-				<field name="parcels2.LAND_PRICE" gridfield="true" currencyformat="$|2|,|." />
-				<field name="parcels2.IMPR_PRICE" gridfield="true" currencyformat="$|2|,|." />
-				<field name="parcels2.ADJ_PRICE" gridfield="true" currencyformat="$|2|,|." />
-				<field name="parcels2.OVER_COND" hyperlinkgridfield="true" 
-					hyperlinkaliastext="Click here for document" 
-					linkprefix="http://someWebSite/aspx/web/details.aspx?p_entity=" linksuffix=""/>
+				<field name="PPIN" gridfield="true" />
+				<field name="NAME" gridfield="true" />
+				<field name="STREET_ADDRESS" gridfield="true" />
+				<field name="USE_CODE" gridfield="true" />
+				<field name="CALC_ACRES" gridfield="true" /> 
+				<field name="EXEMPTION_CODE1" gridfield="true" />
+				<field name="ADDRESS_1" gridfield="true" gridfieldonly="true" />
+				<field name="ADDRESS_3" gridfield="true" gridfieldonly="true" />
+				<field name="PRIOR_TAX_YEAR" gridfield="true" />
+				<field name="SALE_DATE" gridfield="true" dateformat="MM/DD/YYYY" useutc="true"/>
+				<field name="LAST_DEED_BOOK" gridfield="true"/> 
+				<field name="LAST_DEED_PAGE" gridfield="true"/>
+				<field name="ZIPCODE_1" gridfield="true" gridfieldonly="true"/>
+				<field name="NEIGHBORHOOD" gridfield="true" gridfieldonly="true"/>
+				<field name="SUBDIVISION" gridfield="true"/>
+				<field name="SALE_PRICE" gridfield="true" currencyformat="$|2|,|." sum="true" sumlabel="Sales Price: "/>
+				<field name="TOTAL_TRUE" gridfield="true" currencyformat="$|2|,|." />
+				<field name="LAND_PRICE" gridfield="true" currencyformat="$|2|,|." />
+				<field name="IMPR_PRICE" gridfield="true" currencyformat="$|2|,|." />
+				<field name="ADJ_PRICE" gridfield="true" currencyformat="$|2|,|." />
+				<field name="OVER_COND" gridfield="true"/>
 				<field name="ADJUSTMENT PRICE" gridfield="true"/>
 			</fields> 
-			<linkfield linkprefix="http://someWebSite/aspx/web/details.aspx?p_entity=" 
-				linksuffix="">parcels2.OVER_COND</linkfield>
-			<icon isfield="true"></icon> 
+			<links>
+				<link includeinresults="false" field="" alias="">
+					<linkprefix></linkprefix>
+					<linksuffix></linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix></iconsuffix>
+				</link>
+			</links>
 			<zoomscale>5000</zoomscale>
 		</layer> -->
 	</layers>
@@ -297,7 +338,7 @@
 	<enablebuffergraphicbutton>true</enablebuffergraphicbutton>
 	<selectedgraphicaltool></selectedgraphicaltool><!-- possible values are extent or polygon or mappoint or polyline or nothing -->
 	<multipartgraphicsearch>true</multipartgraphicsearch>
-	<floatorfixed>fixed</floatorfixed><!-- possible values are fixed and float -->
+	<floatorfixed>float</floatorfixed><!-- possible values are fixed and float -->
 	<relatetooltip>Show Relates</relatetooltip>
 	<relateicon>widgets/eSearch/assets/images/i_relate.png</relateicon>
 	<labels>

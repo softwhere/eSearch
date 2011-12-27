@@ -68,7 +68,20 @@
                     }
                     resultIcon.addChild(lastResultSwatch);
 					selected = searchResult.selected;
-					linkicon = (searchResult.linkicon != null)?searchResult.linkicon:"assets/images/w_link.png";
+					for(var l:int = 0; l < searchResult.links.length; l++){
+						if(linkGroup.numElements >= (searchResult.links.length + 1))
+							continue;
+						
+						var lImg:Image = new Image();
+						lImg.width = lImg.height = 18;
+						lImg.buttonMode = lImg.useHandCursor = true;
+						lImg.source = (searchResult.links[l].icon != null)?searchResult.links[l].icon:"assets/images/w_link.png";
+						lImg.addEventListener(MouseEvent.CLICK, showLink);
+						lImg.name = searchResult.links[l].link;
+						linkGroup.addElementAt(lImg,0);
+					}
+					if(searchResult.links[0].link)
+						linkGroup.includeInLayout = linkGroup.visible = true;
 					relateicon = (searchResult.relateicon != null)?searchResult.relateicon:"widgets/eSearch/assets/images/i_relate.png";
 					relatetooltip = (searchResult.relatetooltip != null)?searchResult.relatetooltip:"Show relates";
                 }
@@ -91,8 +104,8 @@
 
             private function showLink(event:MouseEvent):void
             {
-                event.stopImmediatePropagation(); // don't dispatch SEARCH_RESULT_CLICK since we don't want to zoom to feature
-                navigateToURL(new URLRequest(searchResult.link));
+				event.stopImmediatePropagation(); // don't dispatch ID_RESULT_CLICK since we don't want to zoom to feature
+				navigateToURL(new URLRequest(event.currentTarget.name));
             }
 			
 			private function showRelate(event:MouseEvent):void
@@ -127,49 +140,53 @@
                            color.normal="{getStyle('contentBackgroundColor')}"/>
         </s:fill>
     </s:Rect>
-
-    <s:HGroup width="100%" height="100%"
-              paddingBottom="3"
-              paddingLeft="3"
-              paddingRight="3"
-              paddingTop="3"
-              verticalAlign="middle">
-        <mx:UIComponent id="resultIcon"
-                        width="100%" height="100%"
-                        maxHeight="20"
-                        maxWidth="20">
-            <mx:filters>
-                <mx:GlowFilter alpha="0.5"
-                               blurX="10"
-                               blurY="10"
-                               color="#000000"/>
-            </mx:filters>
-        </mx:UIComponent>
-        <s:VGroup width="100%" height="100%"
-                  verticalAlign="middle">
-            <s:Label width="100%"
-                     fontWeight="bold"
-                     maxDisplayedLines="1"
-                     text="{searchResult.title}"/>
-            <s:Label width="100%"
-                     fontWeight="normal"
-                     maxDisplayedLines="-1"
-                     text="{searchResult.content}"/>
-        </s:VGroup>
-        <mx:Image width="20" height="20"
-                  buttonMode="true"
-                  click="showLink(event)"
-                  includeInLayout="{searchResult.link != null}"
-				  source="{linkicon}"
-                  useHandCursor="true"
-                  visible="{searchResult.link != null}"/>
-		<mx:Image width="20" height="20"
-				  buttonMode="true"
-				  click="showRelate(event)"
-				  includeInLayout="{searchResult.relates != null}"
-				  source="{relateicon}"
-				  useHandCursor="true"
-				  toolTip="{relatetooltip}"
-				  visible="{searchResult.relates != null}"/>
-    </s:HGroup>
+	<s:VGroup minHeight="30"
+			  paddingLeft="5"
+			  paddingRight="5"
+			  paddingBottom="2"
+			  paddingTop="4"
+			  width="97%"
+			  verticalAlign="middle">
+		<s:HGroup width="100%" height="100%"
+				  paddingBottom="3"
+				  paddingLeft="3"
+				  paddingRight="3"
+				  paddingTop="3"
+				  verticalAlign="middle">
+			<mx:UIComponent id="resultIcon"
+							width="100%" height="100%"
+							maxHeight="20"
+							maxWidth="20">
+				<mx:filters>
+					<mx:GlowFilter alpha="0.5"
+								   blurX="10"
+								   blurY="10"
+								   color="#000000"/>
+				</mx:filters>
+			</mx:UIComponent>
+			<s:VGroup width="100%" height="100%"
+					  verticalAlign="middle">
+				<s:Label width="100%"
+						 fontWeight="bold"
+						 maxDisplayedLines="1"
+						 text="{searchResult.title}"/>
+				<s:Label width="100%"
+						 fontWeight="normal"
+						 maxDisplayedLines="-1"
+						 text="{searchResult.content}"/>
+			</s:VGroup>
+		</s:HGroup>
+		<s:HGroup gap="8" id="linkGroup" height="18"
+				  verticalAlign="middle" horizontalAlign="center"
+				  width="100%">
+			<mx:Image width="20" height="20"
+					  buttonMode="true"
+					  click="showRelate(event)"
+					  includeInLayout="{searchResult.relates != null}"
+					  source="{relateicon}"
+					  useHandCursor="true"
+					  toolTip="{relatetooltip}"
+					  visible="{searchResult.relates != null}"/>
+		</s:HGroup>
+	</s:VGroup>
 </s:ItemRenderer>

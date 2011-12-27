@@ -615,7 +615,10 @@
 					}
 				}
 				// cleanup:
-				removeElement(uic);
+				try{
+					removeElement(uic);
+				}
+				catch(error:Error){};
 			}
 			
 			
@@ -1177,7 +1180,7 @@
 			{
 				var showHighlightPoint:MapPoint = infoData.point as MapPoint;
 				
-				popUpRenderer.popUpInfo = configurePopUpInfo(infoData.graphic.attributes.link, infoData.graphic.attributes.linkalias);
+				popUpRenderer.popUpInfo = configurePopUpInfo(infoData.graphic.attributes.links);
 				popUpRenderer.graphic = infoData.graphic;
 				popUpRenderer.setStyle("skinClass", widgets.eSearch.PopUpRendererSkin);
 				map.infoWindow.content = popUpRenderer;
@@ -1185,31 +1188,26 @@
 				map.infoWindow.show(showHighlightPoint);
 			}
 			
-			private function configurePopUpInfo(link:String, linkalias:String=""):PopUpInfo
+			private function configurePopUpInfo(links:Array):PopUpInfo
 			{
 				var popUpInfo:PopUpInfo = new PopUpInfo;
 				
 				popUpInfo.title = "{title}";
 				popUpInfo.description = "{content}";
 				
-				if (link)
-				{
-					var pos:Number = link.length - 4;
-					var sfx:String = link.substr(pos, 4).toLowerCase();
-					if ((sfx == ".jpg") || (sfx == ".png") || (sfx == ".gif")) // use PopUpMediaInfo if it is an image
-					{
-						var popUpMediaInfo:PopUpMediaInfo = new PopUpMediaInfo;
-						popUpMediaInfo.type = PopUpMediaInfo.IMAGE;
-						popUpMediaInfo.imageLinkURL = link;
-						popUpMediaInfo.imageSourceURL = link;
-						popUpInfo.popUpMediaInfos = [ popUpMediaInfo ];
-					}
-					else
-					{
-						if(linkalias!=""){
-							popUpInfo.description += "<br/><a href='{link}'>" + linkalias + "</a>";
+				for(var l:int=0; l<links.length; l++){
+					if (links[l].link){
+						var pos:Number = links[l].link.length - 4;
+						var sfx:String = String(links[l].link).substr(pos, 4).toLowerCase();
+						if ((sfx == ".jpg") || (sfx == ".png") || (sfx == ".gif")){ // use PopUpMediaInfo if it is an image
+							var popUpMediaInfo:PopUpMediaInfo = new PopUpMediaInfo;
+							popUpMediaInfo.type = PopUpMediaInfo.IMAGE;
+							popUpMediaInfo.imageLinkURL = links[l].link;
+							popUpMediaInfo.imageSourceURL = links[l].link;
+							popUpInfo.popUpMediaInfos = [ popUpMediaInfo ];
 						}else{
-							popUpInfo.description += "<br/><a href='{link}'>{link}</a>";
+							var lText:String = (links[l].alias != "") ? links[l].alias : links[l].link;
+							popUpInfo.description += "<br /><a href='" + links[l].link + "'>" + lText + "</a>"
 						}
 					}
 				}

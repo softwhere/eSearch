@@ -34,9 +34,11 @@ package widgets.eSearch
 	
 	    public var point:MapPoint;
 	
-	    public var link:String;
+	    //public var link:String;
 		
-		public var linkalias:String;
+		//public var linkalias:String;
+		
+		public var links:Array = [];
 	
 	    public var geometry:Geometry;
 		
@@ -48,7 +50,7 @@ package widgets.eSearch
 		
 		public var multi:String;
 		
-		public var linkicon:String;
+		//public var linkicon:String;
 		
 		public var relateicon:String;
 		

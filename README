@@ -1,4 +1,8 @@
-﻿Version 2.5.0.6 - 12/21/2011
+﻿Version 2.5.0.7 - 12/27/2011
+* Fixed issue with datagrids when compiled using the Adobe 4.5.1 SDK
+* Added Multiple Link Support.
+
+Version 2.5.0.6 - 12/21/2011
 * Fixed issue where in some circumstances the Fixed Data Grid could 
   extent past the applications width.
 

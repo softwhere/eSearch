@@ -15,9 +15,9 @@
 
 <!-- 
 
-Version 2.5.0.6 - 12/21/2011
-* Fixed issue where in some circumstances the Fixed Data Grid could extent past 
-  the applications width.
+Version 2.5.0.7 - 12/27/2011
+* Fixed issue with datagrids when compiled using the Adobe 4.5.1 SDK
+* Added Multiple Link Support.
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -219,13 +219,8 @@ Version 2.5.0.6 - 12/21/2011
 			private var qrelateFields:Array = [];
 			private var relateHyperFields:Array = [];
 			private var queryTitleField:String;
-			private var queryLinkPre:String = "";
-			private var queryLinkField:String = "";
-			private var queryLinkSuffix:String = "";
-			private var queryLinkAlias:String = "";
-			private var queryLinkIcon:String = "";
-			private var queryLinkIconPre:String = "";
-			private var queryLinkIconSuffix:String = "";
+			private var qLinks:Array = [];
+			private var lyrQLinks:Array = [];
 			private var queryDefExpr:String = "";
 			private var queryLinkIconIsField:Boolean;
 			private var queryEnableExport:Boolean;
@@ -298,9 +293,9 @@ Version 2.5.0.6 - 12/21/2011
 			private var resultFillSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.0.6";
+			protected const VERSION:String = "2.5.0.7";
 			
-			protected const BUILDDATE:String = "12/21/2011";
+			protected const BUILDDATE:String = "12/27/2011";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
@@ -501,16 +496,31 @@ Version 2.5.0.6 - 12/21/2011
 						var lyrDefExpr:String = lyrList[i].definitionexpression;
 						var lyrFields:XMLList = lyrList[i].fields;
 						var lyrTitleField:String = lyrList[i].titlefield;
-						var lyrLinkField:String = lyrList[i].linkfield;
-						var lyrLinkPre:String = lyrList[i].linkfield.@linkprefix;
-						var lyrLinkSuffix:String = lyrList[i].linkfield.@linksuffix;
-						var lyrLinkAlias:String = lyrList[i].linkfield.@linkaliastext;
-						var lyrLinkIcon:String = lyrList[i].icon;
-						var lyrLinkIconIsField:Boolean = lyrList[i].icon.@isfield && lyrList[i].icon.@isfield == "true";
-						var lyrLinkIconPre:String = lyrList[i].icon.@iconprefix;
-						var lyrLinkIconSuffix:String = lyrList[i].icon.@iconsuffix;
-						var lyrEnableExport:Boolean = lyrList[i].enableexport && lyrList[i].enableexport == "true";
 						
+						var lyrLinks:Array = [];
+						var lyrLinkList:XMLList = lyrList[i]..link;
+						for (var l:Number = 0; l < lyrLinkList.length(); l++){
+							var lyrLinkAlias:String = lyrLinkList[l].@alias || "";
+							var lyrLinkField:String = lyrLinkList[l].@field || "";
+							var lyrLinkPre:String = lyrLinkList[l].linkprefix || "";
+							var lyrLinkSuffix:String = lyrLinkList[l].linksuffix || "";
+							var lyrLinkIconField:String = lyrLinkList[l].iconfield || "";
+							var lyrLinkIconPre:String = lyrLinkList[l].iconprefix || "";
+							var lyrLinkIconSuffix:String = lyrLinkList[l].iconsuffix || "";
+							var incLinkInRslts:Boolean = lyrLinkList[l].@includeinresults && lyrLinkList[l].@includeinresults == "true";
+							var linkObj:Object = {
+								field: lyrLinkField,
+								pre: lyrLinkPre,
+								suf: lyrLinkSuffix,
+								inc: incLinkInRslts,
+								alias: lyrLinkAlias,
+								icon: lyrLinkIconField,
+								iconpre: lyrLinkIconPre,
+								iconsuf: lyrLinkIconSuffix
+							}
+							lyrLinks.push(linkObj);
+						}
+						var lyrEnableExport:Boolean = lyrList[i].enableexport && lyrList[i].enableexport == "true";
 						var lyrMultiImgField:String = lyrList[i].multiimagefield;
 						var useProxy:Boolean = lyrList[i].useproxy && lyrList[i].useproxy == "true";
 						var useAMF:String = lyrList[i].useamf;
@@ -562,14 +572,7 @@ Version 2.5.0.6 - 12/21/2011
 							graphicallabel: lyrGraphicalLabel,
 							expr: configLayerExprs,
 							fields: lyrFields,
-							linkpre: lyrLinkPre,
-							linkfield: lyrLinkField,
-							linksuffix: lyrLinkSuffix,
-							linkalias: lyrLinkAlias,
-							linkiconpre: lyrLinkIconPre,
-							linkicon: lyrLinkIcon,
-							linkiconisfield: lyrLinkIconIsField,
-							linkiconsuffix: lyrLinkIconSuffix,
+							links: lyrLinks,
 							multi: lyrMultiImgField,
 							zoomscale: zoomScale,
 							enableexport: lyrEnableExport,
@@ -803,6 +806,7 @@ Version 2.5.0.6 - 12/21/2011
 				sumField = "";
 				gridFields = [];
 				gridHyperFields = [];
+				
 								
 				if (queryFields){
 					gfields = queryFields.field;
@@ -909,14 +913,7 @@ Version 2.5.0.6 - 12/21/2011
 				}
 				
 				queryTitleField = configSearchText[slayerId].titlefield;
-				queryLinkPre = configSearchText[slayerId].linkpre;
-				queryLinkAlias = configSearchText[slayerId].linkalias;
-				queryLinkField = configSearchText[slayerId].linkfield;
-				queryLinkSuffix = configSearchText[slayerId].linksuffix;
-				queryLinkIconPre = configSearchText[slayerId].linkiconpre;
-				queryLinkIcon = configSearchText[slayerId].linkicon;
-				queryLinkIconIsField = configSearchText[slayerId].linkiconisfield;
-				queryLinkIconSuffix = configSearchText[slayerId].linkiconsuffix;
+				qLinks = configSearchText[slayerId].links;
 				queryMultiImgField = configSearchText[slayerId].multi;
 				queryEnableExport = configSearchText[slayerId].enableexport;
 				var fields:XMLList;
@@ -1503,14 +1500,7 @@ Version 2.5.0.6 - 12/21/2011
 				}
 				
 				queryTitleField = configSearchText[i].titlefield;
-				queryLinkPre = configSearchText[i].linkpre;
-				queryLinkAlias = configSearchText[i].linkalias;
-				queryLinkField = configSearchText[i].linkfield;
-				queryLinkSuffix = configSearchText[i].linksuffix;
-				queryLinkIconPre = configSearchText[i].linkiconpre;
-				queryLinkIcon = configSearchText[i].linkicon;
-				queryLinkIconIsField = configSearchText[i].linkiconisfield;
-				queryLinkIconSuffix = configSearchText[i].linkiconsuffix;
+				qLinks = configSearchText[i].links;
 				queryMultiImgField = configSearchText[i].multi;
 				queryEnableExport = configSearchText[i].enableexport;
 				openDataGrid = configSearchText[i].opendg;
@@ -1741,14 +1731,8 @@ Version 2.5.0.6 - 12/21/2011
 					}
 				}
 				queryTitleField = layerConfig.titlefield;
-				queryLinkPre = layerConfig.linkpre;
-				queryLinkField = layerConfig.linkfield;
-				queryLinkSuffix = layerConfig.linksuffix;
-				queryLinkAlias =  layerConfig.linkalias;
-				queryLinkIconPre = layerConfig.linkiconpre;
-				queryLinkIcon = layerConfig.linkicon;
-				queryLinkIconSuffix = layerConfig.linkiconsuffix;
-				queryLinkIconIsField = layerConfig.linkiconisfield;
+				qLinks = layerConfig.links;
+				//queryLinkIconIsField = layerConfig.linkiconisfield;
 				queryMultiImgField = layerConfig.multi;
 				queryExprForSpatRel = layerConfig.useforspatial;
 				queryEnableExport = layerConfig.enableexport;
@@ -2059,35 +2043,150 @@ Version 2.5.0.6 - 12/21/2011
 				layerDetails = queryLayer.layerDetails;
 				var fields:XMLList = queryFields ? queryFields.field : null;
 				
+				lyrQLinks = [];
+				
 				var result:ArrayCollection = new ArrayCollection();
 				if (!queryTitleField)
 					queryTitleField = featureSet.displayFieldName;
+				
+				
+				//Go through the fields looking for the links
+				var excludeLinkinResults:ArrayCollection = new ArrayCollection();
+				var obj:Object = featureSet.features[0].attributes;
+				for (var a:int = 0; a < qLinks.length; a++){
+					var link:String = "";
+					var linkicon:String = "";
+					var alias:String = "";
+					if (queryFields && queryFields[0].@all[0] == "true"){
+						if (layerDetails.fields){
+							for each (var field:Field in layerDetails.fields){
+								var val:String;
+								try{	        	    		       
+									val = obj[field.name] ? String(obj[field.name]) : "";
+								} catch (error: Error){
+									val = "";
+								}
+								if (field.name.toUpperCase() == qLinks[a].field.toUpperCase() || field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
+									if (field.name.toUpperCase() == qLinks[a].field.toUpperCase()){
+										if(qLinks[a].alias)
+											alias = qLinks[a].alias;
+										//Add the field name if the link field is to be included in the
+										//results as well as used for a link.
+										if(!qLinks[a].inc)
+											excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
+										//concatenate
+										if(val != "" && val != "Null")
+											link = qLinks[a].pre + val + qLinks[a].suf;
+										if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
+											linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
+										if(field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
+											//concatenate
+											if(val != "" && val != "Null"){
+												linkicon = qLinks[a].iconpre + val + qLinks[a].iconsuf;
+											}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
+												linkicon = qLinks[a].iconpre + val + qLinks[a].iconsuf;
+											}
+										}
+									}
+								}
+							}
+						}else{
+							for (var fieldName:String in graphic.attributes){
+								var val2:String;
+								try{	        	    		       
+									val2 = obj[fieldName] ? String(obj[fieldName]) : "";
+								} catch (error: Error){
+									val2 = "";
+								}
+								if (fieldName.toUpperCase() == qLinks[a].field.toUpperCase() || fieldName.toUpperCase() == qLinks[a].icon.toUpperCase()){
+									if (fieldName.toUpperCase() == qLinks[a].field.toUpperCase()){
+										if(qLinks[a].alias)
+											alias = qLinks[a].alias;
+										//Add the field name if the link field is to be included in the
+										//results as well as used for a link.
+										if(!qLinks[a].inc)
+											excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
+										//concatenate
+										if(val2 != "" && val2 != "Null")
+											link = qLinks[a].pre + val2 + qLinks[a].suf;
+										if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
+											linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
+										if(field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
+											//concatenate
+											if(val2 != "" && val2 != "Null"){
+												linkicon = qLinks[a].iconpre + val2 + qLinks[a].iconsuf;
+											}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
+												linkicon = qLinks[a].iconpre + val2 + qLinks[a].iconsuf;
+											}
+										}
+									}
+								}
+							}
+						}
+					}else{
+						for each (var fieldXML:XML in fields){ // display the fields in the same order as specified
+							var val3:String;
+							try{	        	    		       
+								val3 = obj[fieldXML.@name[0]] ? String(obj[fieldXML.@name[0]]) : "";
+							} catch (error: Error){
+								val3 = "";
+							}
+							if (fieldXML.@name[0].toUpperCase() == qLinks[a].field.toUpperCase() || fieldXML.@name[0].toUpperCase() == qLinks[a].icon.toUpperCase()){
+								if (fieldXML.@name[0].toUpperCase() == qLinks[a].field.toUpperCase()){
+									if(qLinks[a].alias)
+										alias = qLinks[a].alias;
+									//Add the field name if the link field is to be included in the
+									//results as well as used for a link.
+									if(!qLinks[a].inc)
+										excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
+									//concatenate
+									if(val3 != "" && val3 != "Null")
+										link = qLinks[a].pre + val3 + qLinks[a].suf;
+									if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
+										linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
+									if(fieldXML.@name[0].toUpperCase() == qLinks[a].icon.toUpperCase()){
+										//concatenate
+										if(val3 != "" && val3 != "Null"){
+											linkicon = qLinks[a].iconpre + val3 + qLinks[a].iconsuf;
+										}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
+											linkicon = qLinks[a].iconpre + val3 + qLinks[a].iconsuf;
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					var lObj:Object ={
+						link: link,
+						icon: linkicon,
+						alias: alias
+					}
+					lyrQLinks.push(lObj);
+				}
 				
 				for each (var graphic:Graphic in featureSet.features){
 					var value:String = "";
 					var title:String = "";
 					var content:String = "";
-					var link:String = "";
 					var multi:String = "";
-					var linkicon:String = "";
-					
 					fldAliases = featureSet.fieldAliases;
 					
 					if (queryFields && queryFields[0].@all[0] == "true"){
 						if (layerDetails.fields){
-							for each (var field:Field in layerDetails.fields){
-								if (field.name in graphic.attributes)
-									displayFields(field.name, getFieldXML(field.name, fields), field);
+							for each (var field2:Field in layerDetails.fields){
+								if (field2.name in graphic.attributes)
+									displayFields(field.name, getFieldXML(field2.name, fields), field);
 							}
 						}else{
-							for (var fieldName:String in graphic.attributes){
-								displayFields(fieldName, getFieldXML(fieldName, fields), null);
+							for (var fieldName2:String in graphic.attributes){
+								displayFields(fieldName, getFieldXML(fieldName2, fields), null);
 							}
 						}
 					}else{
-						for each (var fieldXML:XML in fields){ // display the fields in the same order as specified
-							if (fieldXML.@name[0] in graphic.attributes)
-								displayFields(fieldXML.@name[0], fieldXML, getField(fieldXML.@name[0]));
+						for each (var fieldXML2:XML in fields){ // display the fields in the same order as specified
+							if (fieldXML2.@name[0] in graphic.attributes)
+								displayFields(fieldXML2.@name[0], fieldXML2, getField(fieldXML2.@name[0]));
 						}
 					}
 					
@@ -2173,55 +2272,44 @@ Version 2.5.0.6 - 12/21/2011
 							if (!title)
 								title = widgetTitle;
 						}
-						if (fieldName.toUpperCase() == queryLinkField.toUpperCase())
-						{
-							if(value != "" && value != " ")
-								link = queryLinkPre + value + queryLinkSuffix; //concatenate
-							else
-								link = "";
-						}
-						
-						if (fieldName.toUpperCase() == queryLinkIcon.toUpperCase())
-							linkicon = queryLinkIconPre + value + queryLinkIconSuffix;
 						if (fieldName.toUpperCase() == queryMultiImgField.toUpperCase())
 							multi = value;
 						if (fieldName.toUpperCase() != "SHAPE_LENGTH" && fieldName.toUpperCase() != "SHAPE_AREA"
-							&& fieldName.toUpperCase() != queryMultiImgField.toUpperCase() && fieldName.toUpperCase() != queryLinkIcon.toUpperCase()
-							&& fieldName.toUpperCase() != queryLinkField.toUpperCase() && fieldName.toUpperCase() != queryTitleField.toUpperCase()){
+							&& fieldName.toUpperCase() != queryMultiImgField.toUpperCase() && fieldName.toUpperCase() != queryTitleField.toUpperCase()){
 							if(fieldXML){
-								if(fieldXML.@gridfieldonly[0] || fieldXML.@hyperlinkgridfieldonly[0]){
+								if(fieldXML.@gridfieldonly[0] && fieldXML.@gridfieldonly[0] == "true" || 
+									fieldXML.@hyperlinkgridfieldonly[0] && fieldXML.@hyperlinkgridfieldonly[0] == "true"){
 								 //ignore
 								}else{
-									if (fieldXML && fieldXML.@alias[0])
-										content += fieldXML.@alias[0];
-									else
-										content += featureSet.fieldAliases[fieldName];
-									content += ": " + value + "\n";
+									if(!excludeLinkinResults.contains(fieldName.toUpperCase())){
+										if (fieldXML && fieldXML.@alias[0])
+											content += fieldXML.@alias[0];
+										else
+											content += featureSet.fieldAliases[fieldName];
+										content += ": " + value + "\n";
+									}
 								}
 							}else{
 								if(fieldName != "oid"){
-									content += featureSet.fieldAliases[fieldName];
-									content += ": " + value + "\n";
+									if(!excludeLinkinResults.contains(fieldName.toUpperCase())){
+										content += featureSet.fieldAliases[fieldName];
+										content += ": " + value + "\n";
+									}
 								}
 							} 
 						}
-					}
-					if(!queryLinkIconIsField)
-						linkicon = queryLinkIconPre + queryLinkIcon + queryLinkIconSuffix;
-						
+					}						
 					graphic.checkForMouseListeners = false;
 					
 					var searchResult:SearchResult = new SearchResult();
 					searchResult.title = title;
 					searchResult.content = content;
 					searchResult.point = getGeomCenter(graphic);
-					searchResult.link = (link != "") ? link : null;
-					searchResult.linkicon = linkicon ? linkicon : null;
+					searchResult.links = lyrQLinks;
 					searchResult.relateicon = relateIcon ? relateIcon : null;
 					searchResult.geometry = graphic.geometry;
 					searchResult.multi = multi ? multi :null;
 					searchResult.oid = graphic.attributes[queryLayer.layerDetails.objectIdField];
-					searchResult.linkalias = queryLinkAlias;
 					searchResult.graphic = graphic;
 					searchResult.relates = queryRelates;
 					searchResult.relatetooltip = relateToolTip;
@@ -2250,7 +2338,7 @@ Version 2.5.0.6 - 12/21/2011
 						graphicsLayer.add(graphic);
 					// infowWindowRenderer on each graphic
 					var infoWindowRenderer:ClassFactory = new ClassFactory(PopUpRenderer);
-					infoWindowRenderer.properties = { popUpInfo: configurePopUpInfo(link, queryLinkAlias)};
+					infoWindowRenderer.properties = {popUpInfo:configurePopUpInfo(lyrQLinks)};
 					graphic.infoWindowRenderer = infoWindowRenderer;
 				}
 				return result;
@@ -3300,7 +3388,7 @@ Version 2.5.0.6 - 12/21/2011
 			private function showHighlight(params:Array):void
 			{
 				var showHighlightPoint:MapPoint = params[0].point as MapPoint;
-				popUpRenderer.popUpInfo = configurePopUpInfo(params[0].graphic.attributes.link, params[0].graphic.attributes.linkalias);
+				popUpRenderer.popUpInfo = configurePopUpInfo(params[0].graphic.attributes.links);
 				popUpRenderer.graphic = params[0].graphic;
 				popUpRenderer.setStyle("skinClass", widgets.eSearch.PopUpRendererSkin);
 				map.infoWindow.content = popUpRenderer;
@@ -3308,26 +3396,26 @@ Version 2.5.0.6 - 12/21/2011
 				map.infoWindow.show(showHighlightPoint);
 			}
 			
-			private function configurePopUpInfo(link:String, linkalias:String=""):PopUpInfo
+			private function configurePopUpInfo(links:Array):PopUpInfo
 			{
 				var popUpInfo:PopUpInfo = new PopUpInfo;
 				popUpInfo.title = "{title}";
 				popUpInfo.description = "{content}";
 				
-				if (link){
-					var pos:Number = link.length - 4;
-					var sfx:String = link.substr(pos, 4).toLowerCase();
-					if ((sfx == ".jpg") || (sfx == ".png") || (sfx == ".gif")){ // use PopUpMediaInfo if it is an image
-						var popUpMediaInfo:PopUpMediaInfo = new PopUpMediaInfo;
-						popUpMediaInfo.type = PopUpMediaInfo.IMAGE;
-						popUpMediaInfo.imageLinkURL = link;
-						popUpMediaInfo.imageSourceURL = link;
-						popUpInfo.popUpMediaInfos = [ popUpMediaInfo ];
-					}else{
-						if(linkalias!="")
-							popUpInfo.description += "<br/><a href='{link}'>" + linkalias + "</a>";
-						else
-							popUpInfo.description += "<br/><a href='{link}'>{link}</a>";
+				for(var l:int=0; l<links.length; l++){
+					if (links[l].link){
+						var pos:Number = links[l].link.length - 4;
+						var sfx:String = String(links[l].link).substr(pos, 4).toLowerCase();
+						if ((sfx == ".jpg") || (sfx == ".png") || (sfx == ".gif")){ // use PopUpMediaInfo if it is an image
+							var popUpMediaInfo:PopUpMediaInfo = new PopUpMediaInfo;
+							popUpMediaInfo.type = PopUpMediaInfo.IMAGE;
+							popUpMediaInfo.imageLinkURL = links[l].link;
+							popUpMediaInfo.imageSourceURL = links[l].link;
+							popUpInfo.popUpMediaInfos = [ popUpMediaInfo ];
+						}else{
+							var lText:String = (links[l].alias != "") ? links[l].alias : links[l].link;
+							popUpInfo.description += "<br /><a href='" + links[l].link + "'>" + lText + "</a>"
+						}
 					}
 				}
 				
