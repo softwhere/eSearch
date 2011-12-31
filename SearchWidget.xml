@@ -7,12 +7,10 @@
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Louisville Zoning</name>
-			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_LandRecords_Louisville/MapServer/2
-			</url>
+			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_LandRecords_Louisville/MapServer/2</url>
 			<expressions>
 				<expression alias="Zoning Code" textsearchlabel="Search Zoning Code [ Example: OR1 ]:"
-					userlist="OR1,C2,OTF">upper(ZONING_CODE) = upper('[value]')
-				</expression>
+					userlist="OR1,C2,OTF">upper(ZONING_CODE) = upper('[value]')</expression>
 				<expression alias="Zoning Type"
 					textsearchlabel="Search Zoning Type [ Example: RESIDENTIAL ]:">upper(ZONING_TYPE) = upper('[value]')</expression>
 				<expression alias="Zoning Name"
@@ -216,7 +214,7 @@
 				</relate>
 			</relates>
 		</layer> -->
-		<!-- <layer>
+		<layer>
 			<definitionexpression/>
 			<name>Weather Obs</name>
 			<enableexport>true</enableexport> 
@@ -242,7 +240,7 @@
 				</link>
 			</links>
 			<zoomscale>5000</zoomscale>
-		</layer> -->
+		</layer>
 		<!-- <layer>
 			<definitionexpression></definitionexpression>
 			<name>Owner Parcels</name> 

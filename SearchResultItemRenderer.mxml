@@ -75,7 +75,7 @@
 						var lImg:Image = new Image();
 						lImg.width = lImg.height = 18;
 						lImg.buttonMode = lImg.useHandCursor = true;
-						lImg.source = (searchResult.links[l].icon != null)?searchResult.links[l].icon:"assets/images/w_link.png";
+						lImg.source = (searchResult.links[l].icon != null && searchResult.links[l].icon != "")?searchResult.links[l].icon:"assets/images/w_link.png";
 						lImg.addEventListener(MouseEvent.CLICK, showLink);
 						lImg.name = searchResult.links[l].link;
 						linkGroup.addElementAt(lImg,0);
