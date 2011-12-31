@@ -307,10 +307,8 @@ Version 2.5.0.8 - 12/30/2011
 			{					
 				sWidget = this;
 				WIDGET_URL = config.substring(0,config.lastIndexOf("/")) + "/assets/images/";
-				if (configXML)
-				{
-					if (GeometryServiceSingleton.instance.url) // using GeometryServiceSingleton
-					{
+				if (configXML){
+					if (GeometryServiceSingleton.instance.url){
 						geometryService.url = GeometryServiceSingleton.instance.url;
 						geometryService.token = GeometryServiceSingleton.instance.token;
 						geometryService.proxyURL = GeometryServiceSingleton.instance.proxyURL;
@@ -363,8 +361,7 @@ Version 2.5.0.8 - 12/30/2011
 					configSpatialSearchRelation = [];
 					var operList:XMLList = configXML..spatialrelationship;
 					var sOpBtn:Image;
-					for (var s:Number = 0; s < operList.length(); s++)
-					{
+					for (var s:Number = 0; s < operList.length(); s++){
 						var srName:String = operList[s].name;
 						var srLabel:String = operList[s].label;
 						var spatialRelationship:Object =
@@ -433,8 +430,7 @@ Version 2.5.0.8 - 12/30/2011
 					
 					configBufferUnits = [];
 					var bufferUnitsList:XMLList = configXML..bufferunit;
-					for (var b:int = 0; b < bufferUnitsList.length(); b++)
-					{
+					for (var b:int = 0; b < bufferUnitsList.length(); b++){
 						var buffUnitName:String = bufferUnitsList[b].name;
 						var buffUnitLabel:String = bufferUnitsList[b].label;
 						var bufferUnit:Object =
@@ -451,8 +447,7 @@ Version 2.5.0.8 - 12/30/2011
 					configDomainVals = [];
 					
 					var lyrList:XMLList = configXML..layer;
-					for (var i:Number = 0; i < lyrList.length(); i++)
-					{
+					for (var i:Number = 0; i < lyrList.length(); i++){
 						configLayerExprs = [];
 						configLayerRels = [];
 						var lyrURL:String = lyrList[i].url;
@@ -473,8 +468,7 @@ Version 2.5.0.8 - 12/30/2011
 							configLayerRels.push(lyrRel);
 						}
 						var lyrExprList:XMLList = configXML.layers.layer[i]..expression;
-						for (var j:Number = 0; j < lyrExprList.length(); j++)
-						{
+						for (var j:Number = 0; j < lyrExprList.length(); j++){
 							var lyrExprAlias:String = lyrExprList[j].@alias;
 							var lyrTextLabel:String = lyrExprList[j].@textsearchlabel;
 							var lyrExpr:String = lyrExprList[j];
@@ -482,8 +476,7 @@ Version 2.5.0.8 - 12/30/2011
 							var lyrUserList:String = lyrExprList[j].@userlist;
 							var lyrDomain:Boolean = lyrExprList[j].@usedomain && lyrExprList[j].@usedomain == "true";
 							var lyrSubType:Boolean = lyrExprList[j].@fromsubtype && lyrExprList[j].@fromsubtype == "true";
-							var expr:Object = 
-							{
+							var expr:Object ={
 								label: lyrExprAlias,
 								textlabel: lyrTextLabel,
 								expression: lyrExpr,
@@ -525,8 +518,7 @@ Version 2.5.0.8 - 12/30/2011
 						var useProxy:Boolean = lyrList[i].useproxy && lyrList[i].useproxy == "true";
 						var useAMF:String = lyrList[i].useamf;
 						var openDG:Boolean = lyrList[i].autoopendatagrid && lyrList[i].autoopendatagrid == "true";
-						if ((lyrList[i].zoomscale.@usegeometry) && (lyrList[i].zoomscale.@usegeometry == "true"))
-						{
+						if ((lyrList[i].zoomscale.@usegeometry) && (lyrList[i].zoomscale.@usegeometry == "true")){
 							zoomScale = Number.NaN;
 						}else{
 							if (Number(lyrList[i].zoomscale) > 0)
@@ -538,32 +530,21 @@ Version 2.5.0.8 - 12/30/2011
 						
 						var layer:FeatureLayer = new FeatureLayer(lyrURL);
 						if (useProxy && configData.proxyUrl)
-						{
 							layer.proxyURL = configData.proxyUrl;
-						}
 						if (useAMF)
-						{
 							layer.useAMF = useAMF == "true";
-						}
-						if (lyrFields && lyrFields[0].@all[0] == "true")
-						{
-							layer.outFields = [ "*" ];
-						}
-						else if (lyrFields)
-						{
+						if (lyrFields && lyrFields[0].@all[0] == "true"){
+							layer.outFields = ["*"];
+						}else if (lyrFields){
 							var fields:XMLList = lyrFields.field;
 							layer.outFields = [];
-							for each (var fieldXML:XML in fields)
-							{
+							for each (var fieldXML:XML in fields){
 								if (fieldXML.@name[0])
-								{
 									layer.outFields.push(fieldXML.@name[0]);
-								}
 							}
 						}
 						
-						var searchLayer:Object = 
-						{
+						var searchLayer:Object = {
 							layer: layer,
 							label: lyrLabel,
 							titlefield: lyrTitleField,
@@ -582,9 +563,8 @@ Version 2.5.0.8 - 12/30/2011
 						}
 						configSearchGraphical.push(searchLayer);
 						
-						if (searchLayer.spatialsearchlayer == "true"){
+						if (searchLayer.spatialsearchlayer == "true")
 							configSpatialSearchLayers.push(searchLayer);
-						}
 						
 						if (lyrExpr){
 							configSearchText.push(searchLayer);
@@ -664,27 +644,21 @@ Version 2.5.0.8 - 12/30/2011
 				var disSpat:Boolean = false;
 				var disGrid:Boolean = false;
 				if(dbArr){
-					for (var d:int = 0; d<dbArr.length; d++)
-					{
-						switch (dbArr[d])
-						{
-							case "text":
-							{
+					for (var d:int = 0; d<dbArr.length; d++){
+						switch (dbArr[d]){
+							case "text":{
 								disText = true;
 								break;
 							}
-							case "graphic":
-							{
+							case "graphic":{
 								disGra = true;
 								break;
 							}
-							case "spatial":
-							{
+							case "spatial":{
 								disSpat = true;
 								break;
 							}
-							case "grid":
-							{
+							case "grid":{
 								disGrid = true;
 								break;
 							}
@@ -703,8 +677,7 @@ Version 2.5.0.8 - 12/30/2011
 					wTemplate.addTitlebarButton(ICON_URL + "i_table.png", resultsLabel, showStateResults);
 				
 				//Setup Text Search
-				if (configSearchText.length)
-				{
+				if (configSearchText.length){
 					cboLayerText.dataProvider = configSearchText;
 					txtLabelText.text = configSearchText[0].expr[0].textlabel;
 					if (configSearchText.length == 1)
@@ -718,39 +691,31 @@ Version 2.5.0.8 - 12/30/2011
 						boxTextexpr.visible = false;
 						boxTextexpr.includeInLayout = false;
 					}
-				}
-				else
-				{
+				}else{
 					boxText.visible = false;
 					txtLabelText.text = nolayerLabel;
 				}
 				
 				//Setup Graphical Search
-				if (configSearchGraphical.length)
-				{
+				if (configSearchGraphical.length){
 					cboLayerGraphical.dataProvider = configSearchGraphical;
 					txtLabelGraphical.text = configSearchText[0].graphicallabel;
-					if (configSearchGraphical.length == 1)
-					{
+					if (configSearchGraphical.length == 1){
 						boxGraphical.visible = false;
 						boxGraphical.includeInLayout = false;
 					}
-				}
-				else
-				{
+				}else{
 					boxGraphical.visible = false;
 					txtLabelGraphical.text = nolayerLabel;
 				}
 				
-				if (configSpatialSearchLayers.length)
-				{
+				if (configSpatialSearchLayers.length){
 					cboSearchLayerSpatial.dataProvider = configSpatialSearchLayers;
 					cboBufferUnit.dataProvider = configBufferUnits;
 				}
 				
 				//Determine which button to select based on the default selection option
-				for(var tb:int=0; tb < wTemplate.headerToolGroup.numElements; tb++)
-				{
+				for(var tb:int=0; tb < wTemplate.headerToolGroup.numElements; tb++){
 					var tbb:TitlebarButton = wTemplate.headerToolGroup.getElementAt(tb) as TitlebarButton;
 					if(tbb.toolTip == graphicalsearchLabel && defaultSelectionOption == "graphicalInput")
 						wTemplate.selectedTitlebarButtonIndex = tb;
@@ -2176,11 +2141,11 @@ Version 2.5.0.8 - 12/30/2011
 						if (layerDetails.fields){
 							for each (var field2:Field in layerDetails.fields){
 								if (field2.name in graphic.attributes)
-									displayFields(field.name, getFieldXML(field2.name, fields), field);
+									displayFields(field2.name, getFieldXML(field2.name, fields), field2);
 							}
 						}else{
 							for (var fieldName2:String in graphic.attributes){
-								displayFields(fieldName, getFieldXML(fieldName2, fields), null);
+								displayFields(fieldName2, getFieldXML(fieldName2, fields), null);
 							}
 						}
 					}else{
