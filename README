@@ -1,6 +1,8 @@
 ﻿Version 2.5.0.8 - 12/30/2011
 * Fixed issue with new multiple links not displaying a link in the widgets 
   results if only on link is specified.
+* Fixed error when fields all="true" is used in version 2.5.0.7 all the fields 
+  contain the name and data of the last field.
 
 Version 2.5.0.7 - 12/27/2011
 * Fixed issue with datagrids when compiled using the Adobe 4.5.1 SDK
