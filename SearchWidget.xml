@@ -41,7 +41,7 @@
 			</url>
 			<expressions>
 				<expression alias="Parcel ID"
-					textsearchlabel="Search by Parcel ID  [ Example: 181001490000 ]:">PARCELID = '[value]'</expression>
+					textsearchlabel="Search by Parcel ID  [ Example: 181001490000 or 1810%]:">PARCELID like '[value]'</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select
 				parcels</graphicalsearchlabel>
@@ -69,7 +69,7 @@
 			</url>
 			<expressions>
 				<expression alias="Police Stations Name"
-					textsearchlabel="Search Police Stations by name... [ Example: 2ND DIVISION ]">upper(PD_NAME) = upper('[value]')</expression>
+					textsearchlabel="Search Police Stations by name...[ Example: 2ND DIVISION or 2%]">PD_NAME like '[value]'</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select
 				Police Stations</graphicalsearchlabel>
@@ -330,7 +330,7 @@
 	<zoomscale>2400</zoomscale>
 	<geometryservice>http://tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer</geometryservice>
 	<csvseparator>,</csvseparator>
-	<disablebuttons></disablebuttons><!--possible values one or more not all three search types comma sepearted text,graphic,spatial,grid -->
+	<disablebuttons></disablebuttons><!--possible values one or more not all three search types comma separated text,graphic,spatial,grid -->
 	<defaultselectionoption>textInput</defaultselectionoption><!--possible values only one graphicalInput or textInput or spatialInput -->
 	<enabledrawgraphicbutton>true</enabledrawgraphicbutton>
 	<enablebuffergraphicbutton>true</enablebuffergraphicbutton>

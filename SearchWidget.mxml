@@ -15,9 +15,9 @@
 
 <!-- 
 
-Version 2.5.0.8 - 12/30/2011
-* Fixed issue with new multiple links not displaying a link in the widgets results if only one link
-  is specified.
+Version 2.5.0.9 - 1/6/2012
+* Fixed more issues with new multiple links code only grabing link from first record and using
+that for all results.
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -293,9 +293,9 @@ Version 2.5.0.8 - 12/30/2011
 			private var resultFillSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.0.8";
+			protected const VERSION:String = "2.5.0.9";
 			
-			protected const BUILDDATE:String = "12/30/2011";
+			protected const BUILDDATE:String = "1/6/2012";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
@@ -2008,134 +2008,132 @@ Version 2.5.0.8 - 12/30/2011
 				layerDetails = queryLayer.layerDetails;
 				var fields:XMLList = queryFields ? queryFields.field : null;
 				
-				lyrQLinks = [];
-				
 				var result:ArrayCollection = new ArrayCollection();
 				if (!queryTitleField)
 					queryTitleField = featureSet.displayFieldName;
-				
-				
-				//Go through the fields looking for the links
-				var excludeLinkinResults:ArrayCollection = new ArrayCollection();
-				var obj:Object = featureSet.features[0].attributes;
-				for (var a:int = 0; a < qLinks.length; a++){
-					var link:String = "";
-					var linkicon:String = "";
-					var alias:String = "";
-					if (queryFields && queryFields[0].@all[0] == "true"){
-						if (layerDetails.fields){
-							for each (var field:Field in layerDetails.fields){
-								var val:String;
-								try{	        	    		       
-									val = obj[field.name] ? String(obj[field.name]) : "";
-								} catch (error: Error){
-									val = "";
-								}
-								if (field.name.toUpperCase() == qLinks[a].field.toUpperCase() || field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
-									if (field.name.toUpperCase() == qLinks[a].field.toUpperCase()){
-										if(qLinks[a].alias)
-											alias = qLinks[a].alias;
-										//Add the field name if the link field is to be included in the
-										//results as well as used for a link.
-										if(!qLinks[a].inc)
-											excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
-										//concatenate
-										if(val != "" && val != "Null")
-											link = qLinks[a].pre + val + qLinks[a].suf;
-										if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
-											linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
-										if(field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
-											//concatenate
-											if(val != "" && val != "Null"){
-												linkicon = qLinks[a].iconpre + val + qLinks[a].iconsuf;
-											}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
-												linkicon = qLinks[a].iconpre + val + qLinks[a].iconsuf;
-											}
-										}
-									}
-								}
-							}
-						}else{
-							for (var fieldName:String in graphic.attributes){
-								var val2:String;
-								try{	        	    		       
-									val2 = obj[fieldName] ? String(obj[fieldName]) : "";
-								} catch (error: Error){
-									val2 = "";
-								}
-								if (fieldName.toUpperCase() == qLinks[a].field.toUpperCase() || fieldName.toUpperCase() == qLinks[a].icon.toUpperCase()){
-									if (fieldName.toUpperCase() == qLinks[a].field.toUpperCase()){
-										if(qLinks[a].alias)
-											alias = qLinks[a].alias;
-										//Add the field name if the link field is to be included in the
-										//results as well as used for a link.
-										if(!qLinks[a].inc)
-											excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
-										//concatenate
-										if(val2 != "" && val2 != "Null")
-											link = qLinks[a].pre + val2 + qLinks[a].suf;
-										if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
-											linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
-										if(field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
-											//concatenate
-											if(val2 != "" && val2 != "Null"){
-												linkicon = qLinks[a].iconpre + val2 + qLinks[a].iconsuf;
-											}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
-												linkicon = qLinks[a].iconpre + val2 + qLinks[a].iconsuf;
-											}
-										}
-									}
-								}
-							}
-						}
-					}else{
-						for each (var fieldXML:XML in fields){ // display the fields in the same order as specified
-							var val3:String;
-							try{	        	    		       
-								val3 = obj[fieldXML.@name[0]] ? String(obj[fieldXML.@name[0]]) : "";
-							} catch (error: Error){
-								val3 = "";
-							}
-							if (fieldXML.@name[0].toUpperCase() == qLinks[a].field.toUpperCase() || fieldXML.@name[0].toUpperCase() == qLinks[a].icon.toUpperCase()){
-								if (fieldXML.@name[0].toUpperCase() == qLinks[a].field.toUpperCase()){
-									if(qLinks[a].alias)
-										alias = qLinks[a].alias;
-									//Add the field name if the link field is to be included in the
-									//results as well as used for a link.
-									if(!qLinks[a].inc)
-										excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
-									//concatenate
-									if(val3 != "" && val3 != "Null")
-										link = qLinks[a].pre + val3 + qLinks[a].suf;
-									if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
-										linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
-									if(fieldXML.@name[0].toUpperCase() == qLinks[a].icon.toUpperCase()){
-										//concatenate
-										if(val3 != "" && val3 != "Null"){
-											linkicon = qLinks[a].iconpre + val3 + qLinks[a].iconsuf;
-										}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
-											linkicon = qLinks[a].iconpre + val3 + qLinks[a].iconsuf;
-										}
-									}
-								}
-							}
-						}
-					}
-					
-					var lObj:Object ={
-						link: link,
-						icon: linkicon,
-						alias: alias
-					}
-					lyrQLinks.push(lObj);
-				}
-				
+
 				for each (var graphic:Graphic in featureSet.features){
 					var value:String = "";
 					var title:String = "";
 					var content:String = "";
 					var multi:String = "";
 					fldAliases = featureSet.fieldAliases;
+					lyrQLinks = [];
+					
+					//Go through the fields looking for the links
+					var excludeLinkinResults:ArrayCollection = new ArrayCollection();
+					var obj:Object = graphic.attributes;
+					for (var a:int = 0; a < qLinks.length; a++){
+						var link:String = "";
+						var linkicon:String = "";
+						var alias:String = "";
+						if (queryFields && queryFields[0].@all[0] == "true"){
+							if (layerDetails.fields){
+								for each (var field:Field in layerDetails.fields){
+									var val:String;
+									try{	        	    		       
+										val = obj[field.name] ? String(obj[field.name]) : "";
+									} catch (error: Error){
+										val = "";
+									}
+									if (field.name.toUpperCase() == qLinks[a].field.toUpperCase() || field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
+										if (field.name.toUpperCase() == qLinks[a].field.toUpperCase()){
+											if(qLinks[a].alias)
+												alias = qLinks[a].alias;
+											//Add the field name if the link field is to be included in the
+											//results as well as used for a link.
+											if(!qLinks[a].inc)
+												excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
+											//concatenate
+											if(val != "" && val != "Null")
+												link = qLinks[a].pre + val + qLinks[a].suf;
+											if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
+												linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
+											if(field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
+												//concatenate
+												if(val != "" && val != "Null"){
+													linkicon = qLinks[a].iconpre + val + qLinks[a].iconsuf;
+												}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
+													linkicon = qLinks[a].iconpre + val + qLinks[a].iconsuf;
+												}
+											}
+										}
+									}
+								}
+							}else{
+								for (var fieldName:String in graphic.attributes){
+									var val2:String;
+									try{	        	    		       
+										val2 = obj[fieldName] ? String(obj[fieldName]) : "";
+									} catch (error: Error){
+										val2 = "";
+									}
+									if (fieldName.toUpperCase() == qLinks[a].field.toUpperCase() || fieldName.toUpperCase() == qLinks[a].icon.toUpperCase()){
+										if (fieldName.toUpperCase() == qLinks[a].field.toUpperCase()){
+											if(qLinks[a].alias)
+												alias = qLinks[a].alias;
+											//Add the field name if the link field is to be included in the
+											//results as well as used for a link.
+											if(!qLinks[a].inc)
+												excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
+											//concatenate
+											if(val2 != "" && val2 != "Null")
+												link = qLinks[a].pre + val2 + qLinks[a].suf;
+											if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
+												linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
+											if(field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
+												//concatenate
+												if(val2 != "" && val2 != "Null"){
+													linkicon = qLinks[a].iconpre + val2 + qLinks[a].iconsuf;
+												}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
+													linkicon = qLinks[a].iconpre + val2 + qLinks[a].iconsuf;
+												}
+											}
+										}
+									}
+								}
+							}
+						}else{
+							for each (var fieldXML:XML in fields){ // display the fields in the same order as specified
+								var val3:String;
+								try{	        	    		       
+									val3 = obj[fieldXML.@name[0]] ? String(obj[fieldXML.@name[0]]) : "";
+								} catch (error: Error){
+									val3 = "";
+								}
+								if (fieldXML.@name[0].toUpperCase() == qLinks[a].field.toUpperCase() || fieldXML.@name[0].toUpperCase() == qLinks[a].icon.toUpperCase()){
+									if (fieldXML.@name[0].toUpperCase() == qLinks[a].field.toUpperCase()){
+										if(qLinks[a].alias)
+											alias = qLinks[a].alias;
+										//Add the field name if the link field is to be included in the
+										//results as well as used for a link.
+										if(!qLinks[a].inc)
+											excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
+										//concatenate
+										if(val3 != "" && val3 != "Null")
+											link = qLinks[a].pre + val3 + qLinks[a].suf;
+										if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
+											linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
+										if(fieldXML.@name[0].toUpperCase() == qLinks[a].icon.toUpperCase()){
+											//concatenate
+											if(val3 != "" && val3 != "Null"){
+												linkicon = qLinks[a].iconpre + val3 + qLinks[a].iconsuf;
+											}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
+												linkicon = qLinks[a].iconpre + val3 + qLinks[a].iconsuf;
+											}
+										}
+									}
+								}
+							}
+						}
+						
+						var lObj:Object ={
+							link: link,
+							icon: linkicon,
+							alias: alias
+						}
+						lyrQLinks.push(lObj);
+					}
 					
 					if (queryFields && queryFields[0].@all[0] == "true"){
 						if (layerDetails.fields){
@@ -2553,9 +2551,7 @@ Version 2.5.0.8 - 12/30/2011
 					}
 				}
 			}
-			
 
-			
 			//get geom center
 			private function getGeomCenter(gra:Graphic):MapPoint
 			{

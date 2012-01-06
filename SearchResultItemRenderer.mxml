@@ -17,16 +17,16 @@
                 xmlns:mx="library://ns.adobe.com/flex/mx"
                 autoDrawBackground="false"
                 click="itemrenderer_clickHandler(event)"
-                dataChange="itemrenderer_dataChangeHandler(event)"
                 minHeight="30"
                 mouseOut="itemrenderer_mouseOutHandler(event)"
                 mouseOver="itemrenderer_mouseOverHandler(event)">
 
     <fx:Script>
         <![CDATA[
-            import com.esri.ags.symbols.Symbol;
-            
-            import mx.events.FlexEvent;
+			import com.esri.ags.symbols.Symbol;
+			
+			import mx.controls.Image;
+			import mx.events.FlexEvent;
 
             private const SEARCH_RESULT_CLICK:String = "searchResultClick";
 			
@@ -50,48 +50,65 @@
 			
 			[Bindable]
 			private var relatetooltip:String;
-
-            private function itemrenderer_dataChangeHandler(event:FlexEvent):void
-            {
-                searchResult = data as SearchResult;
-
-                if (searchResult)
-                {
-                    if (lastResultSymbol !== searchResult.symbol)
-                    {
-                        if (resultIcon.numChildren > 0)
-                        {
-                            resultIcon.removeChildAt(0);
-                        }
-                        lastResultSymbol = searchResult.symbol;
-                        lastResultSwatch = lastResultSymbol.createSwatch(20, 20);
-                    }
-					//Reset the link icons
-					for(var r:int=0; r < linkGroup.numElements; r++){
-						lImg = linkGroup.getElementAt(l) as Image;
-						lImg.source = "assets/images/w_link.png";
-						lImg.name = "";
-						lImg.includeInLayout = lImg.visible = false;
+			
+			override public function set data(value:Object):void
+			{
+				super.data = value;
+				searchResult = data as SearchResult;
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
+				
+				if (searchResult)
+				{
+					if (lastResultSymbol !== searchResult.symbol)
+					{
+						if (resultIcon.numChildren > 0)
+						{
+							resultIcon.removeChildAt(0);
+						}
+						lastResultSymbol = searchResult.symbol;
+						lastResultSwatch = lastResultSymbol.createSwatch(20, 20);
 					}
-                    resultIcon.addChild(lastResultSwatch);
+					linkGroup.includeInLayout = linkGroup.visible = false;
+					linkGroup.removeAllElements();
+					resultIcon.addChild(lastResultSwatch);
 					selected = searchResult.selected;
-					var lImg:Image;
+					
 					for(var l:int = 0; l < searchResult.links.length; l++){
 						if(searchResult.links[l].link){
-							lImg = linkGroup.getElementAt(l) as Image;
+							var lImg:Image = new Image();
+							lImg.height = lImg.width = 20;
+							lImg.buttonMode = true;
+							lImg.useHandCursor = true;
+							lImg.addEventListener(MouseEvent.CLICK, showLink);
 							lImg.source = (searchResult.links[l].icon != "")?searchResult.links[l].icon:"assets/images/w_link.png";	 
 							lImg.name = searchResult.links[l].link;
+							lImg.toolTip = searchResult.links[l].link;
 							lImg.includeInLayout = lImg.visible = true;
+							linkGroup.addElement(lImg);
 						}
 					}
+					var rImg:Image = new Image();
+					rImg.width = rImg.height = 20;
+					rImg.buttonMode = rImg.useHandCursor = true;
+					rImg.addEventListener(MouseEvent.CLICK, showRelate);
+					rImg.includeInLayout = searchResult.relates != null;
+					rImg.source = relateicon;
+					rImg.toolTip = relatetooltip;
+					rImg.visible = searchResult.relates != null;
+					linkGroup.addElement(rImg);
+					
 					if(searchResult.links[0].link)
 						linkGroup.includeInLayout = linkGroup.visible = true;
 					if(searchResult.relates != null)
 						linkGroup.includeInLayout = linkGroup.visible = true;
 					relateicon = (searchResult.relateicon != null)?searchResult.relateicon:"widgets/eSearch/assets/images/i_relate.png";
 					relatetooltip = (searchResult.relatetooltip != null)?searchResult.relatetooltip:"Show relates";
-                }
-            }
+				}
+			}
 
             private function itemrenderer_clickHandler(event:MouseEvent):void
             {
@@ -186,78 +203,7 @@
 		<s:HGroup gap="8" id="linkGroup" height="18"
 				  verticalAlign="middle" horizontalAlign="center"
 				  width="100%" includeInLayout="false" visible="false">
-			<mx:Image width="20" height="20"
-					  id="Link_0"
-					  buttonMode="true"
-					  click="showLink(event)"
-					  includeInLayout="false"
-					  source="assets/images/w_link.png"
-					  useHandCursor="true"
-					  visible="false"/>
-			<mx:Image width="20" height="20"
-					  id="Link_1"
-					  buttonMode="true"
-					  click="showLink(event)"
-					  includeInLayout="false"
-					  source="assets/images/w_link.png"
-					  useHandCursor="true"
-					  visible="false"/>
-			<mx:Image width="20" height="20"
-					  id="Link_2"
-					  buttonMode="true"
-					  click="showLink(event)"
-					  includeInLayout="false"
-					  source="assets/images/w_link.png"
-					  useHandCursor="true"
-					  visible="false"/>
-			<mx:Image width="20" height="20"
-					  id="Link_3"
-					  buttonMode="true"
-					  click="showLink(event)"
-					  includeInLayout="false"
-					  source="assets/images/w_link.png"
-					  useHandCursor="true"
-					  visible="false"/>
-			<mx:Image width="20" height="20"
-					  id="Link_4"
-					  buttonMode="true"
-					  click="showLink(event)"
-					  includeInLayout="false"
-					  source="assets/images/w_link.png"
-					  useHandCursor="true"
-					  visible="false"/>
-			<mx:Image width="20" height="20"
-					  id="Link_5"
-					  buttonMode="true"
-					  click="showLink(event)"
-					  includeInLayout="false"
-					  source="assets/images/w_link.png"
-					  useHandCursor="true"
-					  visible="false"/>
-			<mx:Image width="20" height="20"
-					  id="Link_6"
-					  buttonMode="true"
-					  click="showLink(event)"
-					  includeInLayout="false"
-					  source="assets/images/w_link.png"
-					  useHandCursor="true"
-					  visible="false"/>
-			<mx:Image width="20" height="20"
-					  id="Link_7"
-					  buttonMode="true"
-					  click="showLink(event)"
-					  includeInLayout="false"
-					  source="assets/images/w_link.png"
-					  useHandCursor="true"
-					  visible="false"/>
-			<mx:Image width="20" height="20"
-					  buttonMode="true"
-					  click="showRelate(event)"
-					  includeInLayout="{searchResult.relates != null}"
-					  source="{relateicon}"
-					  useHandCursor="true"
-					  toolTip="{relatetooltip}"
-					  visible="{searchResult.relates != null}"/>
+			
 		</s:HGroup>
 	</s:VGroup>
 </s:ItemRenderer>
