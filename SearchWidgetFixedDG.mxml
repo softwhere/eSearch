@@ -790,7 +790,8 @@
 						if(obj.alias != "NA")
 							retVal = obj.alias;
 				}
-				if (item[column.dataField] == "" || item[column.dataField] == " "){
+				if (item[column.dataField] == "" || item[column.dataField] == " " || 
+					item[column.dataField] == "null" || item[column.dataField] == "unavailable"){
 					retVal = "";
 				}
 				return retVal;
@@ -851,7 +852,10 @@
 				{
 					for(var i:int=0; i<hypercols.length; i++){
 						//concatenate if
-						if(attributes[hypercols[i].field] != "" && attributes[hypercols[i].field] != " " && attributes[hypercols[i].field] != null){
+						if(attributes[hypercols[i].field] != "" 
+							&& attributes[hypercols[i].field] != " " 
+							&& attributes[hypercols[i].field] != null
+							&& attributes[hypercols[i].field] != "unavailable"){
 							var pre:String = (hypercols[i].pre == "NA") ? "" : hypercols[i].pre;
 							var suf:String = (hypercols[i].suf == "NA") ? "" : hypercols[i].suf;
 							attributes[hypercols[i].field] = String(pre + attributes[hypercols[i].field] + suf);
@@ -1194,6 +1198,7 @@
 				
 				popUpInfo.title = "{title}";
 				popUpInfo.description = "{content}";
+				var pminfos:Array = [];
 				
 				for(var l:int=0; l<links.length; l++){
 					if (links[l].link){
@@ -1204,14 +1209,14 @@
 							popUpMediaInfo.type = PopUpMediaInfo.IMAGE;
 							popUpMediaInfo.imageLinkURL = links[l].link;
 							popUpMediaInfo.imageSourceURL = links[l].link;
-							popUpInfo.popUpMediaInfos = [ popUpMediaInfo ];
+							pminfos.push(popUpMediaInfo);
 						}else{
 							var lText:String = (links[l].alias != "") ? links[l].alias : links[l].link;
 							popUpInfo.description += "<br /><a href='" + links[l].link + "'>" + lText + "</a>"
 						}
 					}
 				}
-				
+				popUpInfo.popUpMediaInfos = pminfos;
 				return popUpInfo;
 			}
 			

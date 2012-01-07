@@ -86,7 +86,7 @@
 							lImg.addEventListener(MouseEvent.CLICK, showLink);
 							lImg.source = (searchResult.links[l].icon != "")?searchResult.links[l].icon:"assets/images/w_link.png";	 
 							lImg.name = searchResult.links[l].link;
-							lImg.toolTip = searchResult.links[l].link;
+							//lImg.toolTip = searchResult.links[l].link;
 							lImg.includeInLayout = lImg.visible = true;
 							linkGroup.addElement(lImg);
 						}

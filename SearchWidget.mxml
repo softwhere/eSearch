@@ -15,9 +15,13 @@
 
 <!-- 
 
-Version 2.5.0.9 - 1/6/2012
+Version 2.5.0.10 - 1/6/2012
 * Fixed more issues with new multiple links code only grabing link from first record and using
 that for all results.
+* If you have multiple links that contain images then the popup will now display all the images
+in the popup media browser
+* If a link returns the text "unavailable" than the link will not be added to the widget results,
+popup or either of the datagrids hyperlink results.
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -293,7 +297,7 @@ that for all results.
 			private var resultFillSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.0.9";
+			protected const VERSION:String = "2.5.0.10";
 			
 			protected const BUILDDATE:String = "1/6/2012";
 			
@@ -2045,13 +2049,13 @@ that for all results.
 											if(!qLinks[a].inc)
 												excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
 											//concatenate
-											if(val != "" && val != "Null")
+											if(val != "" && val != "Null" && val != "unavailable")
 												link = qLinks[a].pre + val + qLinks[a].suf;
 											if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
 												linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
 											if(field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
 												//concatenate
-												if(val != "" && val != "Null"){
+												if(val != "" && val != "Null" && val != "unavailable"){
 													linkicon = qLinks[a].iconpre + val + qLinks[a].iconsuf;
 												}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
 													linkicon = qLinks[a].iconpre + val + qLinks[a].iconsuf;
@@ -2077,13 +2081,13 @@ that for all results.
 											if(!qLinks[a].inc)
 												excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
 											//concatenate
-											if(val2 != "" && val2 != "Null")
+											if(val2 != "" && val2 != "Null" && val2 != "unavailable")
 												link = qLinks[a].pre + val2 + qLinks[a].suf;
 											if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
 												linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
 											if(field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
 												//concatenate
-												if(val2 != "" && val2 != "Null"){
+												if(val2 != "" && val2 != "Null" && val2 != "unavailable"){
 													linkicon = qLinks[a].iconpre + val2 + qLinks[a].iconsuf;
 												}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
 													linkicon = qLinks[a].iconpre + val2 + qLinks[a].iconsuf;
@@ -2110,13 +2114,13 @@ that for all results.
 										if(!qLinks[a].inc)
 											excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
 										//concatenate
-										if(val3 != "" && val3 != "Null")
+										if(val3 != "" && val3 != "Null" && val3 != "unavailable")
 											link = qLinks[a].pre + val3 + qLinks[a].suf;
 										if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
 											linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
 										if(fieldXML.@name[0].toUpperCase() == qLinks[a].icon.toUpperCase()){
 											//concatenate
-											if(val3 != "" && val3 != "Null"){
+											if(val3 != "" && val3 != "Null" && val3 != "unavailable"){
 												linkicon = qLinks[a].iconpre + val3 + qLinks[a].iconsuf;
 											}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
 												linkicon = qLinks[a].iconpre + val3 + qLinks[a].iconsuf;
@@ -3362,6 +3366,7 @@ that for all results.
 				var popUpInfo:PopUpInfo = new PopUpInfo;
 				popUpInfo.title = "{title}";
 				popUpInfo.description = "{content}";
+				var pminfos:Array = [];
 				
 				for(var l:int=0; l<links.length; l++){
 					if (links[l].link){
@@ -3372,13 +3377,14 @@ that for all results.
 							popUpMediaInfo.type = PopUpMediaInfo.IMAGE;
 							popUpMediaInfo.imageLinkURL = links[l].link;
 							popUpMediaInfo.imageSourceURL = links[l].link;
-							popUpInfo.popUpMediaInfos = [ popUpMediaInfo ];
+							pminfos.push(popUpMediaInfo);
 						}else{
 							var lText:String = (links[l].alias != "") ? links[l].alias : links[l].link;
 							popUpInfo.description += "<br /><a href='" + links[l].link + "'>" + lText + "</a>"
 						}
 					}
 				}
+				popUpInfo.popUpMediaInfos = pminfos;
 				
 				return popUpInfo;
 			}

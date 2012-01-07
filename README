@@ -1,4 +1,11 @@
-﻿Version 2.5.0.9 - 1/6/2012
+﻿Version 2.5.0.10 - 1/6/2012
+* If you have multiple links that contain images then the popup will now display all the images
+in the popup media browser
+* If a link returns the text "unavailable" than the link will not be added to the widget results,
+popup or either of the datagrids hyperlink results.
+
+
+Version 2.5.0.9 - 1/6/2012
 * Fixed more issues with new multiple links code only grabing link from first 
 record and using that for all results.
 
