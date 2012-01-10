@@ -340,6 +340,7 @@
 	<relatetooltip>Show Relates</relatetooltip>
 	<relateicon>widgets/eSearch/assets/images/i_relate.png</relateicon>
 	<labels>
+		<bufferusergraphics>Buffer Graphic</bufferusergraphics>
 		<norelatesfound>No related features found for: </norelatesfound>
 		<norelatesfoundalerttitle>No Results</norelatesfoundalerttitle>
 		<addtolerance>Add search tolerance to point selection</addtolerance>

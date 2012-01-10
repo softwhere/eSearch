@@ -1,4 +1,8 @@
-﻿Version 2.5.0.10 - 1/6/2012
+﻿Version 2.5.1 - 1/10/2012
+* Added the ability to buffer graphics drawn using the graphical search before the 
+graphical search is performed.
+
+Version 2.5.0.10 - 1/6/2012
 * If you have multiple links that contain images then the popup will now display all the images
 in the popup media browser
 * If a link returns the text "unavailable" than the link will not be added to the widget results,

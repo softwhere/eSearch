@@ -15,13 +15,9 @@
 
 <!-- 
 
-Version 2.5.0.10 - 1/6/2012
-* Fixed more issues with new multiple links code only grabing link from first record and using
-that for all results.
-* If you have multiple links that contain images then the popup will now display all the images
-in the popup media browser
-* If a link returns the text "unavailable" than the link will not be added to the widget results,
-popup or either of the datagrids hyperlink results.
+Version 2.5.1 - 1/10/2012
+* Added the ability to buffer graphics drawn using the graphical search before the 
+graphical search is performed.
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -140,6 +136,8 @@ popup or either of the datagrids hyperlink results.
 			import spark.components.supportClasses.ItemRenderer;
 			
 			//labels
+			[Bindable]
+			private var lblbufferUserGraphic:String;
 			[Bindable]
 			private var noRelatesFound:String;
 			[Bindable]
@@ -297,9 +295,9 @@ popup or either of the datagrids hyperlink results.
 			private var resultFillSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.0.10";
+			protected const VERSION:String = "2.5.1";
 			
-			protected const BUILDDATE:String = "1/6/2012";
+			protected const BUILDDATE:String = "1/10/2012";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
@@ -319,6 +317,7 @@ popup or either of the datagrids hyperlink results.
 					}
 					relateIcon = configXML.relateicon || WIDGET_URL + "i_relate.png";
 					//labels
+					lblbufferUserGraphic = configXML.labels.bufferusergraphics || "Buffer Graphic";
 					noRelatesFound = configXML.labels.norelatesfound || "No related features found";
 					noRelatesFoundAlertTitle = configXML.labels.norelatesfoundalerttitle || "No Results";
 					bufferColorLabel = configXML.labels.buffercolor || "Select buffer color";
@@ -444,6 +443,7 @@ popup or either of the datagrids hyperlink results.
 						};
 						configBufferUnits.push(bufferUnit);
 					}
+					cboGraBufferUnit.dataProvider = configBufferUnits;
 										
 					configSearchGraphical = [];
 					configSearchText = [];
@@ -1305,7 +1305,11 @@ popup or either of the datagrids hyperlink results.
 					geometryService.simplify([geom], new AsyncResponder(simpResult, null));
 					function simpResult(item:Object ,spatialRelat:String):void{
 						var simpGeoms:Array = item as Array;
-						queryFeaturesGraphical(simpGeoms[0] as Polygon, "esriSpatialRelIntersects", configSearchGraphical[cboLayerGraphical.selectedIndex]);
+						if(bufferUserGraphic.selected){
+							applyBuffer(true);
+						}else{
+							queryFeaturesGraphical(simpGeoms[0] as Polygon, "esriSpatialRelIntersects", configSearchGraphical[cboLayerGraphical.selectedIndex]);
+						}
 					}
 				}else{
 					//create extent around map point to improve search results
@@ -1313,7 +1317,11 @@ popup or either of the datagrids hyperlink results.
 					{
 						geom = createExtentAroundMapPoint(geom as MapPoint, pointSearchTolerance);
 					}
-					queryFeaturesGraphical(geom, "esriSpatialRelIntersects", configSearchGraphical[cboLayerGraphical.selectedIndex]);
+					if(bufferUserGraphic.selected){
+						applyBuffer(true);
+					}else{
+						queryFeaturesGraphical(geom, "esriSpatialRelIntersects", configSearchGraphical[cboLayerGraphical.selectedIndex]);
+					}
 				}
 				graGraphicsLayer.clear();
 			}
@@ -1920,25 +1928,41 @@ popup or either of the datagrids hyperlink results.
 				return retGeom;
 			}
 			
-			private function applyBuffer():void
+			private function applyBuffer(isGraphicalBufferOp:Boolean=false):void
 			{
-				var graLayAC:ArrayCollection = graphicsLayer.graphicProvider as ArrayCollection;
+				var graLayAC:ArrayCollection;
+				if(isGraphicalBufferOp)
+					graLayAC = graGraphicsLayer.graphicProvider as ArrayCollection;
+				else
+					graLayAC = graphicsLayer.graphicProvider as ArrayCollection;
+				
 				if (graLayAC.length > 0) 
 				{
 					geomArr = [];
-					for each (var graphic:Graphic in graphicsLayer.graphicProvider)
-					{
-						geomArr.push(graphic.geometry);
+					var buffUnit:Number;
+					
+					if(isGraphicalBufferOp){
+						for each (var graphic:Graphic in graGraphicsLayer.graphicProvider)
+						{
+							geomArr.push(graphic.geometry);
+						}
+						buffUnit = GeometryService[configBufferUnits[cboGraBufferUnit.selectedIndex].name];
+						bufferGeometries(geomArr,sReff,[textGraInputBuffer.text],buffUnit,isGraphicalBufferOp);
+					}else{
+						for each (var graphic2:Graphic in graphicsLayer.graphicProvider)
+						{
+							geomArr.push(graphic2.geometry);
+						}
+						buffUnit = GeometryService[configBufferUnits[cboBufferUnit.selectedIndex].name];
+						bufferGeometries(geomArr,sReff,[textInputBuffer.text],buffUnit,isGraphicalBufferOp);
 					}
-					var buffUnit:Number = GeometryService[configBufferUnits[cboBufferUnit.selectedIndex].name];
-					bufferGeometries(geomArr,sReff,[textInputBuffer.text],buffUnit);
 				} else {
 					showStateResults();
 					showMessage("There is no result to buffer, please make a graphical or text search first.",false);
 				}
 			}
 			
-			private function bufferGeometries(geomArr:Array, sr:SpatialReference, dist:Array, unit:Number):void
+			private function bufferGeometries(geomArr:Array, sr:SpatialReference, dist:Array, unit:Number, isGraphicalBufferOp:Boolean=false):void
 			{
 				if (geomArr)
 				{
@@ -1960,22 +1984,27 @@ popup or either of the datagrids hyperlink results.
 						{
 							var graphic:Graphic = new Graphic();
 							var sfs:SimpleFillSymbol = new SimpleFillSymbol();
-							sfs.color = cpBufferColor.selectedColor;//0x0000FF;
-							sfs.alpha = hsBufferAlpha.value;//0.2;
+							if(isGraphicalBufferOp){
+								sfs.color = cpGraBufferColor.selectedColor;//0x0000FF;
+								sfs.alpha = hsGraBufferAlpha.value;//0.2;
+							}else{
+								sfs.color = cpBufferColor.selectedColor;//0x0000FF;
+								sfs.alpha = hsBufferAlpha.value;//0.2;
+							}
 							graphic.geometry = resultEvent;
 							graphic.symbol = sfs;
 							
 							graphicsLayerBuffer.clear();
-							graphicsLayerBuffer.add(graphic);							
+							graphicsLayerBuffer.add(graphic);
+							if(isGraphicalBufferOp)
+								queryFeaturesGraphical(resultEvent, "esriSpatialRelIntersects", configSearchGraphical[cboLayerGraphical.selectedIndex]);
 						}
 						catch (error:Error)
 						{
 							showMessage(error.message, false);
 						}
 					}					
-					
 				}
-				
 			}
 			
 			private function intersectResults(spatialRelat:String):void
@@ -3698,6 +3727,15 @@ popup or either of the datagrids hyperlink results.
 						 textDecoration="underline"/>
 			</s:HGroup>
 			<s:CheckBox id="addTolerance" selected="{applyTolleranceByDefault}" label="{lblTolerance}"/>
+			<s:HGroup verticalAlign="middle">
+				<s:CheckBox id="bufferUserGraphic" selected="false" label="{lblbufferUserGraphic}"/>
+				<s:TextInput id="textGraInputBuffer" text="50" width="40" />
+				<mx:ComboBox id="cboGraBufferUnit" />
+				<mx:ColorPicker id="cpGraBufferColor" selectedColor="#01b9fd" toolTip="{bufferColorLabel}" />
+				<s:HSlider id="hsGraBufferAlpha" width="55" value="0.3" minimum="0" maximum="1" snapInterval="0.1"
+						   toolTip="{bufferAlphaLabel}" dataTipFormatFunction="sldrDataTipFormatter"
+						   skinClass="widgets.eSearch.alphaSliderSkin"/>
+			</s:HGroup>
 		</s:Group>
 		<s:Group id="spatialInput"
 				 width="100%" height="100%"
