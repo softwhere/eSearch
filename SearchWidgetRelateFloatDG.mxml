@@ -218,7 +218,6 @@
 				dgCol.visible = false;
 				dgColArr.push(dgCol);
 				resultsGrid.columns = dgColArr;
-				//resultsGrid.validateNow();
 			}
 			
 			public function set dgFieldAliases(value:Object):void
@@ -503,10 +502,7 @@
 					for ( i=0; i<resultsGrid.columnCount; i++ ) {
 						// if the column actually exists:
 						if ( DataGridColumn(resultsGrid.columns[i]).dataField == key ) {
-//My Change 10-13-11
-							//var cellMetrics2:TextLineMetrics = renderer.measureText(DataGridColumn(key+"");
 							var cellMetrics2:TextLineMetrics = renderer.measureText(DataGridColumn(resultsGrid.columns[i]).headerText+"");
-//En My Change 10-13-11
 							if ( cellMetrics2.width + 18 > Number(maxLengths[key]) + 12 ) {
 								DataGridColumn(resultsGrid.columns[i]).width = cellMetrics2.width + 18;
 							} else {
@@ -632,10 +628,8 @@
 					dgCol.labelFunction = labelFunc2;
 					if (cArr[2] != "NA")
 						dgCol.labelFunction = labelFunc;
-//My Add 8-16-11
 					if (_dgFieldAliases)
 						dgCol.headerText = _dgFieldAliases[cArr[0]];
-//End My Add
 					if (cArr[1] != "NA")
 						dgCol.headerText = cArr[1];
 					dgCol.itemRenderer = new ClassFactory(HyperLinkColumn);						
@@ -677,7 +671,6 @@
 				}
 				resultsGrid.dataProvider = calcMaxLengths(_data);
 				
-				//title += " selected records: " + resultsGrid.dataProvider.length.toString();
 				if(_sumField){
 					try
 					{

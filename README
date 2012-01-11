@@ -1,4 +1,10 @@
-﻿Version 2.5.1 - 1/10/2012
+﻿Version 2.5.1.1 - 1/11/2012
+* Added the ability to disable the interaction between the widget results and the datagrids
+This becomes important when you have more than 500 results displayed in the datagrids
+Thanks to Dave Jenkins for this suggestion
+* Fixed error what occurred when the search widget was minimized and you hover over a grid result
+
+Version 2.5.1 - 1/10/2012
 * Added the ability to buffer graphics drawn using the graphical search before the 
 graphical search is performed.
 

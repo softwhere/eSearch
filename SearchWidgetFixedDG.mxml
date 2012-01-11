@@ -92,6 +92,9 @@
 			private var _sumField:String = "";
 			
 			[Bindable]
+			private var _widgetInteract:Boolean;
+			
+			[Bindable]
 			private var _renableExport:Boolean;
 			[Bindable]
 			private var rsumVisible:Boolean;
@@ -1091,6 +1094,7 @@
 						_zoomScale = theObj.zoomScale;
 						_bWidget = theObj.ownerWidget;
 						_enableExport = theObj.enableExport;
+						_widgetInteract = theObj.widgetInteract;
 					}
 				}
 				if (data.key == "configRelateFixedDatagrid")
@@ -1157,16 +1161,18 @@
 			}
 	
 			private function onItemRollOver(event:ListEvent):void
-			{  
-				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-				_bWidget.highlightDataGroupItem(highlightedGraphic);
-				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-				if(highlightedGraphic){
-					var infoData:Object = highlightedGraphic.attributes;
-					if (map.extent.containsXY(infoData.point.x, infoData.point.y)){
-						showInfoWindow2(infoData);
-					}else{
-						hideInfoWindow();
+			{
+				if(_widgetInteract){
+					highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
+					_bWidget.highlightDataGroupItem(highlightedGraphic);
+					highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
+					if(highlightedGraphic){
+						var infoData:Object = highlightedGraphic.attributes;
+						if (map.extent.containsXY(infoData.point.x, infoData.point.y)){
+							showInfoWindow2(infoData);
+						}else{
+							hideInfoWindow();
+						}
 					}
 				}
 			}
@@ -1239,8 +1245,10 @@
 			
 			private function onItemRollOut(event:ListEvent):void
 			{
-				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-				_bWidget.unhighlightDataGroupItems();
+				if(_widgetInteract){
+					highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
+					_bWidget.unhighlightDataGroupItems();
+				}
 			}
 			
 			public function findGraphicByAttribute(attributes:Object):Graphic
@@ -1261,36 +1269,24 @@
 				var infoData:Object = highlightedGraphic.attributes;
 				var pt:MapPoint = infoData.point;
 				var map:Map = ViewerContainer.getInstance().mapManager.map;
-				if (infoData.geometry)
-				{
-					if (infoData.geometry.type == Geometry.MAPPOINT)
-					{
+				if (infoData.geometry){
+					if (infoData.geometry.type == Geometry.MAPPOINT){
 						if (map.scale > _zoomScale)
-						{
 							map.scale = _zoomScale;
-						}
-						
 						map.centerAt(infoData.point);
-					}
-					else
-					{
+					}else{
 						if(isNaN(_zoomScale)){
 							map.extent = infoData.geometry.extent;
-							
 							if (!map.extent.contains(infoData.geometry))
-							{
 								map.level--;
-							}
 						}else{
 							if (map.scale > _zoomScale)
-							{
 								map.scale = _zoomScale;
-							}
-							
 							map.centerAt(infoData.point);
 						}
 					}
 				}
+				callLater(showInfoWindow2, [infoData]);
 			}
 			
 		]]>

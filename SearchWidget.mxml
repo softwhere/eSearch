@@ -15,9 +15,12 @@
 
 <!-- 
 
-Version 2.5.1 - 1/10/2012
-* Added the ability to buffer graphics drawn using the graphical search before the 
-graphical search is performed.
+Version 2.5.1.1 - 1/11/2012
+* Added the ability to disable the interaction between the widget results and the datagrids
+  This becomes important when you have more than 500 results displayed in the datagrids
+  Thanks to Dave Jenkins for this suggestion
+* Fixed error what occurred when the search widget was minimized and you hover over a grid result
+
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -270,6 +273,7 @@ graphical search is performed.
 			private var selectedGraphicalTool:String;
 			[Bindable] private var multiPartGraphicSearch:Boolean;
 			[Bindable] private var applyTolleranceByDefault:Boolean;
+			[Bindable] private var widgetAndGridIteract:Boolean;
 			
 			private var executingURLquery:Boolean;
 			
@@ -295,9 +299,9 @@ graphical search is performed.
 			private var resultFillSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.1";
+			protected const VERSION:String = "2.5.1.1";
 			
-			protected const BUILDDATE:String = "1/10/2012";
+			protected const BUILDDATE:String = "1/11/2012";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
@@ -360,6 +364,7 @@ graphical search is performed.
 					selectedGraphicalTool = configXML.selectedgraphicaltool || "";
 					enableMultiPartSearch = configXML.labels.enablemultipartsearch || "enable multi-part graphics";
 					applyTolleranceByDefault = configXML.tolerancebydefault && configXML.tolerancebydefault == "true";
+					widgetAndGridIteract = configXML.enabledatagridinteractionwithwidget && configXML.enabledatagridinteractionwithwidget == "true";
 					
 					configSpatialSearchRelation = [];
 					var operList:XMLList = configXML..spatialrelationship;
@@ -956,7 +961,8 @@ graphical search is performed.
 									zoomScale: zoomScale,
 									ownerWidget: sWidget,
 									layerDetails: queryLayer.layerDetails,
-									enableExport: queryEnableExport
+									enableExport: queryEnableExport,
+									widgetInteract: widgetAndGridIteract
 								}
 								var dgconfigArr:ArrayCollection = new ArrayCollection();
 								dgconfigArr.addItem(dgCongig);
@@ -1542,6 +1548,7 @@ graphical search is performed.
 									myfloatdg.ownerWidget = sWidget;
 									myfloatdg.layerDetails = queryLayer.layerDetails;
 									myfloatdg.enableExport = queryEnableExport;
+									myfloatdg.widgetInteract = widgetAndGridIteract;
 								}
 							}else if(floatorfixed == "fixed"){
 								if(!gridFields)
@@ -1563,7 +1570,8 @@ graphical search is performed.
 									zoomScale: zoomScale,
 									ownerWidget: sWidget,
 									layerDetails: queryLayer.layerDetails,
-									enableExport: queryEnableExport
+									enableExport: queryEnableExport,
+									widgetInteract: widgetAndGridIteract
 								}
 								var dgconfigArr:ArrayCollection = new ArrayCollection();
 								dgconfigArr.addItem(dgCongig);
@@ -1765,6 +1773,7 @@ graphical search is performed.
 									myfloatdg.ownerWidget = sWidget;
 									myfloatdg.layerDetails = queryLayer.layerDetails;
 									myfloatdg.enableExport = queryEnableExport;
+									myfloatdg.widgetInteract = widgetAndGridIteract;
 								}
 								if (openDataGrid && floatorfixed != "fixed" )
 									showGridResults();
@@ -1786,7 +1795,8 @@ graphical search is performed.
 									zoomScale: zoomScale,
 									ownerWidget: sWidget,
 									layerDetails: queryLayer.layerDetails,
-									enableExport: queryEnableExport
+									enableExport: queryEnableExport,
+									widgetInteract: widgetAndGridIteract
 								}
 								var dgconfigArr:ArrayCollection = new ArrayCollection();
 								dgconfigArr.addItem(dgCongig);
@@ -1936,8 +1946,7 @@ graphical search is performed.
 				else
 					graLayAC = graphicsLayer.graphicProvider as ArrayCollection;
 				
-				if (graLayAC.length > 0) 
-				{
+				if (graLayAC.length > 0){
 					geomArr = [];
 					var buffUnit:Number;
 					
@@ -3323,6 +3332,7 @@ graphical search is performed.
 						myfloatdg.dgHyperColumns = gridHyperFields;
 						myfloatdg.dProvider = gridDataProvider;
 						myfloatdg.graphicslayer = graphicsLayer;
+						myfloatdg.widgetInteract = widgetAndGridIteract;
 						if(lState == "graphicalInput"){
 							var i2:Number = cboLayerGraphical.selectedIndex;
 							zoomScale = configSearchGraphical[i2].zoomscale;
@@ -3344,15 +3354,18 @@ graphical search is performed.
 			
 			public function highlightDataGroupItem(gra:Graphic):void
 			{
-				var recAC:ArrayCollection = searchResultDG.dataProvider as ArrayCollection;
-				if(gra){
-					var sr:SearchResult = gra.attributes as SearchResult;						
-					for (var i:Number = 0; i < recAC.length; i++){
-						var sr1:SearchResult = searchResultAC[i];
-						if(sr1.oid === sr.oid){
-							sr1.selected = true;
-							searchResultDG.verticalScrollPosition = searchResultDG.getElementAt(searchResultDG.getItemIndicesInView()[0]).height * i;
-							break;
+				if(widgetAndGridIteract){
+					var recAC:ArrayCollection = searchResultDG.dataProvider as ArrayCollection;
+					if(gra){
+						var sr:SearchResult = gra.attributes as SearchResult;						
+						for (var i:Number = 0; i < recAC.length; i++){
+							var sr1:SearchResult = searchResultAC[i];
+							if(sr1.oid === sr.oid){
+								sr1.selected = true;
+								if(searchResultDG.getItemIndicesInView().length > 0)
+									searchResultDG.verticalScrollPosition = searchResultDG.getElementAt(searchResultDG.getItemIndicesInView()[0]).height * i;
+								break;
+							}
 						}
 					}
 				}
@@ -3371,11 +3384,13 @@ graphical search is performed.
 			
 			public function unhighlightDataGroupItems():void
 			{
-				var recAC:ArrayCollection = searchResultDG.dataProvider as ArrayCollection;
-				for (var i:Number = 0; i < recAC.length; i++){
-					var sr:SearchResult = searchResultAC[i];
-					if(sr.oid == sr.oid)
-						sr.selected = false;
+				if(widgetAndGridIteract){
+					var recAC:ArrayCollection = searchResultDG.dataProvider as ArrayCollection;
+					for (var i:Number = 0; i < recAC.length; i++){
+						var sr:SearchResult = searchResultAC[i];
+						if(sr.oid == sr.oid)
+							sr.selected = false;
+					}
 				}
 			}
 			
@@ -3646,7 +3661,7 @@ graphical search is performed.
 			<s:HGroup id="boxGraphical"
 					  width="100%"
 					  gap="15"
-					  horizontalAlign="center">
+					  horizontalAlign="center" verticalAlign="middle">
 				<s:Label id="lblLayerGraphical" text="{layerLabel}"/>
 				<mx:ComboBox id="cboLayerGraphical" change="searchLayerChangedGraphical()"/>
 			</s:HGroup>

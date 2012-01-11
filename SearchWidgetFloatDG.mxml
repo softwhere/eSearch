@@ -19,15 +19,17 @@
 	</Search:layout>
 	<fx:Script>
 		<![CDATA[
-			import com.esri.ags.layers.supportClasses.Field;
-			import com.esri.ags.layers.supportClasses.FeatureType;
 			import com.esri.ags.Graphic;
 			import com.esri.ags.Map;
+			import com.esri.ags.events.PanEvent;
+			import com.esri.ags.events.ZoomEvent;
 			import com.esri.ags.geometry.Geometry;
 			import com.esri.ags.geometry.MapPoint;
 			import com.esri.ags.layers.GraphicsLayer;
 			import com.esri.ags.layers.supportClasses.CodedValue;
 			import com.esri.ags.layers.supportClasses.CodedValueDomain;
+			import com.esri.ags.layers.supportClasses.FeatureType;
+			import com.esri.ags.layers.supportClasses.Field;
 			import com.esri.ags.layers.supportClasses.LayerDetails;
 			import com.esri.ags.webmap.PopUpRenderer;
 			import com.esri.ags.webmap.supportClasses.PopUpInfo;
@@ -86,6 +88,8 @@
 			[Bindable]
 			private var _enableExport:Boolean;
 			[Bindable]
+			private var _widgetInteract:Boolean;
+			[Bindable]
 			private var sumVisible:Boolean;
 			[Bindable]
 			private var _labelSum:String;
@@ -129,6 +133,11 @@
 			public function set enableExport(value:Boolean):void
 			{
 				_enableExport = value;
+			}
+			
+			public function set widgetInteract(value:Boolean):void
+			{
+				_widgetInteract = value;
 			}
 			
 			public function set ownerWidget(value:BaseWidget):void
@@ -658,10 +667,8 @@
 					dgCol.labelFunction = labelFunc2;
 					if (cArr[2] != "NA")
 						dgCol.labelFunction = labelFunc;
-//My Add 8-16-11
 					if (_dgFieldAliases)
 						dgCol.headerText = _dgFieldAliases[cArr[0]];
-//End My Add
 					if (cArr[1] != "NA")
 						dgCol.headerText = cArr[1];
 					dgCol.itemRenderer = new ClassFactory(HyperLinkColumn);						
@@ -810,19 +817,30 @@
 			
 			private function onItemRollOver(event:ListEvent):void
             {
-            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-            	var vSW:SearchWidget = _bWidget as SearchWidget;
-				vSW.highlightDataGroupItem(highlightedGraphic);
-            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-				if(highlightedGraphic){
-            		var infoData:Object = highlightedGraphic.attributes;
-					if (map.extent.containsXY(infoData.point.x, infoData.point.y)){
-						showInfoWindow(infoData);
-					}else{
-						hideInfoWindow();
+				if(_widgetInteract){
+	            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
+	            	var vSW:SearchWidget = _bWidget as SearchWidget;
+					vSW.highlightDataGroupItem(highlightedGraphic);
+	            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
+					if(highlightedGraphic){
+	            		var infoData:Object = highlightedGraphic.attributes;
+						if (map.extent.containsXY(infoData.point.x, infoData.point.y)){
+							showInfoWindow(infoData);
+						}else{
+							hideInfoWindow();
+						}
 					}
 				}
             }
+			
+			private function onItemRollOut(event:ListEvent):void
+			{
+				if(_widgetInteract){
+					highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
+					var vSW:SearchWidget = _bWidget as SearchWidget;
+					vSW.unhighlightDataGroupItems();
+				}
+			}
 			
 			private function hideInfoWindow():void
 			{
@@ -836,7 +854,6 @@
 			private function showInfoWindow(infoData:Object):void
 			{
 				var showHighlightPoint:MapPoint = infoData.point as MapPoint;
-				
 				popUpRenderer.popUpInfo = configurePopUpInfo(infoData.graphic.attributes.links);
 				popUpRenderer.graphic = infoData.graphic;
 				popUpRenderer.setStyle("skinClass", widgets.eSearch.PopUpRendererSkin);
@@ -891,13 +908,6 @@
 					vSW.unhighlightDataGroupItems();
             	}
             }
-            
-            private function onItemRollOut(event:ListEvent):void
-            {
-            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-				var vSW:SearchWidget = _bWidget as SearchWidget;
-				vSW.unhighlightDataGroupItems();
-            }
 
             public function findGraphicByAttribute(attributes:Object):Graphic
             {
@@ -913,40 +923,29 @@
             
             private function clickRow(event:ListEvent):void
             {
+				
             	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
             	var infoData:Object = highlightedGraphic.attributes;
 				var pt:MapPoint = infoData.point;
 				var map:Map = ViewerContainer.getInstance().mapManager.map;
-				if (infoData.geometry)
-				{
-					if (infoData.geometry.type == Geometry.MAPPOINT)
-					{
+				if (infoData.geometry){
+					if (infoData.geometry.type == Geometry.MAPPOINT){
 						if (map.scale > _zoomScale)
-						{
 							map.scale = _zoomScale;
-						}
-						
 						map.centerAt(infoData.point);
-					}
-					else
-					{
+					}else{
 						if(isNaN(_zoomScale)){
 							map.extent = infoData.geometry.extent;
-							
 							if (!map.extent.contains(infoData.geometry))
-							{
 								map.level--;
-							}
 						}else{
 							if (map.scale > _zoomScale)
-							{
 								map.scale = _zoomScale;
-							}
-							
 							map.centerAt(infoData.point);
 						}
 					}
 				}
+				callLater(showInfoWindow, [infoData]);
             }
 
 		]]>

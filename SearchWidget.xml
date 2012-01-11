@@ -17,8 +17,7 @@
 					textsearchlabel="Search Zoning Name [ Example: RES MULTI-FAMILY ]:">upper(ZONING_NAME) LIKE upper('%[value]%')
 				</expression>
 			</expressions>
-			<graphicalsearchlabel>Use one of the graphical search tools to select
-				Zoning</graphicalsearchlabel>
+			<graphicalsearchlabel>Use one of the graphical search tools to select Zoning</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
 			<titlefield>ZONING_NAME</titlefield>
 			<fields all="true" />
@@ -43,8 +42,7 @@
 				<expression alias="Parcel ID"
 					textsearchlabel="Search by Parcel ID  [ Example: 181001490000 or 1810%]:">PARCELID like '[value]'</expression>
 			</expressions>
-			<graphicalsearchlabel>Use one of the graphical search tools to select
-				parcels</graphicalsearchlabel>
+			<graphicalsearchlabel>Use one of the graphical search tools to select parcels</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
 			<titlefield>PARCELID</titlefield>
 			<fields all="false">
@@ -71,8 +69,7 @@
 				<expression alias="Police Stations Name"
 					textsearchlabel="Search Police Stations by name...[ Example: 2ND DIVISION or 2%]">PD_NAME like '[value]'</expression>
 			</expressions>
-			<graphicalsearchlabel>Use one of the graphical search tools to select
-				Police Stations</graphicalsearchlabel>
+			<graphicalsearchlabel>Use one of the graphical search tools to select Police Stations</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
 			<titlefield>PD_NAME</titlefield>
 			<fields all="false">
@@ -324,6 +321,7 @@
 			<label>Kilometers</label>
 		</bufferunit>
 	</bufferunits>
+	<enabledatagridinteractionwithwidget>true</enabledatagridinteractionwithwidget>
 	<toleranceforpointgraphicalselection>6</toleranceforpointgraphicalselection><!-- value is in screen pixels -->
 	<tolerancebydefault>false</tolerancebydefault>
 	<spatialreference>102003</spatialreference>
