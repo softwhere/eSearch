@@ -328,7 +328,7 @@
 	<zoomscale>2400</zoomscale>
 	<geometryservice>http://tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer</geometryservice>
 	<csvseparator>,</csvseparator>
-	<disablebuttons></disablebuttons><!--possible values one or more not all three search types comma separated text,graphic,spatial,grid -->
+	<disablebuttons></disablebuttons><!--possible values one or more not all four search types comma separated text,graphic,spatial,grid,datagrid -->
 	<defaultselectionoption>textInput</defaultselectionoption><!--possible values only one graphicalInput or textInput or spatialInput -->
 	<enabledrawgraphicbutton>true</enabledrawgraphicbutton>
 	<enablebuffergraphicbutton>true</enablebuffergraphicbutton>

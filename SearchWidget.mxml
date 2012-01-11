@@ -20,7 +20,7 @@ Version 2.5.1.1 - 1/11/2012
   This becomes important when you have more than 500 results displayed in the datagrids
   Thanks to Dave Jenkins for this suggestion
 * Fixed error what occurred when the search widget was minimized and you hover over a grid result
-
+* Added ability to disable the datagrid in the disablebuttons element
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -652,6 +652,7 @@ Version 2.5.1.1 - 1/11/2012
 				var disGra:Boolean = false;
 				var disSpat:Boolean = false;
 				var disGrid:Boolean = false;
+				var disDataGrid:Boolean = false;
 				if(dbArr){
 					for (var d:int = 0; d<dbArr.length; d++){
 						switch (dbArr[d]){
@@ -671,10 +672,14 @@ Version 2.5.1.1 - 1/11/2012
 								disGrid = true;
 								break;
 							}
+							case "datagrid":{
+								disDataGrid = true;
+								break;
+							}
 						}
 					}
 				}
-				if(floatorfixed != "fixed")
+				if(floatorfixed != "fixed" && !disDataGrid)
 					wTemplate.addTitlebarButton(WIDGET_URL + "i_table2.png", gridresultsLabel,showGridResults,false);
 				if(!disGra)
 					wTemplate.addTitlebarButton(ICON_URL + "i_searchgraphical.png", graphicalsearchLabel, showStateGraphicalSearch);
