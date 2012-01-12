@@ -1,4 +1,9 @@
-﻿Version 2.5.1.1 - 1/11/2012
+﻿Version 2.5.1.2 - 1/12/2012
+* Fixed error that occurs when you are using the floating adatgrid and click clear,
+  then close the datagrid and reopen it the data reappears in the grid and hovering
+  over arecord causes an error.
+
+Version 2.5.1.1 - 1/11/2012
 * Added the ability to disable the interaction between the widget results and the datagrids
   This becomes important when you have more than 500 results displayed in the datagrids
   Thanks to Dave Jenkins for this suggestion

@@ -15,12 +15,10 @@
 
 <!-- 
 
-Version 2.5.1.1 - 1/11/2012
-* Added the ability to disable the interaction between the widget results and the datagrids
-  This becomes important when you have more than 500 results displayed in the datagrids
-  Thanks to Dave Jenkins for this suggestion
-* Fixed error what occurred when the search widget was minimized and you hover over a grid result
-* Added ability to disable the datagrid in the disablebuttons element
+Version 2.5.1.2 - 1/12/2012
+* Fixed error that occurs when you are using the floating adatgrid and click clear,
+  then close the datagrid and reopen it the data reappears in the grid and hovering
+  over arecord causes an error.
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -299,9 +297,9 @@ Version 2.5.1.1 - 1/11/2012
 			private var resultFillSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.1.1";
+			protected const VERSION:String = "2.5.1.2";
 			
-			protected const BUILDDATE:String = "1/11/2012";
+			protected const BUILDDATE:String = "1/12/2012";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
@@ -2740,8 +2738,10 @@ Version 2.5.1.1 - 1/11/2012
 				txtSearch.errorString = "";
 				sumField = "";
 				searchResultAC = null;
-				if (myfloatdg)
+				if (myfloatdg){
 					myfloatdg.datagrid.dataProvider.removeAll();
+					gridDataProvider = null;
+				}
 				if (relfloatdg)
 					PopUpManager.removePopUp(relfloatdg);
 				if(floatorfixed == "fixed")
