@@ -18,11 +18,15 @@
                 autoDrawBackground="false"
                 click="itemrenderer_clickHandler(event)"
                 minHeight="30"
+				dataChange="itemrenderer1_dataChangeHandler(event)"
                 mouseOut="itemrenderer_mouseOutHandler(event)"
                 mouseOver="itemrenderer_mouseOverHandler(event)">
 
     <fx:Script>
         <![CDATA[
+			import flashx.textLayout.conversion.TextConverter;
+			import flashx.textLayout.elements.TextFlow;
+			
 			import com.esri.ags.symbols.Symbol;
 			
 			import mx.controls.Image;
@@ -51,7 +55,7 @@
 			[Bindable]
 			private var relatetooltip:String;
 			
-			override public function set data(value:Object):void
+			/* override public function set data(value:Object):void
 			{
 				super.data = value;
 				searchResult = data as SearchResult;
@@ -60,6 +64,40 @@
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
 				super.updateDisplayList(unscaledWidth,unscaledHeight);
+				
+				
+			} */
+
+            private function itemrenderer_clickHandler(event:MouseEvent):void
+            {
+                dispatchEvent(new Event(SEARCH_RESULT_CLICK, true)); // bubbles
+            }
+
+            private function itemrenderer_mouseOverHandler(event:MouseEvent):void
+            {
+                dispatchEvent(new Event(SEARCH_RESULT_MOUSE_OVER, true)); // bubbles
+            }
+
+            private function itemrenderer_mouseOutHandler(event:MouseEvent):void
+            {
+                dispatchEvent(new Event(SEARCH_RESULT_MOUSE_OUT, true)); // bubbles
+            }
+
+            private function showLink(event:MouseEvent):void
+            {
+				event.stopImmediatePropagation(); // don't dispatch ID_RESULT_CLICK since we don't want to zoom to feature
+				navigateToURL(new URLRequest(event.currentTarget.name));
+            }
+			
+			private function showRelate(event:MouseEvent):void
+			{
+				event.stopImmediatePropagation(); // don't dispatch SEARCH_RESULT_CLICK since we don't want to zoom to feature
+				dispatchEvent(new Event(SEARCH_RESULT_RELATE_CLICK, true)); // bubbles
+			}
+			
+			protected function itemrenderer1_dataChangeHandler(event:FlexEvent):void
+			{
+				searchResult = data as SearchResult;
 				
 				if (searchResult)
 				{
@@ -72,6 +110,7 @@
 						lastResultSymbol = searchResult.symbol;
 						lastResultSwatch = lastResultSymbol.createSwatch(20, 20);
 					}
+					lContent.textFlow = TextConverter.importToFlow(searchResult.content, TextConverter.TEXT_FIELD_HTML_FORMAT);
 					linkGroup.includeInLayout = linkGroup.visible = false;
 					linkGroup.removeAllElements();
 					resultIcon.addChild(lastResultSwatch);
@@ -108,33 +147,6 @@
 					relateicon = (searchResult.relateicon != null)?searchResult.relateicon:"widgets/eSearch/assets/images/i_relate.png";
 					relatetooltip = (searchResult.relatetooltip != null)?searchResult.relatetooltip:"Show relates";
 				}
-			}
-
-            private function itemrenderer_clickHandler(event:MouseEvent):void
-            {
-                dispatchEvent(new Event(SEARCH_RESULT_CLICK, true)); // bubbles
-            }
-
-            private function itemrenderer_mouseOverHandler(event:MouseEvent):void
-            {
-                dispatchEvent(new Event(SEARCH_RESULT_MOUSE_OVER, true)); // bubbles
-            }
-
-            private function itemrenderer_mouseOutHandler(event:MouseEvent):void
-            {
-                dispatchEvent(new Event(SEARCH_RESULT_MOUSE_OUT, true)); // bubbles
-            }
-
-            private function showLink(event:MouseEvent):void
-            {
-				event.stopImmediatePropagation(); // don't dispatch ID_RESULT_CLICK since we don't want to zoom to feature
-				navigateToURL(new URLRequest(event.currentTarget.name));
-            }
-			
-			private function showRelate(event:MouseEvent):void
-			{
-				event.stopImmediatePropagation(); // don't dispatch SEARCH_RESULT_CLICK since we don't want to zoom to feature
-				dispatchEvent(new Event(SEARCH_RESULT_RELATE_CLICK, true)); // bubbles
 			}
 			
 		]]>
@@ -194,10 +206,13 @@
 						 fontWeight="bold"
 						 maxDisplayedLines="1"
 						 text="{searchResult.title}"/>
-				<s:Label width="100%"
+				<s:RichText id="lContent" fontWeight="normal"
+							styleName="RecordText"
+							width="100%"/>
+				<!--<s:Label width="100%"
 						 fontWeight="normal"
 						 maxDisplayedLines="-1"
-						 text="{searchResult.content}"/>
+						 text="{searchResult.content}"/>-->
 			</s:VGroup>
 		</s:HGroup>
 		<s:HGroup gap="8" id="linkGroup" height="18"

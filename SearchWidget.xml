@@ -36,11 +36,9 @@
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Parcels</name>
-			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_LandRecords_Louisville/MapServer/0
-			</url>
+			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_LandRecords_Louisville/MapServer/0</url>
 			<expressions>
-				<expression alias="Parcel ID"
-					textsearchlabel="Search by Parcel ID  [ Example: 181001490000 or 1810%]:">PARCELID like '[value]'</expression>
+				<expression alias="Parcel ID" textsearchlabel="Search by Parcel ID  [ Example: 181001490000 or 1810%]:">PARCELID like '[value]'</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select parcels</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
@@ -63,11 +61,9 @@
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Police Facilities</name>
-			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_PublicSafety_Louisville/MapServer/3
-			</url>
+			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_PublicSafety_Louisville/MapServer/3</url>
 			<expressions>
-				<expression alias="Police Stations Name"
-					textsearchlabel="Search Police Stations by name...[ Example: 2ND DIVISION or 2%]">PD_NAME like '[value]'</expression>
+				<expression alias="Police Stations Name" textsearchlabel="Search Police Stations by name...[ Example: 2ND DIVISION or 2%]">PD_NAME like '[value]'</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select Police Stations</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
@@ -91,13 +87,11 @@
 			<definitionexpression></definitionexpression>
 			<enableexport>false</enableexport>
 			<name>Traffic Cameras</name>
-			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_PublicSafety_Louisville/MapServer/2
-			</url>
+			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_PublicSafety_Louisville/MapServer/2</url>
 			<expressions>
 				<expression alias="Traffic Camera Description"
 					textsearchlabel="Search Traffic Cameras by Location... [ Example: I-71 ]"
-					userlist="I-71,I-64">upper(DESCRIPTION) LIKE upper('[value]%')
-				</expression>
+					userlist="I-71,I-64">upper(DESCRIPTION) LIKE upper('[value]%')</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select Traffic Cameras</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
@@ -119,18 +113,25 @@
 					<iconprefix></iconprefix>
 					<iconsuffix>assets/images/i_camera.png</iconsuffix>
 				</link>
+				<!-- <link includeinresults="true" field="ONLINE" alias="">
+					<linkprefix></linkprefix>
+					<linksuffix></linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix>assets/images/i_lego.png</iconsuffix>
+				</link> -->
 			</links>
 			<zoomscale>5000</zoomscale>
 		</layer>
-		<!-- <layer>
+		<layer>
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Road Centerlines</name>
-			<url>http://gislap134/ArcGIS/rest/services/Highway/MapServer/5</url>
+			<url>http://gis.calhouncounty.org/ArcGIS/rest/services/Highway/MapServer/5</url>
 			<expressions>
 				<expression alias="Road Surface" textsearchlabel="Search by Surface Type..."
-					field="Surf_Type" usedomain="true" fromsubtype="true">Surf_Type = '[value]'
-				</expression>
+					field="Surf_Type" usedomain="true" fromsubtype="true">Surf_Type = '[value]'</expression>
+				<expression alias="Open SQL" textsearchlabel="Search by Typing Full SQL [RD_NAME = 'ANDREW' AND ZIP_L = 36201]...">[value]</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select Roads</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
@@ -210,7 +211,54 @@
 					</fields>
 				</relate>
 			</relates>
-		</layer> -->
+		</layer>
+		<layer>
+			<definitionexpression></definitionexpression>
+			<name>Domain Join Test</name> 
+			<enableexport>true</enableexport>
+			<url>http://gislap134/ArcGIS/rest/services/Join_Test/MapServer/0</url> 
+			<expressions>
+				<expression alias="Parcel PPIN" textsearchlabel="Search Parcel by Use Code... [ Example: 1234 ]" 
+				field="parcels2.USE_CODE" usedomain="true">parcels2.USE_CODE = [value]</expression> 
+			</expressions>
+			<graphicalsearchlabel>Use one of the graphical search tools to select Parcel</graphicalsearchlabel>
+			<spatialsearchlayer>true</spatialsearchlayer> 
+			<titlefield>parcels2.OBJECTID</titlefield>
+			<fields all="false">
+				<field name="parcels2.PPIN" gridfield="true" />
+				<field name="parcels2.NAME" gridfield="true" />
+				<field name="parcels2.STREET_ADDRESS" gridfield="true" />
+				<field name="parcels2.USE_CODE" gridfield="true" />
+				<field name="parcels2.CALC_ACRES" gridfield="true" /> 
+				<field name="parcels2.EXEMPTION_CODE1" gridfield="true" />
+				<field name="parcels2.ADDRESS_1" gridfield="true" gridfieldonly="true" />
+				<field name="parcels2.ADDRESS_3" gridfield="true" gridfieldonly="true" />
+				<field name="parcels2.PRIOR_TAX_YEAR" gridfield="true" />
+				<field name="parcels2.SALE_DATE" gridfield="true" dateformat="MM/DD/YYYY" useutc="true"/>
+				<field name="parcels2.LAST_DEED_BOOK" gridfield="true"/> 
+				<field name="parcels2.LAST_DEED_PAGE" gridfield="true"/>
+				<field name="parcels2.ZIPCODE_1" gridfield="true" gridfieldonly="true"/>
+				<field name="parcels2.NEIGHBORHOOD" gridfield="true" gridfieldonly="true"/>
+				<field name="parcels2.SUBDIVISION" gridfield="true"/>
+				<field name="parcels2.SALE_PRICE" gridfield="true" currencyformat="$|2|,|." sum="true" sumlabel="Sales Price: "/>
+				<field name="parcels2.TOTAL_TRUE" gridfield="true" currencyformat="$|2|,|." />
+				<field name="parcels2.LAND_PRICE" gridfield="true" currencyformat="$|2|,|." />
+				<field name="parcels2.IMPR_PRICE" gridfield="true" currencyformat="$|2|,|." />
+				<field name="parcels2.ADJ_PRICE" gridfield="true" currencyformat="$|2|,|." />
+				<field name="parcels2.OVER_COND" gridfield="true"/>
+				<field name="ADJUSTMENT PRICE" gridfield="true"/>
+			</fields> 
+			<links>
+				<link includeinresults="false" field="" alias="">
+					<linkprefix></linkprefix>
+					<linksuffix></linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix></iconsuffix>
+				</link>
+			</links>
+			<zoomscale>5000</zoomscale>
+		</layer>
 		<!-- <layer>
 			<definitionexpression/>
 			<name>Weather Obs</name>

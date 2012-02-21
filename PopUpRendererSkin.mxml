@@ -120,6 +120,7 @@
                 var layerDetails:LayerDetails = featureLayer ? featureLayer.layerDetails : null;
 
                 vGroup.removeAllElements();
+				//vGroup.addElement(ToggleLayers);
                 if (popUpInfo)
                 {
                     if (popUpInfo.title)
@@ -143,7 +144,7 @@
                             descriptionText.styleSheet = textStyleSheet;
 							
                             cleanAndSetHtmlText(descriptionText, htmlText);
-							trace(descriptionText.htmlText);
+							//trace(descriptionText.htmlText);
                             vGroup.addElement(descriptionText);
                         }
                     }
@@ -269,7 +270,8 @@
                     }
                 }
             }
-        ]]>
+			
+		]]>
     </fx:Script>
 
     <fx:Declarations>
@@ -315,5 +317,4 @@
             <!-- elements are added in commitProperties() -->
         </s:VGroup>
     </s:Scroller>
-
 </s:SparkSkin>
