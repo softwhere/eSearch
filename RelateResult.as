@@ -29,5 +29,7 @@ package widgets.eSearch
 		public var enableexport:Boolean;
 		
 		public var oid:Number;
+		
+		public var icon:String;
 	}
 }

@@ -123,11 +123,11 @@
 			</links>
 			<zoomscale>5000</zoomscale>
 		</layer>
-		<layer>
+		<!-- <layer>
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Road Centerlines</name>
-			<url>http://gis.calhouncounty.org/ArcGIS/rest/services/Highway/MapServer/5</url>
+			<url>http://someserver/ArcGIS/rest/services/someservice/MapServer/5</url>
 			<expressions>
 				<expression alias="Road Surface" textsearchlabel="Search by Surface Type..."
 					field="Surf_Type" usedomain="true" fromsubtype="true">Surf_Type = '[value]'</expression>
@@ -165,10 +165,10 @@
 			<zoomscale usegeometry="true" />
 			<autoopendatagrid>true</autoopendatagrid>
 			<relates>
-				<relate id="0" label="ABIMS Bridge" enableexport="true">
+				<relate id="0" label="ABIMS Bridge" enableexport="true" icon="assets/images/i_clock.png">
 					<fields all="true" />
 				</relate>
-				<relate id="1" label="Average Daily Traffic" enableexport="true">
+				<relate id="1" label="Average Daily Traffic" enableexport="true" icon="assets/images/i_lego.png">
 					<fields all="false">
 						<field name="Date_" dateformat="MM/DD/YYYY" />
 						<field name="Road_Name" />
@@ -178,7 +178,7 @@
 						<field name="Percent_Tr" />
 					</fields>
 				</relate>
-				<relate id="2" label="Railroad Crossings" enableexport="true">
+				<relate id="2" label="Railroad Crossings" enableexport="true" icon="assets/images/i_flag.png">
 					<fields all="false">
 						<field name="Gate" />
 						<field name="Lights" />
@@ -188,7 +188,7 @@
 						<field name="Control_Mark" />
 					</fields>
 				</relate>
-				<relate id="3" label="Signs" enableexport="false">
+				<relate id="3" label="Signs" enableexport="false" icon="assets/images/i_hydro.png">
 					<fields all="false">
 						<field name="Type" />
 						<field name="Road_ID" />
@@ -199,7 +199,7 @@
 						<field name="post" />
 					</fields>
 				</relate>
-				<relate id="4" label="Guardrails" enableexport="true">
+				<relate id="4" label="Guardrails" enableexport="true" icon="assets/images/i_folder.png">
 					<fields all="false">
 						<field name="Type" />
 						<field name="ID" />
@@ -211,8 +211,8 @@
 					</fields>
 				</relate>
 			</relates>
-		</layer>
-		<layer>
+		</layer> -->
+		<!-- <layer>
 			<definitionexpression></definitionexpression>
 			<name>Domain Join Test</name> 
 			<enableexport>true</enableexport>
@@ -258,7 +258,7 @@
 				</link>
 			</links>
 			<zoomscale>5000</zoomscale>
-		</layer>
+		</layer> -->
 		<!-- <layer>
 			<definitionexpression/>
 			<name>Weather Obs</name>

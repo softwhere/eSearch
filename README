@@ -1,4 +1,7 @@
-﻿Version 2.5.1.3 - 2/21/2012
+﻿Version 2.5.1.4 - 2/22/2012
+* Each relate can have their own associated icon now.
+
+Version 2.5.1.3 - 2/21/2012
 * Fixed issue where you could no longer use an open SQL expression because single quotes
   where being automatically escaped.
 * Fixed issue with event theme layers used in a search not having an ObjectID or FID field

@@ -227,8 +227,7 @@
 			
 			private function exportTo(event:Event):void
 			{
-				try
-				{
+				try{
 					var data:String;
 					var defaultFileName:String;
 					if(optiongroup.selectedValue == _exp2csvBtnLbl){
@@ -281,8 +280,7 @@
 			
 			private function exportCSV(dataGrid:DataGrid, csvSeparator:String=",", lineSeparator:String="\n"):String
 			{
-				try
-				{
+				try{
 					var data:String = "";
 					var columnArray:Array = dataGrid.columns;
 					var columnCount:int = columnArray.length;
@@ -360,8 +358,7 @@
 			
 			private function exportTXT(dataGrid:DataGrid, lineSeparator:String="\n"):String
 			{
-				try
-				{
+				try{
 					var data:String = "";
 					var columnArray:Array = dataGrid.columns;
 					var columnCount:int = columnArray.length;
@@ -376,13 +373,11 @@
 					var j:int = 0;
 					
 					//loop through rows
-					while (!cursor.afterLast)
-					{
+					while (!cursor.afterLast){
 						var object:Object = null;
 						object = cursor.current;
 						//loop through all columns for the row
-						for(var i:int = 0; i < columnCount; i++)
-						{
+						for(var i:int = 0; i < columnCount; i++){
 							dataGridColumn = columnArray[i];
 							//Exclude column data which is invisible (hidden)
 							if(!dataGridColumn.visible)
@@ -544,8 +539,7 @@
 				var dateMS:Number = Number(item[column.dataField]);
 				var retVal:String = "";
 				var rVal:String = item[column.dataField];
-				if(rVal == null)
-				{
+				if(rVal == null){
 					//do nothing
 				}else{
 					if (!isNaN(dateMS))

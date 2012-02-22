@@ -43,7 +43,10 @@
 
                 if (relateResult)
                 {
-					relateicon = "widgets/eSearch/assets/images/i_relate.png";
+					if(relateResult.icon != "")
+						relateicon = relateResult.icon;
+					else
+						relateicon = "widgets/eSearch/assets/images/i_relate.png";
                 }
             }
 

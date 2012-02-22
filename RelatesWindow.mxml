@@ -30,6 +30,8 @@
 			
 			private var _rName:String;
 			
+			private var _rIcon:String;
+			
 			private var featId:Number;
 			
 			private var _rFields:XMLList;
@@ -68,6 +70,11 @@
 				return _oid;
 			}
 			
+			public function get icon():String
+			{
+				return _rIcon
+			}
+			
 			private function relateClicked(event:Event):void
 			{
 				var relRslt:RelateResult = ItemRenderer(event.target).data as RelateResult;
@@ -76,6 +83,7 @@
 				_rFields = relRslt.fields;
 				_reEnable = relRslt.enableexport;
 				_oid = relRslt.oid;
+				_rIcon = relRslt.icon;
 				dispatchEvent(new Event("relateClicked", true));
 			}
 		]]>

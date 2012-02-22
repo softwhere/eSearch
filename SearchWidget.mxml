@@ -15,11 +15,8 @@
 
 <!-- 
 
-Version 2.5.1.3 - 2/21/2012
-* Fixed issue where you could no longer use an open SQL expression because single quotes
-  where being automatically escaped.
-* Fixed issue with event theme layers used in a search not having an ObjectID or FID field
-  and thus causing the datagrid/results interaction to fail
+Version 2.5.1.4 - 2/22/2012
+* Each relate can have their own associated icon now.
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -298,9 +295,9 @@ Version 2.5.1.3 - 2/21/2012
 			private var resultFillSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.1.3";
+			protected const VERSION:String = "2.5.1.4";
 			
-			protected const BUILDDATE:String = "2/13/2012";
+			protected const BUILDDATE:String = "2/22/2012";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
@@ -465,13 +462,15 @@ Version 2.5.1.3 - 2/21/2012
 						for (var r:Number = 0; r < lyrRelList.length(); r++){
 							var lyrRelLabel:String = lyrRelList[r].@label;
 							var lyrRelId:String = lyrRelList[r].@id;
+							var lyrRelIcon:String = lyrRelList[r].@icon || "widgets/eSearch/assets/images/i_relate.png";
 							var lyrRelFields:XMLList = lyrRelList[r].fields;
 							var lyrRelEnableExport:Boolean = lyrRelList[r].@enableexport && lyrRelList[r].@enableexport == "true";
 							var lyrRel:Object = {
 								id: lyrRelId,
 								fields: lyrRelFields,
 								label: lyrRelLabel,
-								enableexport: lyrRelEnableExport
+								enableexport: lyrRelEnableExport,
+								icon: lyrRelIcon
 							}
 							configLayerRels.push(lyrRel);
 						}
@@ -2344,6 +2343,8 @@ Version 2.5.1.3 - 2/21/2012
 					}
 					searchResult.graphic = graphic;
 					searchResult.relates = queryRelates;
+					if(queryRelates.length == 1)
+						searchResult.relateicon = queryRelates[0].icon;
 					searchResult.relatetooltip = relateToolTip;
 					
 					switch (graphic.geometry.type){
@@ -2956,6 +2957,7 @@ Version 2.5.1.3 - 2/21/2012
 						relRslt.fields = searchResult.relates[r].fields;
 						relRslt.enableexport = searchResult.relates[r].enableexport;
 						relRslt.oid = searchResult.oid;
+						relRslt.icon = searchResult.relates[r].icon;
 						relArrayColl.addItem(relRslt);
 					}
 					
