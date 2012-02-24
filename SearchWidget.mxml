@@ -15,7 +15,8 @@
 
 <!-- 
 
-Version 2.5.1.4 - 2/22/2012
+Version 2.5.1.4f - 2/24/2012
+* Fix error 1009 that was recieved in version 2.5.1.4 when no relate was specified in the XML for a layer
 * Each relate can have their own associated icon now.
 
 --> 
@@ -295,9 +296,9 @@ Version 2.5.1.4 - 2/22/2012
 			private var resultFillSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.1.4";
+			protected const VERSION:String = "2.5.1.4f";
 			
-			protected const BUILDDATE:String = "2/22/2012";
+			protected const BUILDDATE:String = "2/24/2012";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
@@ -2343,23 +2344,20 @@ Version 2.5.1.4 - 2/22/2012
 					}
 					searchResult.graphic = graphic;
 					searchResult.relates = queryRelates;
-					if(queryRelates.length == 1)
+					if(queryRelates && queryRelates.length == 1)
 						searchResult.relateicon = queryRelates[0].icon;
 					searchResult.relatetooltip = relateToolTip;
 					
 					switch (graphic.geometry.type){
-						case Geometry.MAPPOINT:
-						{
+						case Geometry.MAPPOINT:{
 							graphic.symbol = searchResult.symbol = resultMarkerSymbol;
 							break;
 						}
-						case Geometry.POLYLINE:
-						{
+						case Geometry.POLYLINE:{
 							graphic.symbol = searchResult.symbol = resultLineSymbol;
 							break;
 						}
-						case Geometry.POLYGON:
-						{
+						case Geometry.POLYGON:{
 							graphic.symbol = searchResult.symbol = resultFillSymbol;
 							break;
 						}
@@ -2387,7 +2385,6 @@ Version 2.5.1.4 - 2/22/2012
 						break;
 					}
 				}
-				
 				return result;
 			}
 			
@@ -2403,7 +2400,6 @@ Version 2.5.1.4 - 2/22/2012
 						}
 					}
 				}
-				
 				return result;
 			}
 			
@@ -2419,7 +2415,6 @@ Version 2.5.1.4 - 2/22/2012
 						}
 					}
 				}
-				
 				return result;
 			}
 			
@@ -2481,7 +2476,6 @@ Version 2.5.1.4 - 2/22/2012
 						}
 					}
 				}
-				
 				return result;
 			}
 			
@@ -2530,8 +2524,7 @@ Version 2.5.1.4 - 2/22/2012
 					}
 					return;
 				}
-		
-				
+
 				var domainsCache:Object = layerDomainsCache[queryLayer];
 				if (!domainsCache){
 					domainsCache = {}; // map from fieldName to CodedValueDomain
@@ -2573,8 +2566,7 @@ Version 2.5.1.4 - 2/22/2012
 					for each (var codedValue:CodedValue in codedValueDomain.codedValues){
 						var dVal:String = codedValue.code;
 						var dLbl:String = codedValue.name;
-						var domVal:Object = 
-						{
+						var domVal:Object = {
 							value: dVal,
 							label: dLbl
 						}

@@ -123,11 +123,11 @@
 			</links>
 			<zoomscale>5000</zoomscale>
 		</layer>
-		<!-- <layer>
+		<layer>
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Road Centerlines</name>
-			<url>http://someserver/ArcGIS/rest/services/someservice/MapServer/5</url>
+			<url>http://gis.calhouncounty.org/ArcGIS/rest/services/highway/MapServer/5</url>
 			<expressions>
 				<expression alias="Road Surface" textsearchlabel="Search by Surface Type..."
 					field="Surf_Type" usedomain="true" fromsubtype="true">Surf_Type = '[value]'</expression>
@@ -211,8 +211,8 @@
 					</fields>
 				</relate>
 			</relates>
-		</layer> -->
-		<!-- <layer>
+		</layer>
+		<layer>
 			<definitionexpression></definitionexpression>
 			<name>Domain Join Test</name> 
 			<enableexport>true</enableexport>
@@ -258,7 +258,7 @@
 				</link>
 			</links>
 			<zoomscale>5000</zoomscale>
-		</layer> -->
+		</layer>
 		<!-- <layer>
 			<definitionexpression/>
 			<name>Weather Obs</name>
