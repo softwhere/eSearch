@@ -15,9 +15,8 @@
 
 <!-- 
 
-Version 2.5.1.4f - 2/24/2012
-* Fix error 1009 that was recieved in version 2.5.1.4 when no relate was specified in the XML for a layer
-* Each relate can have their own associated icon now.
+Version 2.5.1.5 - 3/16/2012
+* Fixed more issue with subtypes and some possible issues with integer fields
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -111,6 +110,7 @@ Version 2.5.1.4f - 2/24/2012
 			import mx.collections.*;
 			import mx.controls.Alert;
 			import mx.controls.ToolTip;
+			import mx.core.FlexGlobals;
 			import mx.core.IToolTip;
 			import mx.core.IUIComponent;
 			import mx.core.UIComponent;
@@ -296,9 +296,9 @@ Version 2.5.1.4f - 2/24/2012
 			private var resultFillSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.1.4f";
+			protected const VERSION:String = "2.5.1.5";
 			
-			protected const BUILDDATE:String = "2/24/2012";
+			protected const BUILDDATE:String = "3/16/2012";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
@@ -1362,7 +1362,7 @@ Version 2.5.1.4f - 2/24/2012
 				
 				var i:int = cboLayerText.selectedIndex;
 				queryLayer = configSearchText[i].layer;
-				
+
 				if (queryLayer && !queryLayer.loaded)
 				{
 					queryLayer.addEventListener(LayerEvent.LOAD, queryLayer_loadHandler);
@@ -1372,7 +1372,6 @@ Version 2.5.1.4f - 2/24/2012
 					}
 					return;
 				}
-				
 				var oidFld:String = queryLayer.layerDetails.objectIdField;
 				
 				var qFields:Array;
@@ -2220,8 +2219,7 @@ Version 2.5.1.4f - 2/24/2012
 					
 					function displayFields(fieldName:String, fieldXML:XML, field:Field):void
 					{
-						value = graphic.attributes[fieldName] ? String(graphic.attributes[fieldName]) : "";
-						
+						value = (graphic.attributes[fieldName] != null) ? String(graphic.attributes[fieldName]) : "";						
 						if (value){
 							var isDateField:Boolean;
 							var dateFormat:String;
@@ -2280,8 +2278,8 @@ Version 2.5.1.4f - 2/24/2012
 								value = currFormatter.format(value);
 							}
 							if(layerDetails && field){
-								var typeID:String = layerDetails.typeIdField ? graphic.attributes[layerDetails.typeIdField] : null;
-								if (fieldName == layerDetails.typeIdField){
+								var typeID:String = layerDetails.typeIdField ? graphic.attributes[fieldName] : null;
+								if (layerDetails.typeIdField && fieldName.toUpperCase() == layerDetails.typeIdField.toUpperCase()){
 									// replace value with feature type name
 									var featureType:FeatureType = getFeatureType(typeID);
 									if (featureType && featureType.name)
@@ -2293,8 +2291,7 @@ Version 2.5.1.4f - 2/24/2012
 										value = codedValue.name;
 								}
 							}
-						}
-						
+						}						
 						if (fieldName.toUpperCase() == queryTitleField.toUpperCase()){
 							title = value;
 							if (!title)
@@ -2302,8 +2299,10 @@ Version 2.5.1.4f - 2/24/2012
 						}
 						if (fieldName.toUpperCase() == queryMultiImgField.toUpperCase())
 							multi = value;
-						if (fieldName.toUpperCase() != "SHAPE_LENGTH" && fieldName.toUpperCase() != "SHAPE_AREA"
-							&& fieldName.toUpperCase() != queryMultiImgField.toUpperCase() && fieldName.toUpperCase() != queryTitleField.toUpperCase()){
+						if (fieldName.toUpperCase() != "SHAPE_LENGTH" 
+							&& fieldName.toUpperCase() != "SHAPE_AREA"
+							&& fieldName.toUpperCase() != queryMultiImgField.toUpperCase() 
+							&& fieldName.toUpperCase() != queryTitleField.toUpperCase()){
 							if(fieldXML){
 								if(fieldXML.@gridfieldonly[0] && fieldXML.@gridfieldonly[0] == "true" || 
 									fieldXML.@hyperlinkgridfieldonly[0] && fieldXML.@hyperlinkgridfieldonly[0] == "true"){

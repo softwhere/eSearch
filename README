@@ -1,4 +1,7 @@
-﻿Version 2.5.1.4f - 2/24/2012
+﻿Version 2.5.1.5 - 3/16/2012
+* Fix more issues with subtypes and a possible issue with integer fields.
+
+Version 2.5.1.4f - 2/24/2012
 * Fix error 1009 that was recieved in version 2.5.1.4 when no relate was specified in the XML for a layer.
 
 Version 2.5.1.4 - 2/22/2012

@@ -63,6 +63,7 @@
             import mx.containers.FormItem;
 			import mx.controls.Alert;
             import mx.controls.Label;
+			import mx.core.FlexGlobals;
             import mx.core.ScrollPolicy;
             import mx.events.FlexEvent;
 
@@ -169,6 +170,10 @@
                                         label = new Label();
                                         htmlText = '<a href="' + match[1] + '" target="_blank">' + match[1] + "</a>";
                                     }
+									else if (fieldInfo.fieldName == "PROJNUM"){
+										label = new mx.controls.Label();
+										htmlText = "<a href='http://webistehere/PW/WebForm2.aspx?FirstName=" + FlexGlobals.topLevelApplication.firstName + "&LastName=" + FlexGlobals.topLevelApplication.lastName + "&email=" + FlexGlobals.topLevelApplication.email + "&ConstId=" + htmlText + "' target='_blank'><b>MP 116-1284</b></a>";
+									}
                                     else
                                     {
                                         label = new PopUpText();

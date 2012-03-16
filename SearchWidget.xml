@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <!-- See Enhanced Search Widget XML Configuration.pdf for detailed explanation -->
-
 <configuration>
 	<layers>
 		<layer>
@@ -22,7 +21,7 @@
 			<titlefield>ZONING_NAME</titlefield>
 			<fields all="true" />
 			<links>
-				<link includeinresults="false" field="" alias="">
+				<link includeinresults="true" field="" alias="">
 					<linkprefix></linkprefix>
 					<linksuffix></linksuffix>
 					<iconfield></iconfield>
@@ -123,14 +122,14 @@
 			</links>
 			<zoomscale>5000</zoomscale>
 		</layer>
-		<!--<layer>
+		<!-- <layer>
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Road Centerlines</name>
-			<url>http://someserver/ArcGIS/rest/services/somservice/MapServer/5</url>
+			<url>http://someserver/ArcGIS/rest/services/someservice/MapServer/5</url>
 			<expressions>
 				<expression alias="Road Surface" textsearchlabel="Search by Surface Type..."
-					field="Surf_Type" usedomain="true" fromsubtype="true">Surf_Type = '[value]'</expression>
+					field="Surf_Type" usedomain="true">Surf_Type = '[value]'</expression>
 				<expression alias="Open SQL" textsearchlabel="Search by Typing Full SQL [RD_NAME = 'ANDREW' AND ZIP_L = 36201]...">[value]</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select Roads</graphicalsearchlabel>
@@ -211,54 +210,7 @@
 					</fields>
 				</relate>
 			</relates>
-		</layer>-->
-		<!--<layer>
-			<definitionexpression></definitionexpression>
-			<name>Domain Join Test</name> 
-			<enableexport>true</enableexport>
-			<url>http://gislap134/ArcGIS/rest/services/Join_Test/MapServer/0</url> 
-			<expressions>
-				<expression alias="Parcel PPIN" textsearchlabel="Search Parcel by Use Code... [ Example: 1234 ]" 
-				field="parcels2.USE_CODE" usedomain="true">parcels2.USE_CODE = [value]</expression> 
-			</expressions>
-			<graphicalsearchlabel>Use one of the graphical search tools to select Parcel</graphicalsearchlabel>
-			<spatialsearchlayer>true</spatialsearchlayer> 
-			<titlefield>parcels2.OBJECTID</titlefield>
-			<fields all="false">
-				<field name="parcels2.PPIN" gridfield="true" />
-				<field name="parcels2.NAME" gridfield="true" />
-				<field name="parcels2.STREET_ADDRESS" gridfield="true" />
-				<field name="parcels2.USE_CODE" gridfield="true" />
-				<field name="parcels2.CALC_ACRES" gridfield="true" /> 
-				<field name="parcels2.EXEMPTION_CODE1" gridfield="true" />
-				<field name="parcels2.ADDRESS_1" gridfield="true" gridfieldonly="true" />
-				<field name="parcels2.ADDRESS_3" gridfield="true" gridfieldonly="true" />
-				<field name="parcels2.PRIOR_TAX_YEAR" gridfield="true" />
-				<field name="parcels2.SALE_DATE" gridfield="true" dateformat="MM/DD/YYYY" useutc="true"/>
-				<field name="parcels2.LAST_DEED_BOOK" gridfield="true"/> 
-				<field name="parcels2.LAST_DEED_PAGE" gridfield="true"/>
-				<field name="parcels2.ZIPCODE_1" gridfield="true" gridfieldonly="true"/>
-				<field name="parcels2.NEIGHBORHOOD" gridfield="true" gridfieldonly="true"/>
-				<field name="parcels2.SUBDIVISION" gridfield="true"/>
-				<field name="parcels2.SALE_PRICE" gridfield="true" currencyformat="$|2|,|." sum="true" sumlabel="Sales Price: "/>
-				<field name="parcels2.TOTAL_TRUE" gridfield="true" currencyformat="$|2|,|." />
-				<field name="parcels2.LAND_PRICE" gridfield="true" currencyformat="$|2|,|." />
-				<field name="parcels2.IMPR_PRICE" gridfield="true" currencyformat="$|2|,|." />
-				<field name="parcels2.ADJ_PRICE" gridfield="true" currencyformat="$|2|,|." />
-				<field name="parcels2.OVER_COND" gridfield="true"/>
-				<field name="ADJUSTMENT PRICE" gridfield="true"/>
-			</fields> 
-			<links>
-				<link includeinresults="false" field="" alias="">
-					<linkprefix></linkprefix>
-					<linksuffix></linksuffix>
-					<iconfield></iconfield>
-					<iconprefix></iconprefix>
-					<iconsuffix></iconsuffix>
-				</link>
-			</links>
-			<zoomscale>5000</zoomscale>
-		</layer>-->
+		</layer> -->
 		<!-- <layer>
 			<definitionexpression/>
 			<name>Weather Obs</name>
