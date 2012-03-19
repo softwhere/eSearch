@@ -882,7 +882,7 @@
 						for each (fld in _layerDetails.fields)
 						{
 							var typeID:String = _layerDetails.typeIdField ? attributes[fld.name] : null;
-							if (fld.name.toUpperCase() == _layerDetails.typeIdField.toUpperCase()){
+							if (_layerDetails.typeIdField && fld.name.toUpperCase() == _layerDetails.typeIdField.toUpperCase()){
 								// replace value with feature type name
 								var featureType:FeatureType = getFeatureType(typeID,_layerDetails);
 								if (featureType && featureType.name)
