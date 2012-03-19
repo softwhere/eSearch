@@ -1,5 +1,5 @@
 ﻿Version 2.5.1.6 - 3/19/2012
-* Fixed more issue with subtypes in the datagrids.
+* Fixed more issues with subtypes in the datagrids.
 * Added new zoom percent to the zoomscale tag where 1 = 100%, 1.2 = 120% (default), etc, etc.
 * All Zooming attempts to use the same scaling (popup, datagrid, widget results).
 See ReadMe.txt for a complete list of updates.
