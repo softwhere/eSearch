@@ -29,7 +29,7 @@
 					<iconsuffix></iconsuffix>
 				</link>
 			</links>
-			<zoomscale usegeometry="true">10000</zoomscale>
+			<zoomscale usegeometry="true" zoompercent="1.6">10000</zoomscale>
 		</layer>
 		<layer>
 			<definitionexpression></definitionexpression>
@@ -54,7 +54,7 @@
 					<iconsuffix></iconsuffix>
 				</link>
 			</links>
-			<zoomscale usegeometry="true">40000</zoomscale>
+			<zoomscale usegeometry="true" zoompercent="1.2"></zoomscale>
 		</layer>
 		<layer>
 			<definitionexpression></definitionexpression>
@@ -80,7 +80,7 @@
 					<iconsuffix></iconsuffix>
 				</link>
 			</links>
-			<zoomscale usegeometry="true">1000</zoomscale>
+			<zoomscale usegeometry="true" zoompercent="1.2"></zoomscale>
 		</layer>
 		<layer>
 			<definitionexpression></definitionexpression>
@@ -283,6 +283,33 @@
 				</link>
 			</links>
 			<zoomscale>5000</zoomscale>
+		</layer> -->
+		<!-- <layer>
+			<definitionexpression></definitionexpression>
+			<enableexport>true</enableexport>
+			<name>Sub Type</name>
+			<url>http://gislap134/ArcGIS/rest/services/SubTypes/MapServer/0</url>
+			<expressions>
+				<expression alias="Type Code" textsearchlabel="Search type Code [ Example: cross ]:"
+					field="SUB_TYPE" usedomain="true">SUB_TYPE = '[value]'</expression>
+			</expressions>
+			<graphicalsearchlabel>Use one of the graphical search tools to select type</graphicalsearchlabel>
+			<spatialsearchlayer>true</spatialsearchlayer>
+			<titlefield>FACILITY_I</titlefield>
+			<fields all="false">
+				<field name="FACILITY_I" alias="FACILITY_I" gridfield="true"/>
+				<field name="TYPECODE" alias="Type" gridfield="true"/>
+			</fields>
+			<links>
+				<link includeinresults="true" field="" alias="">
+					<linkprefix></linkprefix>
+					<linksuffix></linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix></iconsuffix>
+				</link>
+			</links>
+			<zoomscale usegeometry="true">10000</zoomscale>
 		</layer> -->
 	</layers>
 	<spatialrelationships>

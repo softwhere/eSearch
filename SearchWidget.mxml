@@ -15,8 +15,10 @@
 
 <!-- 
 
-Version 2.5.1.5 - 3/16/2012
-* Fixed more issue with subtypes and some possible issues with integer fields
+Version 2.5.1.6 - 3/19/2012
+* Fixed more issue with subtypes in thwe datagrids.
+* Added new zoom percent to the zoomscale tag where 1 = 100%, 1.2 = 120% (deafult), etc, etc.
+* All Zooming attempts to use the same scaling (popup, datagrid, widget results).
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -205,6 +207,7 @@ Version 2.5.1.5 - 3/16/2012
 			private var applyBufferLabel:String;
 			private var resultsFeatureSet:FeatureSet;
 			private var zoomScale:Number = 5000;
+			private var zoomPercent:Number = 1.2;
 			private var configSearchGraphical:Array;
 			private var configSearchText:Array;
 			private var configDomainVals:Array;
@@ -296,9 +299,9 @@ Version 2.5.1.5 - 3/16/2012
 			private var resultFillSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.1.5";
+			protected const VERSION:String = "2.5.1.6";
 			
-			protected const BUILDDATE:String = "3/16/2012";
+			protected const BUILDDATE:String = "3/19/2012";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
@@ -528,6 +531,11 @@ Version 2.5.1.5 - 3/16/2012
 						var openDG:Boolean = lyrList[i].autoopendatagrid && lyrList[i].autoopendatagrid == "true";
 						if ((lyrList[i].zoomscale.@usegeometry) && (lyrList[i].zoomscale.@usegeometry == "true")){
 							zoomScale = Number.NaN;
+							if(lyrList[i].zoomscale.@zoompercent){
+								zoomPercent = Number(lyrList[i].zoomscale.@zoompercent)
+							}else{
+								zoomPercent = 1.2
+							}
 						}else{
 							if (Number(lyrList[i].zoomscale) > 0)
 								zoomScale = Number(lyrList[i].zoomscale);
@@ -564,6 +572,7 @@ Version 2.5.1.5 - 3/16/2012
 							links: lyrLinks,
 							multi: lyrMultiImgField,
 							zoomscale: zoomScale,
+							zoompercent: zoomPercent,
 							enableexport: lyrEnableExport,
 							defexpr: lyrDefExpr,
 							opendg: openDG,
@@ -764,6 +773,11 @@ Version 2.5.1.5 - 3/16/2012
 				
 				var qFields:Array;
 				zoomScale = configSearchText[slayerId].zoomscale;
+				if(configSearchText[slayerId].zoomscale.@zoomPercent){
+					zoomPercent = configSearchText[slayerId].zoomscale.@zoomPercent;
+				}else{
+					zoomPercent = 1.2;
+				}
 				queryLayer = configSearchText[slayerId].layer;
 				queryExpr = configSearchText[slayerId].expr[exprNum].expression;
 				queryFields = configSearchText[slayerId].fields;
@@ -968,6 +982,7 @@ Version 2.5.1.5 - 3/16/2012
 									dProvider: gridDataProvider,
 									graphicslayer: graphicsLayer,
 									zoomScale: zoomScale,
+									zoomPercent: zoomPercent,
 									ownerWidget: sWidget,
 									layerDetails: queryLayer.layerDetails,
 									enableExport: queryEnableExport,
@@ -1376,6 +1391,7 @@ Version 2.5.1.5 - 3/16/2012
 				
 				var qFields:Array;
 				zoomScale = configSearchText[i].zoomscale;
+				zoomPercent = configSearchText[i].zoompercent;
 				queryLayer = configSearchText[i].layer;
 				var j:Number = cboLayerExpr.selectedIndex;
 				queryExpr = configSearchText[i].expr[j].expression;
@@ -1561,6 +1577,7 @@ Version 2.5.1.5 - 3/16/2012
 									myfloatdg.dProvider = gridDataProvider;
 									myfloatdg.graphicslayer = graphicsLayer;
 									myfloatdg.zoomScale = zoomScale;
+									myfloatdg.zoomPercent = zoomPercent;
 									myfloatdg.ownerWidget = sWidget;
 									myfloatdg.layerDetails = queryLayer.layerDetails;
 									myfloatdg.enableExport = queryEnableExport;
@@ -1584,6 +1601,7 @@ Version 2.5.1.5 - 3/16/2012
 									dProvider: gridDataProvider,
 									graphicslayer: graphicsLayer,
 									zoomScale: zoomScale,
+									zoomPercent: zoomPercent,
 									ownerWidget: sWidget,
 									layerDetails: queryLayer.layerDetails,
 									enableExport: queryEnableExport,
@@ -1622,6 +1640,7 @@ Version 2.5.1.5 - 3/16/2012
 				var oidFld:String = queryLayer.layerDetails.objectIdField;
 				queryGeom = geom;
 				zoomScale = layerConfig.zoomscale;
+				zoomPercent = layerConfig.zoompercent;
 				queryFields = layerConfig.fields;
 				queryExpr = layerConfig.expr;
 				var gfields:XMLList;
@@ -1792,6 +1811,7 @@ Version 2.5.1.5 - 3/16/2012
 									myfloatdg.dProvider = gridDataProvider;
 									myfloatdg.graphicslayer = graphicsLayer;
 									myfloatdg.zoomScale = zoomScale;
+									myfloatdg.zoomPercent = zoomPercent;
 									myfloatdg.ownerWidget = sWidget;
 									myfloatdg.layerDetails = queryLayer.layerDetails;
 									myfloatdg.enableExport = queryEnableExport;
@@ -1815,6 +1835,7 @@ Version 2.5.1.5 - 3/16/2012
 									dProvider: gridDataProvider,
 									graphicslayer: graphicsLayer,
 									zoomScale: zoomScale,
+									zoomPercent: zoomPercent,
 									ownerWidget: sWidget,
 									layerDetails: queryLayer.layerDetails,
 									enableExport: queryEnableExport,
@@ -2336,6 +2357,8 @@ Version 2.5.1.5 - 3/16/2012
 					searchResult.relateicon = relateIcon ? relateIcon : null;
 					searchResult.geometry = graphic.geometry;
 					searchResult.multi = multi ? multi :null;
+					searchResult.zoomscale = zoomScale;
+					searchResult.zoompercent = zoomPercent;
 					if(!queryLayer.layerDetails.objectIdField){
 						searchResult.oid = graphic.attributes["oid"];
 					}else{
@@ -3210,19 +3233,26 @@ Version 2.5.1.5 - 3/16/2012
 				if(lState == "textInput"){
 					var i:Number = cboLayerText.selectedIndex;
 					zoomScale = configSearchText[i].zoomscale;
+					zoomPercent = configSearchText[i].zoompercent;
 				} else if(lState == "graphicalInput"){
 					var i2:Number = cboLayerGraphical.selectedIndex;
 					zoomScale = configSearchGraphical[i2].zoomscale;
+					zoomPercent = configSearchGraphical[i2].zoompercent;
 				}
 				
 				if (searchResult.geometry){
 					if (searchResult.geometry.type == Geometry.MAPPOINT){
-						if (map.scale > zoomScale)
-							map.scale = zoomScale;
-						map.centerAt(searchResult.point);
+						if(isNaN(zoomScale)){
+							map.zoom(1 / 16, searchResult.point);
+							map.centerAt(searchResult.point);
+						}else{
+							if (map.scale > zoomScale)
+								map.scale = zoomScale;
+							map.centerAt(searchResult.point);
+						}
 					}else{
 						if(isNaN(zoomScale)){
-							map.extent = searchResult.geometry.extent;
+							map.extent = searchResult.geometry.extent.expand(zoomPercent);
 							if (!map.extent.contains(searchResult.geometry))
 								map.level--;
 						}else{
@@ -3358,10 +3388,12 @@ Version 2.5.1.5 - 3/16/2012
 						if(lState == "graphicalInput"){
 							var i2:Number = cboLayerGraphical.selectedIndex;
 							zoomScale = configSearchGraphical[i2].zoomscale;
+							zoomPercent = configSearchGraphical[i2].zoompercent;
 							myfloatdg.enableExport = configSearchGraphical[i2].enableexport;
 						}else if (lState == "textInput"){
 							var i:Number = cboLayerText.selectedIndex;
 							zoomScale = configSearchText[i].zoomscale;
+							zoomPercent = configSearchText[i].zoompercent;
 							myfloatdg.enableExport = configSearchText[i].enableexport;
 						}
 						myfloatdg.zoomScale = zoomScale;

@@ -65,6 +65,7 @@
 			private var _resultsGrid:DataGrid;
 			private var highlightedGraphic:Graphic;
 			private var _zoomScale:Number = 5000;
+			private var _zoomPercent:Number = 1.2;
 			private var _bWidget:BaseWidget;
 			private var _dgColumns:Array=[];
 			private var _dgFieldAliases:Object;
@@ -682,6 +683,11 @@
 				_zoomScale = value;
 			}
 			
+			public function set zoomPercent(value:Number):void
+			{
+				_zoomPercent = value;
+			}
+			
 			public function set dProvider(value:Object):void
 			{
 				_data = ObjectUtil.copy(value);
@@ -705,8 +711,8 @@
 						var cDomain:CodedValueDomain;
 						for each (fld in _layerDetails.fields)
 						{							
-							var typeID:String = _layerDetails.typeIdField ? attributes[_layerDetails.typeIdField] : null;
-							if (fld.name == _layerDetails.typeIdField){
+							var typeID:String = _layerDetails.typeIdField ? attributes[fld.name] : null;
+							if (fld.name.toUpperCase() == _layerDetails.typeIdField.toUpperCase()){
 								// replace value with feature type name
 								var featureType:FeatureType = getFeatureType(typeID);
 								if (featureType && featureType.name)
@@ -923,19 +929,23 @@
             
             private function clickRow(event:ListEvent):void
             {
-				
             	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
             	var infoData:Object = highlightedGraphic.attributes;
 				var pt:MapPoint = infoData.point;
 				var map:Map = ViewerContainer.getInstance().mapManager.map;
 				if (infoData.geometry){
 					if (infoData.geometry.type == Geometry.MAPPOINT){
-						if (map.scale > _zoomScale)
-							map.scale = _zoomScale;
-						map.centerAt(infoData.point);
+						if(isNaN(_zoomScale)){
+							map.zoom(1 / 16, infoData.point);
+							map.centerAt(infoData.point);
+						}else{
+							if (map.scale > _zoomScale)
+								map.scale = _zoomScale;
+							map.centerAt(infoData.point);
+						}
 					}else{
 						if(isNaN(_zoomScale)){
-							map.extent = infoData.geometry.extent;
+							map.extent = infoData.geometry.extent.expand(_zoomPercent);
 							if (!map.extent.contains(infoData.geometry))
 								map.level--;
 						}else{

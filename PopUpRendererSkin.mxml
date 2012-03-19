@@ -122,24 +122,19 @@
 
                 vGroup.removeAllElements();
 				//vGroup.addElement(ToggleLayers);
-                if (popUpInfo)
-                {
-                    if (popUpInfo.title)
-                    {
+                if (popUpInfo){
+                    if (popUpInfo.title){
                         titleText.text = StringUtil.substitute(popUpInfo.title, formattedAttributes);
-                        if (titleText.text)
-                        {
+                        if (titleText.text){
                             vGroup.addElement(titleText);
                             vGroup.addElement(titleLine);
                         }
                     }
 
                     var htmlText:String;
-                    if (popUpInfo.description)
-                    {
+                    if (popUpInfo.description){
                         htmlText = StringUtil.substitute(popUpInfo.description, formattedAttributes);
-                        if (htmlText)
-                        {
+                        if (htmlText){
                             var descriptionText:Text = new PopUpText();
                             descriptionText.percentWidth = 100;
                             descriptionText.styleSheet = textStyleSheet;
@@ -148,34 +143,25 @@
 							//trace(descriptionText.htmlText);
                             vGroup.addElement(descriptionText);
                         }
-                    }
-                    else
-                    {
+                    }else{
                         var descriptionForm:Form;
-                        for each (var fieldInfo:PopUpFieldInfo in popUpInfo.popUpFieldInfos)
-                        {
-                            if (fieldInfo.visible)
-                            {
+                        for each (var fieldInfo:PopUpFieldInfo in popUpInfo.popUpFieldInfos){
+                            if (fieldInfo.visible){
                                 var formItem:FormItem = new FormItem();
                                 formItem.label = fieldInfo.label || fieldInfo.fieldName;
 								
                                 var label:Label;
                                 htmlText = formattedAttributes[fieldInfo.fieldName];
-                                if (htmlText)
-                                {
+                                if (htmlText){
                                     // convert attribute field values that just contain URLs into links 
                                     var match:Array = htmlText.match(/^\s*((https?|ftp):\/\/\S+)\s*$/i);
-                                    if (match && match.length > 0)
-                                    {
+                                    if (match && match.length > 0){
                                         label = new Label();
                                         htmlText = '<a href="' + match[1] + '" target="_blank">' + match[1] + "</a>";
-                                    }
-									else if (fieldInfo.fieldName == "PROJNUM"){
+                                    }else if (fieldInfo.fieldName == "PROJNUM"){
 										label = new mx.controls.Label();
 										htmlText = "<a href='http://webistehere/PW/WebForm2.aspx?FirstName=" + FlexGlobals.topLevelApplication.firstName + "&LastName=" + FlexGlobals.topLevelApplication.lastName + "&email=" + FlexGlobals.topLevelApplication.email + "&ConstId=" + htmlText + "' target='_blank'><b>MP 116-1284</b></a>";
-									}
-                                    else
-                                    {
+									}else{
                                         label = new PopUpText();
                                     }
                                     cleanAndSetHtmlText(label, htmlText);
@@ -184,8 +170,7 @@
                                     label.width = 150;
                                     formItem.addChild(label);
                                 }
-                                if (!descriptionForm)
-                                {
+                                if (!descriptionForm){
                                     descriptionForm = new Form();
                                     descriptionForm.percentWidth = 100;
                                     descriptionForm.horizontalScrollPolicy = ScrollPolicy.OFF;
@@ -196,13 +181,10 @@
                             }
                         }
                         if (descriptionForm)
-                        {
                             vGroup.addElement(descriptionForm);
-                        }
                     }
 
-                    if (validMediaInfos && validMediaInfos.length > 0)
-                    {
+                    if (validMediaInfos && validMediaInfos.length > 0){
                         vGroup.addElement(mediaBrowser);
                         mediaBrowser.attributes = graphic.attributes;
                         mediaBrowser.formattedAttributes = formattedAttributes;
@@ -211,23 +193,19 @@
                     }
 
                     if (popUpInfo.showAttachments && graphic && featureLayer
-                        && layerDetails && layerDetails.hasAttachments && layerDetails.objectIdField)
-                    {
+                        && layerDetails && layerDetails.hasAttachments && layerDetails.objectIdField){
                         vGroup.addElement(attachmentInspector);
                         attachmentInspector.showAttachments(graphic, featureLayer);
                     }
 
                     if (map && geometry)
-                    {
                         vGroup.addElement(zoomToButton);
-                    }
                 }
             }
 
             private function cleanAndSetHtmlText(labelCntrl:Label, htmlText:String):void
             {
-                if (labelCntrl && htmlText != null)
-                {
+                if (labelCntrl && htmlText != null){
                     htmlText = htmlText.replace(/<div/gi, "<br /><div"); // divs are ignored so put br's in front of them
                     htmlText = htmlText.replace(/<div><br ?\/><\/div>/gi, ""); // remove existing <div><br /></div>'s so we don't have too many new lines
                     // add target="_blank" to all anchor tags
@@ -241,39 +219,35 @@
                 var graphic:Graphic = hostComponent.graphic;
                 var map:Map = hostComponent.map;
                 var geometry:Geometry = graphic.geometry;
-
-                var extent:Extent = geometry.extent; // returns null for MapPoint or Multipoint's with only one point
-                if (extent)
-                {
-                    map.extent = extent;
-                    // make sure the whole extent is visible
-                    if (!map.extent.contains(extent))
-                    {
-                        map.level--;
-                    }
-                }
-                else
-                {
-                    var mapPoint:MapPoint;
-                    if (geometry is MapPoint)
-                    {
-                        mapPoint = geometry as MapPoint;
-                    }
-                    else if (geometry is Multipoint)
-                    {
-                        var multipoint:Multipoint = geometry as Multipoint;
-                        if (multipoint.points && multipoint.points.length > 0)
-                        {
-                            mapPoint = multipoint.points[0];
-                        }
-                    }
-                    if (mapPoint)
-                    {
-                        // Zoom to 1/16th the size of the current extent.
-                        // This is the same as calling map.zoomIn() four times.
-                        map.zoom(1 / 16, mapPoint);
-                    }
-                }
+				
+				if(geometry){
+					var extent:Extent = geometry.extent; // returns null for MapPoint or Multipoint's with only one point
+					if (extent){
+						if(isNaN(graphic.attributes.zoomscale)){
+							map.extent = geometry.extent.expand(graphic.attributes.zoompercent);
+							if (!map.extent.contains(geometry))
+								map.level--;
+						}else{
+							if (map.scale > graphic.attributes.zoomscale)
+								map.scale = graphic.attributes.zoomScale;
+							map.centerAt(graphic.attributes.point);
+						}
+					}else{
+						var mapPoint:MapPoint;
+						if (geometry is MapPoint){
+							mapPoint = geometry as MapPoint;
+						}else if (geometry is Multipoint){
+							var multipoint:Multipoint = geometry as Multipoint;
+							if (multipoint.points && multipoint.points.length > 0)
+								mapPoint = multipoint.points[0];
+						}
+						if (mapPoint){
+							// Zoom to 1/16th the size of the current extent.
+							// This is the same as calling map.zoomIn() four times.
+							map.zoom(1 / 16, mapPoint);
+						}
+					}
+				}
             }
 			
 		]]>

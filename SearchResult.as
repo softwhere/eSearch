@@ -31,12 +31,12 @@ package widgets.eSearch
 		public var icon:String;
 	
 	    public var content:String;
+		
+		public var zoompercent:Number;
+		
+		public var zoomscale:Number;
 	
 	    public var point:MapPoint;
-	
-	    //public var link:String;
-		
-		//public var linkalias:String;
 		
 		public var links:Array = [];
 	
@@ -50,13 +50,10 @@ package widgets.eSearch
 		
 		public var multi:String;
 		
-		//public var linkicon:String;
-		
 		public var relateicon:String;
 		
 		public var relates:Array;
 		
 		public var relatetooltip:String;
 	}
-
 }
