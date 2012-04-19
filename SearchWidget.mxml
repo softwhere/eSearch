@@ -15,10 +15,14 @@
 
 <!-- 
 
-Version 2.5.1.6 - 3/19/2012
-* Fixed more issue with subtypes in thwe datagrids.
-* Added new zoom percent to the zoomscale tag where 1 = 100%, 1.2 = 120% (deafult), etc, etc.
-* All Zooming attempts to use the same scaling (popup, datagrid, widget results).
+Version 2.5.1.7 - 4/19/2012
+* Added ability to search (flat/standalone/no geometry) tables.
+* This time all Zooming uses the same scaling (popup, datagrid, widget results, zoom to all).
+* Added Relates icon/button to datagrids so that you can click on it in the datagrid to
+  open relates choice dialog.
+* Move all skins to a skins package for cleaner organization.
+* Links that are not associated with a field now work.
+* Ability to disable the relates tab in the fixed widget is now configurable.
 
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
@@ -137,6 +141,8 @@ Version 2.5.1.6 - 3/19/2012
 			
 			import spark.components.supportClasses.ItemRenderer;
 			
+			import widgets.eSearch.skins.PopUpRendererSkin;
+			
 			//labels
 			[Bindable]
 			private var lblbufferUserGraphic:String;
@@ -246,7 +252,9 @@ Version 2.5.1.6 - 3/19/2012
 			private var configSpatialSearchLayers:Array;
 			private var configSpatialSearchRelation:Array;
 			private var configLayerExprs:Array;
+			private var configTableExprs:Array;
 			private var configLayerRels:Array;
+			private var configTableRels:Array;
 			private var configBufferUnits:Array;
 			private var spatialsearchLabel:String;
 			private var geomArr:Array;
@@ -259,7 +267,7 @@ Version 2.5.1.6 - 3/19/2012
 			private var disableButtons:String;
 			private var defaultSelectionOption:String;
 			private var qLayer:FeatureLayer;
-			private var layerDetails:LayerDetails;
+			private var layerDetails:*;
 			private var myTip:ToolTip;
 			private var selectedDrawingIcon:Image;
 			private var lState:String = "textInput";
@@ -279,6 +287,8 @@ Version 2.5.1.6 - 3/19/2012
 			
 			private var floatorfixed:String;
 			
+			private var disRelatesInFixed:Boolean;
+			
 			private var numberValidator:NumberValidator;
 			
 			private var rWindow:RelatesWindow;
@@ -297,17 +307,21 @@ Version 2.5.1.6 - 3/19/2012
 			private var resultMarkerSymbol:Symbol;
 			private var resultLineSymbol:Symbol;
 			private var resultFillSymbol:Symbol;
+			private var resultSATSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.1.6";
+			protected const VERSION:String = "2.5.1.7";
 			
-			protected const BUILDDATE:String = "3/19/2012";
+			protected const BUILDDATE:String = "4/5/2012";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
 			
 			[Embed(source="widgets/eSearch/assets/images/i_relate.png")]
 			private var relateClass:Class;
+			
+			[Embed(source="assets/images/i_table.png")]
+			private var satClass:Class;
 			
 			private function init():void
 			{					
@@ -401,6 +415,7 @@ Version 2.5.1.6 - 3/19/2012
 					multiPartGraphicSearch = configXML.multipartgraphicsearch && configXML.multipartgraphicsearch == "true";
 					(multiPartGraphicSearch.valueOf() == true) ? graFeatureQueryBtn.visible = true : graFeatureQueryBtn.visible = false;
 					floatorfixed = configXML.floatorfixed || "float";
+					disRelatesInFixed = configXML.floatorfixed.@disablerelatestabinfixed && configXML.floatorfixed.@disablerelatestabinfixed == "true";
 					
 					if(eDrawEnabled){
 						eDrawBtn.filters = [cOver];
@@ -454,16 +469,19 @@ Version 2.5.1.6 - 3/19/2012
 					configSearchText = [];
 					configSpatialSearchLayers = [];
 					configDomainVals = [];
-					
+					var r:Number;
+					var i:Number;
+					var j:Number;
+					var l:Number;
 					var lyrList:XMLList = configXML..layer;
-					for (var i:Number = 0; i < lyrList.length(); i++){
+					for (i = 0; i < lyrList.length(); i++){
 						configLayerExprs = [];
 						configLayerRels = [];
 						var lyrURL:String = lyrList[i].url;
 						var lyrLabel:String = lyrList[i].name;
 						var lyrGraphicalLabel:String = lyrList[i].graphicalsearchlabel;
 						var lyrRelList:XMLList = configXML.layers.layer[i]..relate;
-						for (var r:Number = 0; r < lyrRelList.length(); r++){
+						for (r = 0; r < lyrRelList.length(); r++){
 							var lyrRelLabel:String = lyrRelList[r].@label;
 							var lyrRelId:String = lyrRelList[r].@id;
 							var lyrRelIcon:String = lyrRelList[r].@icon || "widgets/eSearch/assets/images/i_relate.png";
@@ -479,14 +497,13 @@ Version 2.5.1.6 - 3/19/2012
 							configLayerRels.push(lyrRel);
 						}
 						var lyrExprList:XMLList = configXML.layers.layer[i]..expression;
-						for (var j:Number = 0; j < lyrExprList.length(); j++){
+						for (j = 0; j < lyrExprList.length(); j++){
 							var lyrExprAlias:String = lyrExprList[j].@alias;
 							var lyrTextLabel:String = lyrExprList[j].@textsearchlabel;
 							var lyrExpr:String = lyrExprList[j];
 							var lyrField:String = lyrExprList[j].@field;
 							var lyrUserList:String = lyrExprList[j].@userlist;
 							var lyrDomain:Boolean = lyrExprList[j].@usedomain && lyrExprList[j].@usedomain == "true";
-							var lyrSubType:Boolean = lyrExprList[j].@fromsubtype && lyrExprList[j].@fromsubtype == "true";
 							var expr:Object ={
 								label: lyrExprAlias,
 								textlabel: lyrTextLabel,
@@ -503,7 +520,7 @@ Version 2.5.1.6 - 3/19/2012
 						
 						var lyrLinks:Array = [];
 						var lyrLinkList:XMLList = lyrList[i]..link;
-						for (var l:Number = 0; l < lyrLinkList.length(); l++){
+						for (l = 0; l < lyrLinkList.length(); l++){
 							var lyrLinkAlias:String = lyrLinkList[l].@alias || "";
 							var lyrLinkField:String = lyrLinkList[l].@field || "";
 							var lyrLinkPre:String = lyrLinkList[l].linkprefix || "";
@@ -594,7 +611,122 @@ Version 2.5.1.6 - 3/19/2012
 							}
 						}
 					}
-					
+//------------------------------------------------------------------------------------------------------
+					var tblList:XMLList = configXML..table;
+					for (i = 0; i < tblList.length(); i++){
+						configTableExprs = [];
+						configTableRels = [];
+						var tblURL:String = tblList[i].url;
+						var tblLabel:String = tblList[i].name;
+						var tblRelList:XMLList = configXML.tables.table[i]..relate;
+						for (r = 0; r < tblRelList.length(); r++){
+							var tblRelLabel:String = tblRelList[r].@label;
+							var tblRelId:String = tblRelList[r].@id;
+							var tblRelIcon:String = tblRelList[r].@icon || "widgets/eSearch/assets/images/i_relate.png";
+							var tblRelFields:XMLList = tblRelList[r].fields;
+							var tblRelEnableExport:Boolean = tblRelList[r].@enableexport && tblRelList[r].@enableexport == "true";
+							var tblRel:Object = {
+								id: tblRelId,
+								fields: tblRelFields,
+								label: tblRelLabel,
+								enableexport: tblRelEnableExport,
+								icon: tblRelIcon
+							}
+							configTableRels.push(tblRel);
+						}
+						var tblExprList:XMLList = configXML.tables.table[i]..expression;
+						for (j = 0; j < tblExprList.length(); j++){
+							var tblExprAlias:String = tblExprList[j].@alias;
+							var tblTextLabel:String = tblExprList[j].@textsearchlabel;
+							var tblExpr:String = tblExprList[j];
+							var tblField:String = tblExprList[j].@field;
+							var tblUserList:String = tblExprList[j].@userlist;
+							var tblDomain:Boolean = tblExprList[j].@usedomain && tblExprList[j].@usedomain == "true";
+							var tblexpr:Object ={
+								label: tblExprAlias,
+								textlabel: tblTextLabel,
+								expression: tblExpr,
+								field: tblField,
+								usedomain: tblDomain,
+								userlist: tblUserList
+							}
+							configTableExprs.push(tblexpr);
+						}
+						var tblDefExpr:String = tblList[i].definitionexpression;
+						var tblFields:XMLList = tblList[i].fields;
+						var tblTitleField:String = tblList[i].titlefield;
+						
+						var tblLinks:Array = [];
+						var tblLinkList:XMLList = tblList[i]..link;
+						for (l = 0; l < tblLinkList.length(); l++){
+							var tblLinkAlias:String = tblLinkList[l].@alias || "";
+							var tblLinkField:String = tblLinkList[l].@field || "";
+							var tblLinkPre:String = tblLinkList[l].linkprefix || "";
+							var tblLinkSuffix:String = tblLinkList[l].linksuffix || "";
+							var tblLinkIconField:String = tblLinkList[l].iconfield || "";
+							var tblLinkIconPre:String = tblLinkList[l].iconprefix || "";
+							var tblLinkIconSuffix:String = tblLinkList[l].iconsuffix || "";
+							var tblincLinkInRslts:Boolean = tblLinkList[l].@includeinresults && tblLinkList[l].@includeinresults == "true";
+							var tbllinkObj:Object = {
+								field: tblLinkField,
+								pre: tblLinkPre,
+								suf: tblLinkSuffix,
+								inc: tblincLinkInRslts,
+								alias: tblLinkAlias,
+								icon: tblLinkIconField,
+								iconpre: tblLinkIconPre,
+								iconsuf: tblLinkIconSuffix
+							}
+							tblLinks.push(tbllinkObj);
+						}
+						var tblEnableExport:Boolean = tblList[i].enableexport && tblList[i].enableexport == "true";
+						var tblMultiImgField:String = tblList[i].multiimagefield;
+						var tbluseProxy:Boolean = tblList[i].useproxy && tblList[i].useproxy == "true";
+						var tbluseAMF:String = tblList[i].useamf;
+						var tblopenDG:Boolean = tblList[i].autoopendatagrid && tblList[i].autoopendatagrid == "true";
+	
+						var table:FeatureLayer = new FeatureLayer(tblURL);
+						if (useProxy && configData.proxyUrl)
+							table.proxyURL = configData.proxyUrl;
+						if (useAMF)
+							table.useAMF = useAMF == "true";
+						if (tblFields && tblFields[0].@all[0] == "true"){
+							table.outFields = ["*"];
+						}else if (tblFields){
+							var tblfields:XMLList = tblFields.field;
+							table.outFields = [];
+							for each (var tblfieldXML:XML in tblfields){
+								if (tblfieldXML.@name[0])
+									table.outFields.push(tblfieldXML.@name[0]);
+							}
+						}
+						
+						var searchTable:Object = {
+							table: table,
+							label: tblLabel,
+							titlefield: tblTitleField,
+							expr: configTableExprs,
+							fields: tblFields,
+							links: tblLinks,
+							multi: tblMultiImgField,
+							enableexport: tblEnableExport,
+							defexpr: tblDefExpr,
+							opendg: tblopenDG,
+							relates: configTableRels
+						}
+						
+						if (tblExpr){
+							configSearchText.push(searchTable);
+							if(i==0){
+								qLayer = new FeatureLayer(tblURL);
+								if(configTableExprs[0].usedomain)
+									popCBwithDomain(configTableExprs[0].field);
+								else if(configTableExprs[0].userlist != "")
+									popCBwithUserList(configTableExprs[0].userlist);
+							}
+						}
+					}
+//-----------------------------------------------------------------------------------------------------					
 					//marker symbol
 					if(configXML.symbols.picturemarkersymbol.@url[0] != null){
 						const resultMarkerSymbolURL:String = configXML.symbols.picturemarkersymbol.@url || widgetIcon;
@@ -617,6 +749,9 @@ Version 2.5.1.6 - 3/19/2012
 						const resultMarkerSymbolOutlineWidth:Number = (configXML.symbols.simplemarkersymbol.outline.@width[0] != null) ? configXML.symbols.simplemarkersymbol.outline.@width : 2;
 						resultMarkerSymbol = new SimpleMarkerSymbol(resultMarkerSymbolStyle,resultMarkerSymbolSize,resultMarkerSymbolColor,resultMarkerSymbolAlpha,resultMarkerSymbolXOffset2,resultMarkerSymbolYOffset2,resultMarkerSymbolAngle,new SimpleLineSymbol(resultMarkerSymbolOutlineStyle, resultMarkerSymbolOutlineColor, resultMarkerSymbolOutlineAlpha, resultMarkerSymbolOutlineWidth));
 					}
+					
+					//Symbol for stand alone tables
+					resultSATSymbol = new PictureMarkerSymbol(satClass,20,20);
 					
 					//line symbol
 					const resultLineSymbolColor:uint = (configXML.symbols.simplelinesymbol.@color[0] != null) ? configXML.symbols.simplelinesymbol.@color : 0xFF0000;
@@ -763,7 +898,7 @@ Version 2.5.1.6 - 3/19/2012
 				queryFeaturesText();	
 			}
 
-//Added for URL Query			
+			//Added for URL Query			
 			public function queryFromURL(value:String, slayerId:int = 0, exprNum:int = 0):void
 			{
 				//hide infowindow if any
@@ -967,7 +1102,7 @@ Version 2.5.1.6 - 3/19/2012
 							
 							if(floatorfixed == "fixed")
 							{
-								var dgCongig:Object = {
+								var dgConfig:Object = {
 									widgetTitle: widgetTitle,
 									csvExportOptionLbl: exp2csvOptLbl,
 									txtExportOptionLbl: exp2txtOptLbl,
@@ -977,6 +1112,7 @@ Version 2.5.1.6 - 3/19/2012
 									csvName: _csvName,
 									sumField: sumField,
 									labelSum: lblSum,
+									hasRelates: (queryLayerRels && queryLayerRels.length > 0),
 									dgColumns: gridFields,
 									dgHyperColumns: gridHyperFields,
 									dProvider: gridDataProvider,
@@ -984,12 +1120,13 @@ Version 2.5.1.6 - 3/19/2012
 									zoomScale: zoomScale,
 									zoomPercent: zoomPercent,
 									ownerWidget: sWidget,
-									layerDetails: queryLayer.layerDetails,
+									layerDetails: (queryLayer.layerDetails)?queryLayer.layerDetails:queryLayer.tableDetails,
 									enableExport: queryEnableExport,
-									widgetInteract: widgetAndGridIteract
+									widgetInteract: widgetAndGridIteract,
+									disableRelateTab: disRelatesInFixed
 								}
 								var dgconfigArr:ArrayCollection = new ArrayCollection();
-								dgconfigArr.addItem(dgCongig);
+								dgconfigArr.addItem(dgConfig);
 								addSharedData("configFixedDatagrid", dgconfigArr);
 							}
 							executingURLquery = false;
@@ -1006,7 +1143,7 @@ Version 2.5.1.6 - 3/19/2012
 					}
 				}  
 			}
-//End Add	
+
 			private function sOpBtnClickHandler(event:Event):void
 			{
 				intersectResults(event.currentTarget.name);
@@ -1374,12 +1511,15 @@ Version 2.5.1.6 - 3/19/2012
 			{
 				//hide infowindow if any
 				hideInfoWindow();
-				
+				var typeQ:String = "layer";
 				var i:int = cboLayerText.selectedIndex;
-				queryLayer = configSearchText[i].layer;
-
-				if (queryLayer && !queryLayer.loaded)
-				{
+				if(configSearchText[i].layer){
+					queryLayer = configSearchText[i].layer;
+				}else if(configSearchText[i].table){
+					queryLayer = configSearchText[i].table;
+					typeQ = "table";
+				}
+				if (queryLayer && !queryLayer.loaded){
 					queryLayer.addEventListener(LayerEvent.LOAD, queryLayer_loadHandler);
 					function queryLayer_loadHandler(event:LayerEvent):void
 					{
@@ -1387,12 +1527,17 @@ Version 2.5.1.6 - 3/19/2012
 					}
 					return;
 				}
-				var oidFld:String = queryLayer.layerDetails.objectIdField;
+				
+				var oidFld:String;
+				if(queryLayer.layerDetails)
+					oidFld = queryLayer.layerDetails.objectIdField;
+				else
+					oidFld = queryLayer.tableDetails.objectIdField;
 				
 				var qFields:Array;
 				zoomScale = configSearchText[i].zoomscale;
 				zoomPercent = configSearchText[i].zoompercent;
-				queryLayer = configSearchText[i].layer;
+				queryLayer = (typeQ == "layer") ? configSearchText[i].layer : configSearchText[i].table;
 				var j:Number = cboLayerExpr.selectedIndex;
 				queryExpr = configSearchText[i].expr[j].expression;
 				queryFields = configSearchText[i].fields;
@@ -1534,21 +1679,31 @@ Version 2.5.1.6 - 3/19/2012
 					if(queryDefExpr != "")
 						queryLayer.definitionExpression = queryDefExpr; 
 					queryLayer.queryFeatures(query, new AsyncResponder(onResult, onFault, queryFields));
+
 					showMessage(loadingLabel, true); 
 					showStateResults();   
 					// on result
 					function onResult(featureSet:FeatureSet, token:XMLList = null):void                
 					{   
-						try
-						{ 
+						//try
+						//{ 
 							var gid:Number = 0;
 							for each (var gra:Graphic in featureSet.features){   
 								var obj:Object = gra.attributes;
-								if(!queryLayer.layerDetails.objectIdField){
-									obj["oid"] = gid;
-									gid ++;
+								if(typeQ == "layer"){
+									if(!queryLayer.layerDetails.objectIdField){
+										obj["oid"] = gid;
+										gid ++;
+									}else{
+										obj["oid"] = gra.attributes[queryLayer.layerDetails.objectIdField];
+									}
 								}else{
-									obj["oid"] = gra.attributes[queryLayer.layerDetails.objectIdField];
+									if(!queryLayer.tableDetails.objectIdField){
+										obj["oid"] = gid;
+										gid ++;
+									}else{
+										obj["oid"] = gra.attributes[queryLayer.tableDetails.objectIdField];
+									}
 								}
 							}
 							gridDataProvider = featureSet.attributes;
@@ -1572,6 +1727,7 @@ Version 2.5.1.6 - 3/19/2012
 									myfloatdg.csvName = _csvName;
 									myfloatdg.sumField = sumField;
 									myfloatdg.labelSum = lblSum;
+									myfloatdg.hasRelates = (queryLayerRels && queryLayerRels.length > 0);
 									myfloatdg.dgColumns = gridFields;
 									myfloatdg.dgHyperColumns = gridHyperFields;
 									myfloatdg.dProvider = gridDataProvider;
@@ -1579,14 +1735,14 @@ Version 2.5.1.6 - 3/19/2012
 									myfloatdg.zoomScale = zoomScale;
 									myfloatdg.zoomPercent = zoomPercent;
 									myfloatdg.ownerWidget = sWidget;
-									myfloatdg.layerDetails = queryLayer.layerDetails;
+									myfloatdg.layerDetails = (queryLayer.layerDetails)?queryLayer.layerDetails:queryLayer.tableDetails;
 									myfloatdg.enableExport = queryEnableExport;
 									myfloatdg.widgetInteract = widgetAndGridIteract;
 								}
 							}else if(floatorfixed == "fixed"){
 								if(!gridFields)
 									gridFields = configSearchText[i].gridfields;
-								var dgCongig:Object = {
+								var dgConfig:Object = {
 									widgetTitle: widgetTitle,
 									csvExportOptionLbl: exp2csvOptLbl,
 									txtExportOptionLbl: exp2txtOptLbl,
@@ -1596,6 +1752,7 @@ Version 2.5.1.6 - 3/19/2012
 									csvName: _csvName,
 									sumField: sumField,
 									labelSum: lblSum,
+									hasRelates: (queryLayerRels && queryLayerRels.length > 0),
 									dgColumns: gridFields,
 									dgHyperColumns: gridHyperFields,
 									dProvider: gridDataProvider,
@@ -1603,22 +1760,23 @@ Version 2.5.1.6 - 3/19/2012
 									zoomScale: zoomScale,
 									zoomPercent: zoomPercent,
 									ownerWidget: sWidget,
-									layerDetails: queryLayer.layerDetails,
+									layerDetails: (queryLayer.layerDetails)?queryLayer.layerDetails:queryLayer.tableDetails,
 									enableExport: queryEnableExport,
-									widgetInteract: widgetAndGridIteract
+									widgetInteract: widgetAndGridIteract,
+									disableRelateTab: disRelatesInFixed
 								}
 								var dgconfigArr:ArrayCollection = new ArrayCollection();
-								dgconfigArr.addItem(dgCongig);
+								dgconfigArr.addItem(dgConfig);
 								addSharedData("configFixedDatagrid", dgconfigArr);
 							}
 							
 							if (openDataGrid && floatorfixed != "fixed")
 								showGridResults(); 
-						}
-						catch (error:Error)
-						{
-							showMessage(error.message, false);
-						}
+						//}
+						//catch (error:Error)
+						//{
+						//	showMessage(error.message, false);
+						//}
 					}
 					
 					//on fault
@@ -1806,6 +1964,7 @@ Version 2.5.1.6 - 3/19/2012
 									myfloatdg.csvName = _csvName;
 									myfloatdg.sumField = sumField;
 									myfloatdg.labelSum = lblSum;
+									myfloatdg.hasRelates = (queryLayerRels && queryLayerRels.length > 0);
 									myfloatdg.dgColumns = gridFields;
 									myfloatdg.dgHyperColumns = gridHyperFields;
 									myfloatdg.dProvider = gridDataProvider;
@@ -1820,7 +1979,7 @@ Version 2.5.1.6 - 3/19/2012
 								if (openDataGrid && floatorfixed != "fixed" )
 									showGridResults();
 							}else if(floatorfixed == "fixed"){
-								var dgCongig:Object = {
+								var dgConfig:Object = {
 									widgetTitle: widgetTitle,
 									csvExportOptionLbl: exp2csvOptLbl,
 									txtExportOptionLbl: exp2txtOptLbl,
@@ -1830,6 +1989,7 @@ Version 2.5.1.6 - 3/19/2012
 									csvName: _csvName,
 									sumField: sumField,
 									labelSum: lblSum,
+									hasRelates: (queryLayerRels && queryLayerRels.length > 0),
 									dgColumns: gridFields,
 									dgHyperColumns: gridHyperFields,
 									dProvider: gridDataProvider,
@@ -1839,10 +1999,11 @@ Version 2.5.1.6 - 3/19/2012
 									ownerWidget: sWidget,
 									layerDetails: queryLayer.layerDetails,
 									enableExport: queryEnableExport,
-									widgetInteract: widgetAndGridIteract
+									widgetInteract: widgetAndGridIteract,
+									disableRelateTab: disRelatesInFixed
 								}
 								var dgconfigArr:ArrayCollection = new ArrayCollection();
-								dgconfigArr.addItem(dgCongig);
+								dgconfigArr.addItem(dgConfig);
 								addSharedData("configFixedDatagrid", dgconfigArr);
 							}
 						}
@@ -2090,7 +2251,10 @@ Version 2.5.1.6 - 3/19/2012
 			private function createSearchResults(featureSet:FeatureSet, queryFields:XMLList, queryRelates:Array = null):ArrayCollection
 			{
 				graphicsLayer.clear();
-				layerDetails = queryLayer.layerDetails;
+				if(queryLayer.layerDetails)
+					layerDetails = queryLayer.layerDetails;
+				else
+					layerDetails = queryLayer.tableDetails;
 				var fields:XMLList = queryFields ? queryFields.field : null;
 				
 				var result:ArrayCollection = new ArrayCollection();
@@ -2211,6 +2375,9 @@ Version 2.5.1.6 - 3/19/2012
 								}
 							}
 						}
+						//Handle a link that is not associated with a field
+						if(qLinks[a].field == "" && (qLinks[a].pre != "" || qLinks[a].suf != ""))
+							link = qLinks[a].pre + qLinks[a].suf;
 						
 						var lObj:Object ={
 							link: link,
@@ -2351,18 +2518,30 @@ Version 2.5.1.6 - 3/19/2012
 					
 					var searchResult:SearchResult = new SearchResult();
 					searchResult.title = title;
-					searchResult.content = content;
-					searchResult.point = getGeomCenter(graphic);
+					searchResult.content = content.substr(0,content.length - 4);
+					if(graphic.geometry)
+						searchResult.point = getGeomCenter(graphic);
 					searchResult.links = lyrQLinks;
 					searchResult.relateicon = relateIcon ? relateIcon : null;
-					searchResult.geometry = graphic.geometry;
+					if(graphic.geometry)
+						searchResult.geometry = graphic.geometry;
 					searchResult.multi = multi ? multi :null;
-					searchResult.zoomscale = zoomScale;
-					searchResult.zoompercent = zoomPercent;
-					if(!queryLayer.layerDetails.objectIdField){
-						searchResult.oid = graphic.attributes["oid"];
+					if(graphic.geometry){
+						searchResult.zoomscale = zoomScale;
+						searchResult.zoompercent = zoomPercent;
+					}
+					if(!queryLayer.layerDetails){
+						if(!queryLayer.tableDetails.objectIdField){
+							searchResult.oid = graphic.attributes["oid"];
+						}else{
+							searchResult.oid = graphic.attributes[queryLayer.tableDetails.objectIdField];
+						}
 					}else{
-						searchResult.oid = graphic.attributes[queryLayer.layerDetails.objectIdField];
+						if(!queryLayer.layerDetails.objectIdField){
+							searchResult.oid = graphic.attributes["oid"];
+						}else{
+							searchResult.oid = graphic.attributes[queryLayer.layerDetails.objectIdField];
+						}
 					}
 					searchResult.graphic = graphic;
 					searchResult.relates = queryRelates;
@@ -2370,19 +2549,23 @@ Version 2.5.1.6 - 3/19/2012
 						searchResult.relateicon = queryRelates[0].icon;
 					searchResult.relatetooltip = relateToolTip;
 					
-					switch (graphic.geometry.type){
-						case Geometry.MAPPOINT:{
-							graphic.symbol = searchResult.symbol = resultMarkerSymbol;
-							break;
+					if(graphic.geometry){
+						switch (graphic.geometry.type){
+							case Geometry.MAPPOINT:{
+								graphic.symbol = searchResult.symbol = resultMarkerSymbol;
+								break;
+							}
+							case Geometry.POLYLINE:{
+								graphic.symbol = searchResult.symbol = resultLineSymbol;
+								break;
+							}
+							case Geometry.POLYGON:{
+								graphic.symbol = searchResult.symbol = resultFillSymbol;
+								break;
+							}
 						}
-						case Geometry.POLYLINE:{
-							graphic.symbol = searchResult.symbol = resultLineSymbol;
-							break;
-						}
-						case Geometry.POLYGON:{
-							graphic.symbol = searchResult.symbol = resultFillSymbol;
-							break;
-						}
+					}else{
+						searchResult.symbol = resultSATSymbol;
 					}
 					graphic.attributes = searchResult;
 					result.addItem(searchResult);
@@ -2414,10 +2597,18 @@ Version 2.5.1.6 - 3/19/2012
 			{
 				var result:Field;
 				
-				if (queryLayer){
+				if (queryLayer && queryLayer.layerDetails){
 					for each (var field:Field in queryLayer.layerDetails.fields){
 						if (fieldName == field.name){
 							result = field;
+							break;
+						}
+					}
+				}
+				if(queryLayer && queryLayer.tableDetails){
+					for each (var field2:Field in queryLayer.tableDetails.fields){
+						if (fieldName == field2.name){
+							result = field2;
 							break;
 						}
 					}
@@ -2428,9 +2619,18 @@ Version 2.5.1.6 - 3/19/2012
 			private function getFeatureType(typeID:String):FeatureType
 			{
 				var result:FeatureType;
+				var featureType:FeatureType;
 				
-				if (queryLayer){
-					for each (var featureType:FeatureType in queryLayer.layerDetails.types){
+				if (queryLayer && queryLayer.layerDetails){
+					for each (featureType in queryLayer.layerDetails.types){
+						if (typeID == featureType.id){
+							result = featureType;
+							break;
+						}
+					}
+				}
+				if(queryLayer && queryLayer.tableDetails){
+					for each (featureType in queryLayer.tableDetails.types){
 						if (typeID == featureType.id){
 							result = featureType;
 							break;
@@ -2533,9 +2733,15 @@ Version 2.5.1.6 - 3/19/2012
 				
 				var i:int = cboLayerText.selectedIndex;
 				if (i == -1){
-					queryLayer = configSearchText[0].layer;
+					if(configSearchText[0].layer)
+						queryLayer = configSearchText[0].layer;
+					else
+						queryLayer = configSearchText[0].table;
 				}else{
-					queryLayer = configSearchText[i].layer;
+					if(configSearchText[i].layer)
+						queryLayer = configSearchText[i].layer;
+					else
+						queryLayer = configSearchText[i].table;
 				}
 				
 				if (queryLayer && !queryLayer.loaded){
@@ -2571,14 +2777,28 @@ Version 2.5.1.6 - 3/19/2012
 						rangeDomain = field.domain as RangeDomain;
 						domainsCache[domainsKey] = rangeDomain;						
 					}else{
-						for each (var stype:FeatureType in queryLayer.layerDetails.types){
-							if(stype.domains[fieldName].hasOwnProperty("codedValues")){
-								codedValueDomain = stype.domains[fieldName];
-								domainsCache[domainsKey] = codedValueDomain;
+						var stype:FeatureType;
+						if(queryLayer.layerDetails){
+							for each (stype in queryLayer.layerDetails.types){
+								if(stype.domains[fieldName].hasOwnProperty("codedValues")){
+									codedValueDomain = stype.domains[fieldName];
+									domainsCache[domainsKey] = codedValueDomain;
+								}
+								else if (stype.domains[fieldName].hasOwnProperty("minValue")){
+									rangeDomain = stype.domains[fieldName];
+									domainsCache[domainsKey] = rangeDomain;
+								}
 							}
-							else if (stype.domains[fieldName].hasOwnProperty("minValue")){
-								rangeDomain = stype.domains[fieldName];
-								domainsCache[domainsKey] = rangeDomain;
+						}else{
+							for each (stype in queryLayer.tableDetails.types){
+								if(stype.domains[fieldName].hasOwnProperty("codedValues")){
+									codedValueDomain = stype.domains[fieldName];
+									domainsCache[domainsKey] = codedValueDomain;
+								}
+								else if (stype.domains[fieldName].hasOwnProperty("minValue")){
+									rangeDomain = stype.domains[fieldName];
+									domainsCache[domainsKey] = rangeDomain;
+								}
 							}
 						}
 					}					
@@ -2809,7 +3029,24 @@ Version 2.5.1.6 - 3/19/2012
 				msgVisible = false;
 			}
 			
-			private function clickSearchRelateResult(event:Event):void
+			private function preClickSearchRelateResult(event:Event):void
+			{
+				var searchResult:SearchResult = ItemRenderer(event.target).data as SearchResult;
+				clickSearchRelateResult(searchResult);
+			}
+			
+			public function standaloneRelate(roid:Number):void
+			{
+				for (var i:Number = 0; i < searchResultAC.length; i++){
+					var sr:SearchResult = searchResultAC[i];
+					if(sr.oid == roid){
+						clickSearchRelateResult(sr);
+						break;
+					}
+				}
+			}
+			
+			public function clickSearchRelateResult(searchResult:SearchResult):void
 			{
 				var relId:int;
 				var relLbl:String;
@@ -2821,10 +3058,13 @@ Version 2.5.1.6 - 3/19/2012
 				relateHyperFields = [];
 				sumField = "";
 				
-				var searchResult:SearchResult = ItemRenderer(event.target).data as SearchResult;
 				var selRelateURL:String;
 				
-				var relArr:Array = queryLayer.layerDetails.relationships;
+				var relArr:Array;
+				if(queryLayer.layerDetails)
+					relArr = queryLayer.layerDetails.relationships;
+				else
+					relArr = queryLayer.tableDetails.relationships;
 				
 				if(searchResult.relates.length == 1){
 					var relation:Relationship;
@@ -2842,7 +3082,7 @@ Version 2.5.1.6 - 3/19/2012
 						relqueryLayer.addEventListener(LayerEvent.LOAD, queryLayer_loadHandler);
 						function queryLayer_loadHandler(levent:LayerEvent):void
 						{
-							clickSearchRelateResult(event)
+							clickSearchRelateResult(searchResult);
 						}
 						return;
 					}
@@ -2999,7 +3239,12 @@ Version 2.5.1.6 - 3/19/2012
 				}
 				
 				function relateChoosen(evt:Event):void{
-					var relArr:Array = queryLayer.layerDetails.relationships;
+					var relArr:Array;
+					if(queryLayer.layerDetails)
+						relArr = queryLayer.layerDetails.relationships;
+					else
+						relArr = queryLayer.tableDetails.relationships;
+					
 					var relation:Relationship;
 					for (var ri:int=0; ri < relArr.length; ri++){
 						if(relArr[ri].id == rWindow.selectedRelateId){
@@ -3192,12 +3437,12 @@ Version 2.5.1.6 - 3/19/2012
 							relfloatdg.labelSum = lblSum;
 							relfloatdg.dgColumns = relateFields;
 							relfloatdg.dgHyperColumns = relateHyperFields;
-							relfloatdg.layerDetails = relqueryLayer.layerDetails;
+							relfloatdg.layerDetails = (relqueryLayer.layerDetails)?relqueryLayer.layerDetails:relqueryLayer.tableDetails;
 							relfloatdg.dProvider = fset.attributes;
 							relfloatdg.enableExport = relExportEnabled;
 							relfloatdg.dgtitle = relLbl;
 						}else if(floatorfixed == "fixed"){
-							var dgCongig:Object = {
+							var dgConfig:Object = {
 								dgFieldAliases: relfldAliases,
 								csvName: relatescsvName,
 								sumField: sumField,
@@ -3205,11 +3450,11 @@ Version 2.5.1.6 - 3/19/2012
 								dgColumns: relateFields,
 								dgHyperColumns: relateHyperFields,
 								dProvider: fset.attributes,
-								layerDetails: relqueryLayer.layerDetails,
+								layerDetails: (relqueryLayer.layerDetails)?relqueryLayer.layerDetails:relqueryLayer.tableDetails,
 								enableExport: relExportEnabled
 							}
 							var dgconfigArr:ArrayCollection = new ArrayCollection();
-							dgconfigArr.addItem(dgCongig);
+							dgconfigArr.addItem(dgConfig);
 							addSharedData("configRelateFixedDatagrid", dgconfigArr);
 							addSharedData("switch2RelateTabFixedDataGrid", null);
 						}
@@ -3219,7 +3464,7 @@ Version 2.5.1.6 - 3/19/2012
 				//on fault
 				function onFault(event:Fault,data:Object):void
 				{                    
-					Alert.show(event.faultDetail.toString(), "Fault",4,wTemplate);         
+					Alert.show(event.faultDetail.toString(), "Fault", 4, wTemplate);         
 				}
 			}
 			
@@ -3265,7 +3510,7 @@ Version 2.5.1.6 - 3/19/2012
 				
 				Hits.length = 0;
 				
-				if(myfloatdg){
+				if(myfloatdg && myfloatdg.visible){
 					if(myfloatdg.datagrid.dataProvider){
 						for each(var attributes:Object in gridDataProvider){
 							if (attributes.oid === searchResult.oid){
@@ -3282,11 +3527,11 @@ Version 2.5.1.6 - 3/19/2012
 					}
 				}
 				if(floatorfixed == "fixed"){
-					var dgCongig:Object = {
+					var dgConfig:Object = {
 						searchResultoid: searchResult.oid
 					}
 					var dgconfigArr:ArrayCollection = new ArrayCollection();
-					dgconfigArr.addItem(dgCongig);
+					dgconfigArr.addItem(dgConfig);
 					addSharedData("scrollFixedDataGrid", dgconfigArr);
 				}
 			}
@@ -3295,14 +3540,16 @@ Version 2.5.1.6 - 3/19/2012
 			{
 				clearTimeout(hitimer);
 				var searchResult:SearchResult = ItemRenderer(event.target).data as SearchResult;
-				if (map.extent.containsXY(searchResult.point.x, searchResult.point.y)) // only show infowindow if search result in contained within map extent
-					hitimer = setTimeout(showHighlight, 300, [ searchResult ]);
-				else
-					hideInfoWindow();
+				if(searchResult.point){
+					if (map.extent.containsXY(searchResult.point.x, searchResult.point.y)) // only show infowindow if search result in contained within map extent
+						hitimer = setTimeout(showHighlight, 300, [ searchResult ]);
+					else
+						hideInfoWindow();
+				}
 				
 				Hits.length = 0;
 				
-				if(myfloatdg){
+				if(myfloatdg && myfloatdg.visible){
 					if(myfloatdg.datagrid && myfloatdg.datagrid.dataProvider){
 						for each(var attributes:Object in gridDataProvider){
 							if (attributes.oid === searchResult.oid){
@@ -3319,11 +3566,11 @@ Version 2.5.1.6 - 3/19/2012
 					}
 				}
 				if(floatorfixed == "fixed"){
-					var dgCongig:Object = {
+					var dgConfig:Object = {
 						searchResultoid: searchResult.oid
 					}
 					var dgconfigArr:ArrayCollection = new ArrayCollection();
-					dgconfigArr.addItem(dgCongig);
+					dgconfigArr.addItem(dgConfig);
 					addSharedData("scrollFixedDataGrid", dgconfigArr);
 				}
 			}
@@ -3345,7 +3592,7 @@ Version 2.5.1.6 - 3/19/2012
 			
 			private function showGridResults():void
 			{
-				try{
+				///try{
 					if(gridFields.length == 0){
 						showMessage("No Datagrid configured for this layer", false);
 						return;
@@ -3371,7 +3618,7 @@ Version 2.5.1.6 - 3/19/2012
 						if(!gridFields)
 							gridFields = configSearchText[0].gridfields;
 						myfloatdg.enableExport = configSearchText[0].enableexport;
-						myfloatdg.layerDetails = queryLayer.layerDetails;
+						myfloatdg.layerDetails = (queryLayer.layerDetails)?queryLayer.layerDetails:queryLayer.tableDetails;
 						myfloatdg.csvSeperator = csvSep;
 						myfloatdg.csvExportOptionLbl = exp2csvOptLbl;
 						myfloatdg.txtExportOptionLbl = exp2txtOptLbl;
@@ -3380,6 +3627,7 @@ Version 2.5.1.6 - 3/19/2012
 						myfloatdg.sumField = sumField;
 						myfloatdg.labelSum = lblSum;
 						myfloatdg.dgFieldAliases = fldAliases;
+						myfloatdg.hasRelates = (queryLayerRels && queryLayerRels.length > 0);
 						myfloatdg.dgColumns = gridFields;
 						myfloatdg.dgHyperColumns = gridHyperFields;
 						myfloatdg.dProvider = gridDataProvider;
@@ -3396,13 +3644,30 @@ Version 2.5.1.6 - 3/19/2012
 							zoomPercent = configSearchText[i].zoompercent;
 							myfloatdg.enableExport = configSearchText[i].enableexport;
 						}
+						myfloatdg.zoomPercent = zoomPercent;
 						myfloatdg.zoomScale = zoomScale;
 						myfloatdg.ownerWidget = this;
 					}
 					
-				}
-				catch (error:Error){
-					showMessage(error.message, false);
+				///}
+				///catch (error:Error){
+				///	showMessage(error.message, false);
+				///}
+			}
+			
+			public function highlightDataGroupItemByOID(oid:Number):void
+			{
+				if(widgetAndGridIteract){
+					for (var i:Number = 0; i < searchResultAC.length; i++){
+						var sr:SearchResult = searchResultAC[i];
+						if(sr.oid == oid){
+							sr.selected = true;
+							var spDelta:Point = searchResultDG.layout.getScrollPositionDeltaToElement(i);
+							if (spDelta)
+								searchResultDG.verticalScrollPosition += spDelta.y;
+							break;
+						}
+					}
 				}
 			}
 			
@@ -3416,8 +3681,9 @@ Version 2.5.1.6 - 3/19/2012
 							var sr1:SearchResult = searchResultAC[i];
 							if(sr1.oid === sr.oid){
 								sr1.selected = true;
-								if(searchResultDG.getItemIndicesInView().length > 0)
-									searchResultDG.verticalScrollPosition = searchResultDG.getElementAt(searchResultDG.getItemIndicesInView()[0]).height * i;
+								var spDelta:Point = searchResultDG.layout.getScrollPositionDeltaToElement(i);
+								if (spDelta)
+									searchResultDG.verticalScrollPosition += spDelta.y;
 								break;
 							}
 						}
@@ -3453,7 +3719,7 @@ Version 2.5.1.6 - 3/19/2012
 				var showHighlightPoint:MapPoint = params[0].point as MapPoint;
 				popUpRenderer.popUpInfo = configurePopUpInfo(params[0].graphic.attributes.links);
 				popUpRenderer.graphic = params[0].graphic;
-				popUpRenderer.setStyle("skinClass", widgets.eSearch.PopUpRendererSkin);
+				popUpRenderer.setStyle("skinClass", widgets.eSearch.skins.PopUpRendererSkin);
 				map.infoWindow.content = popUpRenderer;
 				map.infoWindow.contentOwner = popUpRenderer.graphic;
 				map.infoWindow.show(showHighlightPoint);
@@ -3597,9 +3863,9 @@ Version 2.5.1.6 - 3/19/2012
 						map.centerAt(mp);
 					}else{
 						var graphicsExtent:Extent = GraphicUtil.getGraphicsExtent(resultsFeatureSet.features);
-						map.extent = graphicsExtent.expand(1.2);
+						map.extent = graphicsExtent.expand(zoomPercent);
 						// make sure the whole extent is visible
-						if (!map.extent.contains(graphicsExtent.expand(1.2)))
+						if (!map.extent.contains(graphicsExtent.expand(zoomPercent)))
 							map.level--;
 					}
 				}
@@ -3803,7 +4069,7 @@ Version 2.5.1.6 - 3/19/2012
 				<mx:ColorPicker id="cpGraBufferColor" selectedColor="#01b9fd" toolTip="{bufferColorLabel}" />
 				<s:HSlider id="hsGraBufferAlpha" width="55" value="0.3" minimum="0" maximum="1" snapInterval="0.1"
 						   toolTip="{bufferAlphaLabel}" dataTipFormatFunction="sldrDataTipFormatter"
-						   skinClass="widgets.eSearch.alphaSliderSkin"/>
+						   skinClass="widgets.eSearch.skins.alphaSliderSkin"/>
 			</s:HGroup>
 		</s:Group>
 		<s:Group id="spatialInput"
@@ -3820,7 +4086,7 @@ Version 2.5.1.6 - 3/19/2012
 				<mx:ColorPicker id="cpBufferColor" selectedColor="#01b9fd" toolTip="{bufferColorLabel}" />
 				<s:HSlider id="hsBufferAlpha" width="55" value="0.3" minimum="0" maximum="1" snapInterval="0.1"
 				toolTip="{bufferAlphaLabel}" dataTipFormatFunction="sldrDataTipFormatter"
-			    skinClass="widgets.eSearch.alphaSliderSkin"/>
+			    skinClass="widgets.eSearch.skins.alphaSliderSkin"/>
 			</s:HGroup>
 			<s:HGroup width="100%" gap="20" horizontalAlign="center" verticalAlign="middle">
 				<mx:Image width="40" height="40"
@@ -3874,10 +4140,10 @@ Version 2.5.1.6 - 3/19/2012
 				<s:Label buttonMode="true" textAlign="right"
 						 click="clear()"
 						 fontWeight="bold"
-						 includeInLayout="{graphicsLayer.numGraphics &gt; 0}"
+						 includeInLayout="{searchResultAC.length &gt; 0}"
 						 text="{clearLabel}"
 						 textDecoration="underline"
-						 visible="{graphicsLayer.numGraphics &gt; 0}"/>
+						 visible="{searchResultAC.length &gt; 0}"/>
 			</s:HGroup>
 			<s:Scroller id="recVbox" width="100%" height="100%">
 				<Search:SearchResultDataGroup id="searchResultDG"
@@ -3885,11 +4151,11 @@ Version 2.5.1.6 - 3/19/2012
 											  searchResultClick="clickSearchResult(event)"
 											  searchResultMouseOut="mouseOutSearchResult(event)"
 											  searchResultMouseOver="mouseOverSearchResult(event)"
-											  searchResultRelateClick="clickSearchRelateResult(event)">
+											  searchResultRelateClick="preClickSearchRelateResult(event)">
 					<Search:layout>
 						<s:VerticalLayout gap="2"
 										  horizontalAlign="justify"
-										  useVirtualLayout="true"/>
+										  useVirtualLayout="false"/>
 					</Search:layout>
 				</Search:SearchResultDataGroup>
 			</s:Scroller>

@@ -18,6 +18,7 @@
 			import com.esri.ags.layers.supportClasses.CodedValueDomain;
 			import com.esri.ags.layers.supportClasses.FeatureType;
 			import com.esri.ags.layers.supportClasses.LayerDetails;
+			import com.esri.ags.layers.supportClasses.TableDetails;
 			import com.esri.ags.webmap.PopUpRenderer;
 			import com.esri.ags.webmap.supportClasses.PopUpInfo;
 			import com.esri.ags.webmap.supportClasses.PopUpMediaInfo;
@@ -46,7 +47,7 @@
 			
 			import spark.components.Button;
 			
-			import widgets.eSearch.SearchWidget;
+			import widgets.eSearch.skins.PopUpRendererSkin;
 			
 			[Bindable]
 			private var appWidth:Number;
@@ -76,31 +77,23 @@
 			private var _currFormat:String = "";
 			private var _numFormat:String = "";
 			private var _csvSep:String = ",";
-			private var _layerDetails:LayerDetails = null;
-			private var _rlayerDetails:LayerDetails = null;
-			[Bindable]
-			private var _exp2csvBtnLbl:String;
-			[Bindable]
-			private var _exp2txtBtnLbl:String;
-			[Bindable]
-			private var _exportButtonLbl:String;
-			[Bindable]
-			private var _enableExport:Boolean;
-			[Bindable]
-			private var sumVisible:Boolean;
-			[Bindable]
-			private var _labelSum:String;
+			private var _layerDetails:* = null;
+			private var _rlayerDetails:* = null;
+			[Bindable] private var _exp2csvBtnLbl:String;
+			[Bindable] private var _exp2txtBtnLbl:String;
+			[Bindable] private var _exportButtonLbl:String;
+			[Bindable] private var _enableExport:Boolean;
+			[Bindable] private var sumVisible:Boolean;
+			[Bindable] private var _labelSum:String;
+			[Bindable] private var _hasRelates:Boolean;
 			private var _sumField:String = "";
 			
-			[Bindable]
-			private var _widgetInteract:Boolean;
+			[Bindable] private var _widgetInteract:Boolean;
+			[Bindable] private var _disableRelateTab:Boolean;
 			
-			[Bindable]
-			private var _renableExport:Boolean;
-			[Bindable]
-			private var rsumVisible:Boolean;
-			[Bindable]
-			private var _rlabelSum:String;
+			[Bindable] private var _renableExport:Boolean;
+			[Bindable] private var rsumVisible:Boolean;
+			[Bindable] private var _rlabelSum:String;
 			private var _rsumField:String = "";
 			
 			private var sumFormat:String;
@@ -117,6 +110,9 @@
 			
 			private var useUTC:Boolean;
 			
+			[Embed(source="widgets/eSearch/assets/images/i_relate.png")]
+			public var relateClass:Class;
+			
 			public function set zoomScale(value:Number):void
 			{
 				_zoomScale = value;
@@ -125,6 +121,11 @@
 			public function set zoomPercent(value:Number):void
 			{
 				_zoomPercent = value;
+			}
+			
+			public function set hasRelates(value:Boolean):void
+			{
+				_hasRelates = value;
 			}
 			
 			private function sumField(value:String):void
@@ -153,8 +154,16 @@
 				var dgCol:DataGridColumn;
 				var jdgCol:joinDataGridColumn;
 				var dgColArr:Array = [];
-				for(var i:int=0; i < _dgColumns.length; i++)
-				{
+				if(_hasRelates){
+					dgCol = new DataGridColumn();
+					dgCol.dataField = "icon";
+					dgCol.headerText = "Relate(s)";
+					dgCol.width = 65;
+					dgCol.labelFunction = getFileName;
+					dgCol.itemRenderer = new ClassFactory(CenteredEmbededImage);
+					dgColArr.push(dgCol);
+				}
+				for(var i:int=0; i < _dgColumns.length; i++){
 					var cArr:Array = _dgColumns[i].split("~");						
 					dgCol= new DataGridColumn(cArr[0]);
 					if(cArr[0].indexOf( "." ) != -1){
@@ -307,8 +316,7 @@
 		
 			private function exportTo(event:Event):void
 			{
-				try
-				{
+				try{
 					var data:String;
 					var defaultFileName:String;
 					if(optiongroup.selectedValue == _exp2csvBtnLbl){
@@ -322,8 +330,7 @@
 					var fileReference:FileReference = new FileReference();
 					fileReference.save(data,defaultFileName);
 				}
-				catch(error:Error)
-				{
+				catch(error:Error){
 					Alert.show(error.message);
 				}
 			}
@@ -344,8 +351,7 @@
 					var fileReference:FileReference = new FileReference();
 					fileReference.save(data,defaultFileName);
 				}
-				catch(error:Error)
-				{
+				catch(error:Error){
 					Alert.show(error.message);
 				}
 			}
@@ -409,11 +415,10 @@
 							dataGridColumn = columnArray[i];
 							//Exclude column data which is invisible (hidden)
 							if(!dataGridColumn.visible)
-							{
 								continue;
-							}
-							if(dataGridColumn.itemRenderer)
-							{
+							if(dataGridColumn.dataField == "icon")
+								continue;
+							if(dataGridColumn.itemRenderer){
 								if(object[dataGridColumn.dataField] != null)
 									data += "\"" + object[dataGridColumn.dataField] + "\"";
 								else
@@ -425,24 +430,17 @@
 									data += '\"\"';
 							}
 							if(i < (columnCount -1))
-							{
 								data += csvSeparator;
-							}
 							//generate header of CSV, only if it's not genereted yet
-							if (!headerGenerated)
-							{
+							if (!headerGenerated){
 								header += "\"" + dataGridColumn.headerText + "\"";
 								if (i < columnCount - 1)
-								{
 									header += csvSeparator;
-								}
 							}
 						}
 						headerGenerated = true;
 						if (j < (rowCount - 1))
-						{
 							data += lineSeparator;
-						}
 						j++;
 						cursor.moveNext ();
 					}
@@ -451,8 +449,7 @@
 					columnArray = null;
 					dataGridColumn = null;		
 				}
-				catch(error:Error)
-				{
+				catch(error:Error){
 					return null;
 					Alert.show(error.message);
 				}
@@ -461,8 +458,7 @@
 			
 			private function exportTXT(dataGrid:DataGrid, lineSeparator:String="\n"):String
 			{
-				try
-				{
+				try{
 					var data:String = "";
 					var columnArray:Array = dataGrid.columns;
 					var columnCount:int = columnArray.length;
@@ -477,21 +473,18 @@
 					var j:int = 0;
 					
 					//loop through rows
-					while (!cursor.afterLast)
-					{
+					while (!cursor.afterLast){
 						var object:Object = null;
 						object = cursor.current;
 						//loop through all columns for the row
-						for(var i:int = 0; i < columnCount; i++)
-						{
+						for(var i:int = 0; i < columnCount; i++){
 							dataGridColumn = columnArray[i];
 							//Exclude column data which is invisible (hidden)
 							if(!dataGridColumn.visible)
-							{
 								continue;
-							}
-							if(dataGridColumn.itemRenderer)
-							{
+							if(dataGridColumn.dataField == "icon")
+								continue;
+							if(dataGridColumn.itemRenderer){
 								if(object[dataGridColumn.dataField] != null)
 									data += "\"" + object[dataGridColumn.dataField] + "\"";
 								else
@@ -503,24 +496,17 @@
 									data += '\"\"';
 							}
 							if(i < (columnCount -1))
-							{
 								data += "\t";
-							}
 							//generate header of CSV, only if it's not genereted yet
-							if (!headerGenerated)
-							{
+							if (!headerGenerated){
 								header += "\"" + dataGridColumn.headerText + "\"";
 								if (i < columnCount - 1)
-								{
 									header += "\t";
-								}
 							}
 						}
 						headerGenerated = true;
 						if (j < (rowCount - 1))
-						{
 							data += lineSeparator;
-						}
 						j++;
 						cursor.moveNext ();
 					}
@@ -530,8 +516,7 @@
 					dataGridColumn = null;		
 				}
 				
-				catch(error:Error)
-				{
+				catch(error:Error){
 					return null;
 					Alert.show(error.message);
 				}
@@ -739,14 +724,11 @@
 				var dateMS:Number = Number(item[column.dataField]);
 				var retVal:String = "";
 				var rVal:String = item[column.dataField];
-				if(rVal == null)
-				{
+				if(rVal == null){
 					//do nothing
 				}else{
 					if (!isNaN(dateMS))
-					{
 						retVal = msToDate(dateMS, _dateFormat, useUTC);
-					}
 				}
 				return retVal;
 			}
@@ -797,8 +779,7 @@
 			private function labelFunc(item:Object, column:DataGridColumn):String
 			{
 				var retVal:String = "Get Hyperlink";
-				for each (var obj:Object in hypercols)
-				{
+				for each (var obj:Object in hypercols){
 					if(obj.field.toUpperCase() == column.dataField.toUpperCase())
 						if(obj.alias != "NA")
 							retVal = obj.alias;
@@ -816,8 +797,7 @@
 				var dgCol:DataGridColumn;
 				var dgColArr:Array = resultsGrid.columns;
 				hypercols = new ArrayCollection();
-				for(var i:int=0; i < _dgHyperColumns.length; i++)
-				{
+				for(var i:int=0; i < _dgHyperColumns.length; i++){
 					var cArr:Array = _dgHyperColumns[i].split("~");
 					hypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4]});
 					dgCol= new DataGridColumn(cArr[0]);
@@ -840,8 +820,7 @@
 				var dgCol:DataGridColumn;
 				var dgColArr:Array = relatesGrid.columns;
 				rhypercols = new ArrayCollection();
-				for(var i:int=0; i < _rdgHyperColumns.length; i++)
-				{
+				for(var i:int=0; i < _rdgHyperColumns.length; i++){
 					var cArr:Array = _rdgHyperColumns[i].split("~");
 					hypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4]});
 					dgCol= new DataGridColumn(cArr[0]);
@@ -861,26 +840,25 @@
 			private function dProvider(value:Object):void
 			{
 				_data = ObjectUtil.copy(value);
-				for each(var attributes:Object in _data)
-				{
+				for each(var attributes:Object in _data){
 					for(var i:int=0; i<hypercols.length; i++){
 						//concatenate if
-						if(attributes[hypercols[i].field] != "" 
-							&& attributes[hypercols[i].field] != " " 
-							&& attributes[hypercols[i].field] != null
-							&& attributes[hypercols[i].field] != "unavailable"){
-							var pre:String = (hypercols[i].pre == "NA") ? "" : hypercols[i].pre;
-							var suf:String = (hypercols[i].suf == "NA") ? "" : hypercols[i].suf;
-							attributes[hypercols[i].field] = String(pre + attributes[hypercols[i].field] + suf);
+						if(String(attributes[hypercols[i].field]) != "" 
+							&& String(attributes[hypercols[i].field]) != " " 
+							&& String(attributes[hypercols[i].field]) != null
+							&& String(attributes[hypercols[i].field]) != "unavailable"){
+							var pre:String = (hypercols[i].pre == "NA") ? "" : String(hypercols[i].pre);
+							var suf:String = (hypercols[i].suf == "NA") ? "" : String(hypercols[i].suf);
+							attributes[hypercols[i].field] = String(pre + String(attributes[hypercols[i].field]) + suf);
 						}
 					}
-					
+					if(_hasRelates)
+						attributes["icon"] = "defined";
 					if(_layerDetails){
 						var fld:Object;
 						var cVal:CodedValue;
 						var cDomain:CodedValueDomain;
-						for each (fld in _layerDetails.fields)
-						{
+						for each (fld in _layerDetails.fields){
 							var typeID:String = _layerDetails.typeIdField ? attributes[fld.name] : null;
 							if (_layerDetails.typeIdField && fld.name.toUpperCase() == _layerDetails.typeIdField.toUpperCase()){
 								// replace value with feature type name
@@ -911,8 +889,7 @@
 				}
 				resultsGrid.dataProvider = calcMaxLengths(_data);
 				if(_sumField){
-					try
-					{
+					try{
 						var total:Number = 0;
 						for each (var row:Object in resultsGrid.dataProvider) {
 							total += Number(row[_sumField]);
@@ -953,8 +930,7 @@
 							taSum.text = total.toString();
 						}
 					}
-					catch (error:Error)
-					{
+					catch (error:Error){
 						sumVisible = false;
 					}
 				}
@@ -977,14 +953,13 @@
 			private function rdProvider(value:Object):void
 			{
 				_rdata = ObjectUtil.copy(value);
-				for each(var attributes:Object in _rdata)
-				{
+				for each(var attributes:Object in _rdata){
 					for(var i:int=0; i<rhypercols.length; i++){
 						//concatenate if
-						if(attributes[rhypercols[i].field] != "" && attributes[rhypercols[i].field] != " " && attributes[rhypercols[i].field] != null){
-							var pre:String = (rhypercols[i].pre == "NA") ? "" : rhypercols[i].pre;
-							var suf:String = (rhypercols[i].suf == "NA") ? "" : rhypercols[i].suf;
-							attributes[rhypercols[i].field] = String(pre + attributes[rhypercols[i].field] + suf);
+						if(String(attributes[rhypercols[i].field]) != "" && String(attributes[rhypercols[i].field]) != " " && String(attributes[rhypercols[i].field]) != null){
+							var pre:String = (rhypercols[i].pre == "NA") ? "" : String(rhypercols[i].pre);
+							var suf:String = (rhypercols[i].suf == "NA") ? "" : String(rhypercols[i].suf);
+							attributes[rhypercols[i].field] = pre + String(attributes[rhypercols[i].field]) + suf;
 						}
 					}
 					
@@ -992,9 +967,8 @@
 						var fld:Object;
 						var cVal:CodedValue;
 						var cDomain:CodedValueDomain;
-						for each (fld in _rlayerDetails.fields)
-						{
-							var typeID:String = _rlayerDetails.typeIdField ? attributes[_rlayerDetails.typeIdField] : null;
+						for each (fld in _rlayerDetails.fields){
+							var typeID:String = _rlayerDetails.typeIdField ? String(attributes[_rlayerDetails.typeIdField]) : null;
 							if (fld.name == _rlayerDetails.typeIdField){
 								// replace value with feature type name
 								var featureType:FeatureType = getFeatureType(typeID,_rlayerDetails);
@@ -1065,8 +1039,7 @@
 							rtaSum.text = total.toString();
 						}
 					}
-					catch (error:Error)
-					{
+					catch (error:Error){
 						rsumVisible = false;
 					}
 				} 
@@ -1082,10 +1055,8 @@
 			{
 				var data:Object = event.data;
 				
-				if (data.key == "configFixedDatagrid")
-				{
-					if (data.collection[0])
-					{
+				if (data.key == "configFixedDatagrid"){
+					if (data.collection[0]){
 						var theObj:Object = data.collection[0];
 						mWidgetTitle = theObj.widgetTitle;
 						_layerDetails = theObj.layerDetails;
@@ -1097,6 +1068,7 @@
 						_csvName = theObj.csvName;
 						sumField(theObj.sumField);
 						_labelSum = theObj.labelSum;
+						_hasRelates = theObj.hasRelates;
 						dgColumns(theObj.dgColumns);
 						dgHyperColumns(theObj.dgHyperColumns);
 						dProvider(theObj.dProvider);
@@ -1106,12 +1078,12 @@
 						_bWidget = theObj.ownerWidget;
 						_enableExport = theObj.enableExport;
 						_widgetInteract = theObj.widgetInteract;
+						_disableRelateTab = (theObj.disableRelateTab)?false:true;
+						tabs.selectedIndex = 0;
 					}
 				}
-				if (data.key == "configRelateFixedDatagrid")
-				{
-					if (data.collection[0])
-					{
+				if (data.key == "configRelateFixedDatagrid"){
+					if (data.collection[0]){
 						var therObj:Object = data.collection[0];
 						_rlayerDetails = therObj.layerDetails;
 						_rdgFieldAliases = therObj.dgFieldAliases;
@@ -1122,10 +1094,11 @@
 						rdgHyperColumns(therObj.dgHyperColumns);
 						rdProvider(therObj.dProvider);
 						_renableExport = therObj.enableExport;
+						if(!_disableRelateTab)
+							_disableRelateTab == true;
 					}
 				}
-				if (data.key == "clearRelateFixedDatagrid")
-				{
+				if (data.key == "clearRelateFixedDatagrid"){
 					if(relatesGrid.dataProvider == null || relatesGrid.dataProvider.length == 0){
 					}else{
 						relatesGrid.dataProvider.removeAll();
@@ -1133,8 +1106,7 @@
 						_renableExport = false;
 					}
 				}
-				if (data.key == "clearFixedDatagrid")
-				{
+				if (data.key == "clearFixedDatagrid"){
 					if(resultsGrid.dataProvider == null || resultsGrid.dataProvider.length == 0){
 					}else{
 						resultsGrid.dataProvider.removeAll();
@@ -1142,15 +1114,12 @@
 						_enableExport = false;
 					}
 				}
-				if (data.key == "scrollFixedDataGrid")
-				{
+				if (data.key == "scrollFixedDataGrid"){
 					if (data.collection[0]){
 						var theObj2:Object = data.collection[0];
 						Hits.length = 0;
-						for each(var attributes:Object in resultsGrid.dataProvider)
-						{
-							if (attributes.oid === theObj2.searchResultoid)
-							{
+						for each(var attributes:Object in resultsGrid.dataProvider){
+							if (attributes.oid === theObj2.searchResultoid){
 								var myCursor:IViewCursor = resultsGrid.dataProvider.createCursor();
 								while(!myCursor.afterLast){
 									if(myCursor.current.oid == attributes.oid)
@@ -1164,17 +1133,23 @@
 							resultsGrid.scrollToIndex(resultsGrid.selectedIndex);
 					}
 				}
-				if (data.key == "switch2RelateTabFixedDataGrid")
-				{
-					if(tabs.selectedIndex != 1)
+				if (data.key == "switch2RelateTabFixedDataGrid"){
+					if(tabs.selectedIndex != 1){
 						tabs.selectedIndex = 1;
+						if(!_disableRelateTab)
+							_disableRelateTab == true;
+					}
 				}
 			}
 	
 			private function onItemRollOver(event:ListEvent):void
 			{
 				if(_widgetInteract){
-					highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
+					highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid);
+					if(!highlightedGraphic){
+						_bWidget.highlightDataGroupItemByOID(event.itemRenderer.data.oid);
+						return;
+					}
 					_bWidget.highlightDataGroupItem(highlightedGraphic);
 					highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
 					if(highlightedGraphic){
@@ -1200,10 +1175,9 @@
 			private function showInfoWindow2(infoData:Object):void
 			{
 				var showHighlightPoint:MapPoint = infoData.point as MapPoint;
-				
 				popUpRenderer.popUpInfo = configurePopUpInfo(infoData.graphic.attributes.links);
 				popUpRenderer.graphic = infoData.graphic;
-				popUpRenderer.setStyle("skinClass", widgets.eSearch.PopUpRendererSkin);
+				popUpRenderer.setStyle("skinClass", widgets.eSearch.skins.PopUpRendererSkin);
 				map.infoWindow.content = popUpRenderer;
 				map.infoWindow.contentOwner = popUpRenderer.graphic;
 				map.infoWindow.show(showHighlightPoint);
@@ -1264,47 +1238,58 @@
 			
 			public function findGraphicByAttribute(attributes:Object):Graphic
 			{
-				for each( var graphic:Graphic in _graLyr.graphicProvider)
-				{
+				for each( var graphic:Graphic in _graLyr.graphicProvider){
 					if ( graphic.attributes.oid === attributes)
-					{ 
 						return graphic;
-					}
 				}            
 				return null;
 			}
 			
 			private function clickRow(event:ListEvent):void
 			{            		
-				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-				var infoData:Object = highlightedGraphic.attributes;
-				var pt:MapPoint = infoData.point;
+				var vSW:* = _bWidget;
+				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid);
+				if(!highlightedGraphic){
+					if(event.itemRenderer is CenteredEmbededImage)
+						vSW.standaloneRelate(event.itemRenderer.data.oid);
+					return;
+				}
+				var searchResult:Object = highlightedGraphic.attributes;
+				if(event.itemRenderer is CenteredEmbededImage){
+					vSW.clickSearchRelateResult(highlightedGraphic.attributes);
+					return;
+				}
+				var pt:MapPoint = searchResult.point;
 				var map:Map = ViewerContainer.getInstance().mapManager.map;
-				if (infoData.geometry){
-					if (infoData.geometry.type == Geometry.MAPPOINT){
+				if (searchResult.geometry){
+					if (searchResult.geometry.type == Geometry.MAPPOINT){
 						if(isNaN(_zoomScale)){
-							map.zoom(1 / 16, infoData.point);
-							map.centerAt(infoData.point);
+							map.zoom(1 / 16, searchResult.point);
+							map.centerAt(searchResult.point);
 						}else{
 							if (map.scale > _zoomScale)
 								map.scale = _zoomScale;
-							map.centerAt(infoData.point);
+							map.centerAt(searchResult.point);
 						}
 					}else{
 						if(isNaN(_zoomScale)){
-							map.extent = infoData.geometry.extent.expand(_zoomPercent);
-							if (!map.extent.contains(infoData.geometry))
+							map.extent = searchResult.geometry.extent.expand(_zoomPercent);
+							if (!map.extent.contains(searchResult.geometry))
 								map.level--;
 						}else{
 							if (map.scale > _zoomScale)
 								map.scale = _zoomScale;
-							map.centerAt(infoData.point);
+							map.centerAt(searchResult.point);
 						}
 					}
 				}
-				callLater(showInfoWindow2, [infoData]);
+				callLater(showInfoWindow2, [searchResult]);
 			}
 			
+			private function getFileName(o:Object, c:DataGridColumn):String
+			{
+				return "relateClass";
+			}			
 		]]>
 	</fx:Script>
 	<fx:Declarations>
@@ -1312,7 +1297,7 @@
 		<s:RadioButtonGroup id="roptiongroup"/>
 	</fx:Declarations>
 	<s:VGroup gap="-1" height="100%" width="100%">
-		<s:TabBar id="tabs" dataProvider="{vs}" skinClass="widgets.eSearch.TabBarSkin"/>
+		<s:TabBar id="tabs" dataProvider="{vs}" skinClass="widgets.eSearch.skins.TabBarSkin"/>
 		<mx:ViewStack id="vs" height="100%" width="100%" creationPolicy="all">
 			<s:NavigatorContent label="Search Results" width="100%"  height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}">
 				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}">
@@ -1333,12 +1318,13 @@
 							<s:TextArea id="taSum" heightInLines="1" editable="false" borderVisible="false" visible="{sumVisible}" includeInLayout="{sumVisible}"/>
 							<s:RadioButton label="{_exp2csvBtnLbl}" groupName="optiongroup" selected="true" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
 							<s:RadioButton label="{_exp2txtBtnLbl}" groupName="optiongroup" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
-							<s:Button label="{_exportButtonLbl}" id="Export" click="exportTo(event)" skinClass="widgets.eSearch.ExportButtonSkin" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
+							<s:Button label="{_exportButtonLbl}" id="Export" click="exportTo(event)" skinClass="widgets.eSearch.skins.ExportButtonSkin" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
 						</s:HGroup>
 					</s:VGroup>
 				</s:SkinnableContainer>
 			</s:NavigatorContent>
-			<s:NavigatorContent label="Relate Results" width="100%" height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}" maxWidth="{appWidth}">
+			<s:NavigatorContent label="Relate Results" width="100%" height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}" maxWidth="{appWidth}"
+								enabled="{_disableRelateTab}" >
 				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}" maxWidth="{appWidth}">
 					<s:VGroup gap="0" height="100%" width="100%" horizontalAlign="center" verticalAlign="middle" maxWidth="{appWidth}">
 						<mx:DataGrid id="relatesGrid" height="100%" width="100%"
@@ -1353,7 +1339,7 @@
 							<s:TextArea id="rtaSum" heightInLines="1" editable="false" borderVisible="false" visible="{rsumVisible}" includeInLayout="{rsumVisible}"/>
 							<s:RadioButton label="{_exp2csvBtnLbl}" groupName="roptiongroup" selected="true" visible="{_renableExport}" includeInLayout="{_renableExport}"/>
 							<s:RadioButton label="{_exp2txtBtnLbl}" groupName="roptiongroup" visible="{_renableExport}" includeInLayout="{_renableExport}"/>
-							<s:Button label="{_exportButtonLbl}" id="rExport" click="rexportTo(event)" skinClass="widgets.eSearch.ExportButtonSkin" visible="{_renableExport}" includeInLayout="{_renableExport}"/>
+							<s:Button label="{_exportButtonLbl}" id="rExport" click="rexportTo(event)" skinClass="widgets.eSearch.skins.ExportButtonSkin" visible="{_renableExport}" includeInLayout="{_renableExport}"/>
 						</s:HGroup>
 					</s:VGroup>
 				</s:SkinnableContainer>

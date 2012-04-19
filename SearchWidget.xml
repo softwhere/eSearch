@@ -72,9 +72,9 @@
 				<field name="ADDRESS" alias="Dept. Address" />
 			</fields>
 			<links>
-				<link includeinresults="false" field="" alias="">
+				<link includeinresults="false" field="" alias="REST Services Directory">
 					<linkprefix></linkprefix>
-					<linksuffix></linksuffix>
+					<linksuffix>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services</linksuffix>
 					<iconfield></iconfield>
 					<iconprefix></iconprefix>
 					<iconsuffix></iconsuffix>
@@ -126,7 +126,7 @@
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Road Centerlines</name>
-			<url>http://someserver/ArcGIS/rest/services/someservice/MapServer/5</url>
+			<url>http://gislap134/ArcGIS/rest/services/Highway/MapServer/5</url>
 			<expressions>
 				<expression alias="Road Surface" textsearchlabel="Search by Surface Type..."
 					field="Surf_Type" usedomain="true">Surf_Type = '[value]'</expression>
@@ -312,6 +312,70 @@
 			<zoomscale usegeometry="true">10000</zoomscale>
 		</layer> -->
 	</layers>
+	<tables><!-- This section is ONLY for tables (i.e. data that has no geometry)! -->
+		<table>
+			<definitionexpression></definitionexpression>
+			<enableexport>true</enableexport>
+			<name>Sub Type</name>
+			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/WaterTemplate/WaterDistributionAdministrativeReport/MapServer/6</url>
+			<expressions>
+				<expression alias="Replacement Score Greater Than" textsearchlabel="Search Replacement Score Greater Than [ Example: 100 ]:">REPLSCORE &gt; [value]</expression>
+			</expressions>
+			<titlefield>FACILITYID</titlefield>
+			<fields all="false">
+				<field name="FACILITYID"/>
+				<field name="FCLASS" alias="Feature Class" gridfield="true"/>
+				<field name="ASSETCOND" alias="Asset Condition" gridfield="true"/>
+				<field name="CONDDATE" alias="Condition Date" dateformat="MM/DD/YYYY" useutc="true" gridfield="true"/>
+				<field name="REPLSCORE" alias="Replacement Score" gridfield="true"/>
+			</fields>
+			<links>
+				<link includeinresults="true" field="" alias="">
+					<linkprefix></linkprefix>
+					<linksuffix></linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix></iconsuffix>
+				</link>
+			</links>
+		</table>
+		<table>
+			<definitionexpression></definitionexpression>
+			<enableexport>true</enableexport>
+			<name>SF Incidents</name>
+			<url>http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/MapServer/1</url>
+			<expressions>
+				<expression alias="Agree with incident" textsearchlabel="Search Incidents that are agreed to [ Example: True ]:"
+				field="agree_with_incident" usedomain="true">agree_with_incident = [value]</expression>
+				<expression alias="Incident date" textsearchlabel="Search Incidents on or after date [ Example: 2012/04/16 ]:">datetime >= '[value] 00:00:00'</expression>
+			</expressions>
+			<titlefield>sf_311_serviceoid</titlefield>
+			<fields all="false">
+				<field name="sf_311_serviceoid" alias="Incident OID"/>
+				<field name="agree_with_incident" alias="Website Link" hyperlinkgridfield="true"
+					hyperlinkaliastext="Go to Website" 
+					linkprefix="http://someWebSite/aspx/web/details.aspx?p_entity=" 
+					linksuffix=".aspx"/>
+				<field name="cient_ip" alias="Client IP" gridfield="true"/>
+				<field name="datetime" alias="Date" dateformat="MM/DD/YYYY" useutc="true" gridfield="true"/>
+				<field name="notes" alias="Notes" gridfield="true"/>
+			</fields>
+			<links>
+				<link includeinresults="true" field="" alias="">
+					<linkprefix></linkprefix>
+					<linksuffix></linksuffix>
+					<iconfield></iconfield>
+					<iconprefix></iconprefix>
+					<iconsuffix></iconsuffix>
+				</link>
+			</links>
+			<relates>
+				<relate id="1" label="Incident Priority Service Request" enableexport="true" icon="widgets/eSearch/assets/images/i_relate.png">
+					<fields all="true" />
+				</relate>
+			</relates>
+		</table>
+	</tables>
 	<spatialrelationships>
 		<!-- possible spatial relationships esriSpatialRelIntersects | esriSpatialRelContains 
 			| esriSpatialRelCrosses | esriSpatialRelEnvelopeIntersects | esriSpatialRelIndexIntersects 
@@ -361,7 +425,7 @@
 	<enablebuffergraphicbutton>true</enablebuffergraphicbutton>
 	<selectedgraphicaltool></selectedgraphicaltool><!-- possible values are extent or polygon or mappoint or polyline or nothing -->
 	<multipartgraphicsearch>true</multipartgraphicsearch>
-	<floatorfixed>float</floatorfixed><!-- possible values are fixed and float -->
+	<floatorfixed disablerelatestabinfixed="false">float</floatorfixed><!-- possible values are fixed and float -->
 	<relatetooltip>Show Relates</relatetooltip>
 	<relateicon>widgets/eSearch/assets/images/i_relate.png</relateicon>
 	<labels>

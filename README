@@ -1,4 +1,13 @@
-﻿Version 2.5.1.6 - 3/19/2012
+﻿Version 2.5.1.7 - 4/19/2012
+* Added ability to search (flat/standalone/no geometry) tables.
+* This time all Zooming uses the same scaling (popup, datagrid, widget results, zoom to all).
+* Added Relates icon/button to datagrids so that you can click on it in the datagrid to
+  open relates choice dialog.
+* Move all skins to a skins package for cleaner organization.
+* Links that are not associated with a field now work.
+* Ability to disable the relates tab in the fixed widget is now configurable.
+
+Version 2.5.1.6 - 3/19/2012
 * Fixed more issues with subtypes in the datagrids.
 * Added new zoom percent to the zoomscale tag where 1 = 100%, 1.2 = 120% (default), etc, etc.
 * All Zooming attempts to use the same scaling (popup, datagrid, widget results).

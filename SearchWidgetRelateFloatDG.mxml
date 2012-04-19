@@ -13,7 +13,7 @@
 						   close="closeMe()" 
 						   creationComplete="init()" 
 						   cornerRadius="6"
-						   skinClass="widgets.eSearch.ResizeTitleWindowSkin"
+						   skinClass="widgets.eSearch.skins.ResizeTitleWindowSkin"
 						   titleIcon="@Embed('widgets/eSearch/assets/images/i_relate2.png')">
 	<Search:layout>
 		<s:VerticalLayout horizontalAlign="center" verticalAlign="middle" />
@@ -61,7 +61,7 @@
 			private var _currFormat:String = "";
 			private var _numFormat:String = "";
 			private var _csvSep:String = ",";
-			private var _layerDetails:LayerDetails = null;
+			private var _layerDetails:* = null;
 			[Bindable]
 			private var _exp2csvBtnLbl:String;
 			[Bindable]
@@ -120,7 +120,7 @@
 				_csvSep = value;
 			}
 			
-			public function set layerDetails(value:LayerDetails):void
+			public function set layerDetails(value:*):void
 			{
 				_layerDetails = value;
 			}
@@ -743,7 +743,7 @@
 			<s:TextArea id="taSum" heightInLines="1" editable="false" borderVisible="false" visible="{sumVisible}" includeInLayout="{sumVisible}"/>
 			<s:RadioButton label="{_exp2csvBtnLbl}" groupName="optiongroup" selected="true" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
 			<s:RadioButton label="{_exp2txtBtnLbl}" groupName="optiongroup" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
-			<s:Button label="{_exportButtonLbl}" id="Export" click="exportTo(event)" skinClass="widgets.eSearch.ExportButtonSkin" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
+			<s:Button label="{_exportButtonLbl}" id="Export" click="exportTo(event)" skinClass="widgets.eSearch.skins.ExportButtonSkin" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
 		</s:HGroup>
 	</Search:controlBarContent>
 	<Search:controlBarLayout>

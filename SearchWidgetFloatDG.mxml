@@ -13,7 +13,7 @@
 						   close="closeMe()" 
 						   creationComplete="init()" 
 						   cornerRadius="6"
-						   skinClass="widgets.eSearch.ResizeTitleWindowSkin">
+						   skinClass="widgets.eSearch.skins.ResizeTitleWindowSkin">
 	<Search:layout>
 		<s:VerticalLayout horizontalAlign="center" verticalAlign="middle" />
 	</Search:layout>
@@ -31,6 +31,7 @@
 			import com.esri.ags.layers.supportClasses.FeatureType;
 			import com.esri.ags.layers.supportClasses.Field;
 			import com.esri.ags.layers.supportClasses.LayerDetails;
+			import com.esri.ags.layers.supportClasses.TableDetails;
 			import com.esri.ags.webmap.PopUpRenderer;
 			import com.esri.ags.webmap.supportClasses.PopUpInfo;
 			import com.esri.ags.webmap.supportClasses.PopUpMediaInfo;
@@ -59,6 +60,7 @@
 			import spark.components.Button;
 			
 			import widgets.eSearch.SearchWidget;
+			import widgets.eSearch.skins.PopUpRendererSkin;
 		
 			private var _data:Object;
 			private var _graLyr:GraphicsLayer;
@@ -79,32 +81,28 @@
 			private var _currFormat:String = "";
 			private var _numFormat:String = "";
 			private var _csvSep:String = ",";
-			private var _layerDetails:LayerDetails = null;
-			[Bindable]
-			private var _exp2csvBtnLbl:String;
-			[Bindable]
-			private var _exp2txtBtnLbl:String;
-			[Bindable]
-			private var _exportButtonLbl:String;
-			[Bindable]
-			private var _enableExport:Boolean;
-			[Bindable]
-			private var _widgetInteract:Boolean;
-			[Bindable]
-			private var sumVisible:Boolean;
-			[Bindable]
-			private var _labelSum:String;
+			private var _layerDetails:* = null;
+			[Bindable] private var _hasRelates:Boolean;
+			[Bindable] private var _exp2csvBtnLbl:String;
+			[Bindable] private var _exp2txtBtnLbl:String;
+			[Bindable] private var _exportButtonLbl:String;
+			[Bindable] private var _enableExport:Boolean;
+			[Bindable] private var _widgetInteract:Boolean;
+			[Bindable] private var sumVisible:Boolean;
+			[Bindable] private var _labelSum:String;
 			private var _sumField:String = "";
 			private var sumFormat:String;
 			private var useUTC:Boolean;
-			[Bindable]
-			private var _title:String;
+			[Bindable] private var _title:String;
 			
 			private var uic:UIComponent;
 			
 			private var popUpRenderer:PopUpRenderer = new PopUpRenderer();
 			
 			private var map:Map = ViewerContainer.getInstance().mapManager.map;
+			
+			[Embed(source="widgets/eSearch/assets/images/i_relate.png")]
+			public var relateClass:Class;
 			
 			public function set graphicslayer(value:GraphicsLayer):void
 			{
@@ -136,6 +134,11 @@
 				_enableExport = value;
 			}
 			
+			public function set hasRelates(value:Boolean):void
+			{
+				_hasRelates = value;
+			}
+			
 			public function set widgetInteract(value:Boolean):void
 			{
 				_widgetInteract = value;
@@ -156,7 +159,7 @@
 				_csvSep = value;
 			}
 			
-			public function set layerDetails(value:LayerDetails):void
+			public function set layerDetails(value:*):void
 			{
 				_layerDetails = value;
 			}
@@ -184,6 +187,17 @@
 				var dgCol:DataGridColumn;
 				var jdgCol:joinDataGridColumn;
 				var dgColArr:Array = [];
+				
+				if(_hasRelates){
+					dgCol = new DataGridColumn();
+					dgCol.dataField = "icon";
+					dgCol.width = 65;
+					dgCol.headerText = "Relate(s)";
+					dgCol.labelFunction = getFileName;
+					dgCol.itemRenderer = new ClassFactory(CenteredEmbededImage);
+					dgColArr.push(dgCol);
+				}
+				
 				for(var i:int=0; i < _dgColumns.length; i++)
 				{
 					var cArr:Array = _dgColumns[i].split("~");						
@@ -250,7 +264,7 @@
 						dgColArr.push(dgCol);
 					}
 				}
-				dgCol= new DataGridColumn("oid");
+				dgCol = new DataGridColumn("oid");
 				dgCol.visible = false;
 				dgColArr.push(dgCol);
 				resultsGrid.columns = dgColArr;
@@ -263,8 +277,7 @@
 			
 			private function exportTo(event:Event):void
 			{
-				try
-				{
+				try{
 					var data:String;
 					var defaultFileName:String;
 					if(optiongroup.selectedValue == _exp2csvBtnLbl){
@@ -288,37 +301,25 @@
 			{
 				var date:Date = new Date(ms);
 				if (date.milliseconds == 999) // workaround for REST bug
-				{
 					date.milliseconds++;
-				}
 				if (useUTC)
-				{
 					date.minutes += date.timezoneOffset;
-				}
 				
-				if (dateFormat)
-				{
+				if (dateFormat){
 					dateFormatter.formatString = dateFormat;
 					var result:String = dateFormatter.format(date);
 					if (result)
-					{
 						return result;
-					}
 					else
-					{
 						return dateFormatter.error;
-					}
-				}
-				else
-				{
+				}else{
 					return date.toLocaleString();
 				}
 			}
 			
 			private function exportCSV(dataGrid:DataGrid, csvSeparator:String=",", lineSeparator:String="\n"):String
 			{
-				try
-				{
+				try{
 					var data:String = "";
 					var columnArray:Array = dataGrid.columns;
 					var columnCount:int = columnArray.length;
@@ -334,21 +335,18 @@
 					var j:int = 0;
 					
 					//loop through rows
-					while (!cursor.afterLast)
-					{
+					while (!cursor.afterLast){
 						var object:Object = null;
 						object = cursor.current;
 						//loop through all columns for the row
-						for(var i:int = 0; i < columnCount; i++)
-						{
+						for(var i:int = 0; i < columnCount; i++){
 							dataGridColumn = columnArray[i];
 							//Exclude column data which is invisible (hidden)
 							if(!dataGridColumn.visible)
-							{
 								continue;
-							}
-							if(dataGridColumn.itemRenderer)
-							{
+							if(dataGridColumn.dataField == "icon")
+								continue;
+							if(dataGridColumn.itemRenderer){
 								if(object[dataGridColumn.dataField] != null)
 									data += "\"" + object[dataGridColumn.dataField] + "\"";
 								else
@@ -360,24 +358,18 @@
 									data += '\"\"';
 							}
 							if(i < (columnCount -1))
-							{
 								data += csvSeparator;
-							}
+							
 							//generate header of CSV, only if it's not genereted yet
-							if (!headerGenerated)
-							{
+							if (!headerGenerated){
 								header += "\"" + dataGridColumn.headerText + "\"";
 								if (i < columnCount - 1)
-								{
 									header += csvSeparator;
-								}
 							}
 						}
 						headerGenerated = true;
 						if (j < (rowCount - 1))
-						{
 							data += lineSeparator;
-						}
 						j++;
 						cursor.moveNext ();
 					}
@@ -386,8 +378,7 @@
 					columnArray = null;
 					dataGridColumn = null;		
 				}
-				catch(error:Error)
-				{
+				catch(error:Error){
 					return null;
 					Alert.show(error.message);
 				}
@@ -396,8 +387,7 @@
 			
 			private function exportTXT(dataGrid:DataGrid, lineSeparator:String="\n"):String
 			{
-				try
-				{
+				try{
 					var data:String = "";
 					var columnArray:Array = dataGrid.columns;
 					var columnCount:int = columnArray.length;
@@ -412,21 +402,18 @@
 					var j:int = 0;
 					
 					//loop through rows
-					while (!cursor.afterLast)
-					{
+					while (!cursor.afterLast){
 						var object:Object = null;
 						object = cursor.current;
 						//loop through all columns for the row
-						for(var i:int = 0; i < columnCount; i++)
-						{
+						for(var i:int = 0; i < columnCount; i++){
 							dataGridColumn = columnArray[i];
 							//Exclude column data which is invisible (hidden)
 							if(!dataGridColumn.visible)
-							{
 								continue;
-							}
-							if(dataGridColumn.itemRenderer)
-							{
+							if(dataGridColumn.dataField == "icon")
+								continue;
+							if(dataGridColumn.itemRenderer){
 								if(object[dataGridColumn.dataField] != null)
 									data += "\"" + object[dataGridColumn.dataField] + "\"";
 								else
@@ -438,24 +425,17 @@
 									data += '\"\"';
 							}
 							if(i < (columnCount -1))
-							{
 								data += "\t";
-							}
 							//generate header of CSV, only if it's not genereted yet
-							if (!headerGenerated)
-							{
+							if (!headerGenerated){
 								header += "\"" + dataGridColumn.headerText + "\"";
 								if (i < columnCount - 1)
-								{
 									header += "\t";
-								}
 							}
 						}
 						headerGenerated = true;
 						if (j < (rowCount - 1))
-						{
 							data += lineSeparator;
-						}
 						j++;
 						cursor.moveNext ();
 					}
@@ -538,15 +518,12 @@
 					for ( i=0; i<resultsGrid.columnCount; i++ ) {
 						// if the column actually exists:
 						if ( DataGridColumn(resultsGrid.columns[i]).dataField == key ) {
-//My Change 10-13-11
-							//var cellMetrics2:TextLineMetrics = renderer.measureText(DataGridColumn(key+"");
 							var cellMetrics2:TextLineMetrics = renderer.measureText(DataGridColumn(resultsGrid.columns[i]).headerText+"");
-//En My Change 10-13-11
 							if ( cellMetrics2.width + 18 > Number(maxLengths[key]) + 12 ) {
 								DataGridColumn(resultsGrid.columns[i]).width = cellMetrics2.width + 18;
 							} else {
 								DataGridColumn(resultsGrid.columns[i]).width = Number(maxLengths[key]) + 12;
-							}							
+							}
 						}
 					}
 				}
@@ -565,7 +542,8 @@
 							}
 						}
 					}
-				} 
+				}
+				
 				// cleanup:
 				try{
 					removeElement(uic);
@@ -583,14 +561,11 @@
 				var dateMS:Number = Number(item[column.dataField]);
 				var retVal:String = "";
 				var rVal:String = item[column.dataField];
-				if(rVal == null)
-				{
+				if(rVal == null){
 					//do nothing
 				}else{
 					if (!isNaN(dateMS))
-					{
 						retVal = msToDate(dateMS, _dateFormat, useUTC);
-					}
 				}
 				return retVal;
 			}
@@ -641,8 +616,7 @@
 			private function labelFunc(item:Object, column:DataGridColumn):String
 			{
 				var retVal:String = "Get Hyperlink";
-				for each (var obj:Object in hypercols)
-				{
+				for each (var obj:Object in hypercols){
 					if(obj.field.toUpperCase() == column.dataField.toUpperCase())
 						if(obj.alias != "NA")
 							retVal = obj.alias;
@@ -660,8 +634,7 @@
 				var dgCol:DataGridColumn;
 				var dgColArr:Array = resultsGrid.columns;
 				hypercols = new ArrayCollection();
-				for(var i:int=0; i < _dgHyperColumns.length; i++)
-				{
+				for(var i:int=0; i < _dgHyperColumns.length; i++){
 					var cArr:Array = _dgHyperColumns[i].split("~");
 					hypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4]});
 					dgCol= new DataGridColumn(cArr[0]);
@@ -691,26 +664,25 @@
 			public function set dProvider(value:Object):void
 			{
 				_data = ObjectUtil.copy(value);
-				for each(var attributes:Object in _data)
-				{
+				for each(var attributes:Object in _data){
 					for(var i:int=0; i<hypercols.length; i++){
 						//concatenate if
-						if(attributes[hypercols[i].field] != "" 
-							&& attributes[hypercols[i].field] != " " 
-							&& attributes[hypercols[i].field] != null 
-							&& attributes[hypercols[i].field] != "unavailable"){
-							var pre:String = (hypercols[i].pre == "NA") ? "" : hypercols[i].pre;
-							var suf:String = (hypercols[i].suf == "NA") ? "" : hypercols[i].suf;
-							attributes[hypercols[i].field] = String(pre + attributes[hypercols[i].field] + suf);
+						if(String(attributes[hypercols[i].field]) != "" 
+							&& String(attributes[hypercols[i].field]) != " " 
+							&& String(attributes[hypercols[i].field]) != null 
+							&& String(attributes[hypercols[i].field]) != "unavailable"){
+							var pre:String = (hypercols[i].pre == "NA") ? "" : String(hypercols[i].pre);
+							var suf:String = (hypercols[i].suf == "NA") ? "" : String(hypercols[i].suf);
+							attributes[hypercols[i].field] = String(pre + String(attributes[hypercols[i].field]) + suf);
 						}
 					}
-					
+					if(_hasRelates)
+						attributes["icon"] = "defined";
 					if(_layerDetails){
 						var fld:Object;
 						var cVal:CodedValue;
 						var cDomain:CodedValueDomain;
-						for each (fld in _layerDetails.fields)
-						{							
+						for each (fld in _layerDetails.fields){							
 							var typeID:String = _layerDetails.typeIdField ? attributes[fld.name] : null;
 							if (_layerDetails.typeIdField && fld.name.toUpperCase() == _layerDetails.typeIdField.toUpperCase()){
 								// replace value with feature type name
@@ -723,10 +695,9 @@
 									var fType:FeatureType = getFeatureType(typeID);
 									if (fType)
 										cDomain = fType.domains[fld.name] as CodedValueDomain;
-								}else{
+								}else if(fld.domain){
 									cDomain = fld.domain as CodedValueDomain;
 								}
-								
 								if (cDomain){
 									for each (var codedValue:CodedValue in cDomain.codedValues){
 										if (attributes[fld.name] == codedValue.code){
@@ -743,8 +714,7 @@
 				
 				//title += " selected records: " + resultsGrid.dataProvider.length.toString();
 				if(_sumField){
-					try
-					{
+					try{
 						var total:Number = 0;
 						for each (var row:Object in resultsGrid.dataProvider) {
 							total += Number(row[_sumField]);
@@ -826,6 +796,10 @@
 				if(_widgetInteract){
 	            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
 	            	var vSW:SearchWidget = _bWidget as SearchWidget;
+					if(!highlightedGraphic){
+						vSW.highlightDataGroupItemByOID(event.itemRenderer.data.oid);
+						return;
+					}
 					vSW.highlightDataGroupItem(highlightedGraphic);
 	            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
 					if(highlightedGraphic){
@@ -851,8 +825,9 @@
 			private function hideInfoWindow():void
 			{
 				if (map.infoWindow.contentOwner &&
-					((map.infoWindow.contentOwner is Graphic && Graphic(map.infoWindow.contentOwner).graphicsLayer === _graLyr) || map.infoWindow.contentOwner is Map))
-				{
+						((map.infoWindow.contentOwner is Graphic && 
+						Graphic(map.infoWindow.contentOwner).graphicsLayer === _graLyr) ||
+						map.infoWindow.contentOwner is Map)){
 					map.infoWindow.hide();
 				}
 			}
@@ -862,7 +837,7 @@
 				var showHighlightPoint:MapPoint = infoData.point as MapPoint;
 				popUpRenderer.popUpInfo = configurePopUpInfo(infoData.graphic.attributes.links);
 				popUpRenderer.graphic = infoData.graphic;
-				popUpRenderer.setStyle("skinClass", widgets.eSearch.PopUpRendererSkin);
+				popUpRenderer.setStyle("skinClass", widgets.eSearch.skins.PopUpRendererSkin);
 				map.infoWindow.content = popUpRenderer;
 				map.infoWindow.contentOwner = popUpRenderer.graphic;
 				map.infoWindow.show(showHighlightPoint);
@@ -929,35 +904,49 @@
             
             private function clickRow(event:ListEvent):void
             {
-            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-            	var infoData:Object = highlightedGraphic.attributes;
-				var pt:MapPoint = infoData.point;
+				var vSW:SearchWidget = _bWidget as SearchWidget;
+            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid);
+				if(!highlightedGraphic){
+					if(event.itemRenderer is CenteredEmbededImage)
+						vSW.standaloneRelate(event.itemRenderer.data.oid);
+					return;
+				}
+				var searchResult:SearchResult = highlightedGraphic.attributes as SearchResult;
+				if(event.itemRenderer is CenteredEmbededImage){
+					vSW.clickSearchRelateResult(searchResult);
+					return;
+				}
+				var pt:MapPoint = searchResult.point;
 				var map:Map = ViewerContainer.getInstance().mapManager.map;
-				if (infoData.geometry){
-					if (infoData.geometry.type == Geometry.MAPPOINT){
+				if (searchResult.geometry){
+					if (searchResult.geometry.type == Geometry.MAPPOINT){
 						if(isNaN(_zoomScale)){
-							map.zoom(1 / 16, infoData.point);
-							map.centerAt(infoData.point);
+							map.zoom(1 / 16, searchResult.point);
+							map.centerAt(searchResult.point);
 						}else{
 							if (map.scale > _zoomScale)
 								map.scale = _zoomScale;
-							map.centerAt(infoData.point);
+							map.centerAt(searchResult.point);
 						}
 					}else{
 						if(isNaN(_zoomScale)){
-							map.extent = infoData.geometry.extent.expand(_zoomPercent);
-							if (!map.extent.contains(infoData.geometry))
+							map.extent = searchResult.geometry.extent.expand(_zoomPercent);
+							if (!map.extent.contains(searchResult.geometry))
 								map.level--;
 						}else{
 							if (map.scale > _zoomScale)
 								map.scale = _zoomScale;
-							map.centerAt(infoData.point);
+							map.centerAt(searchResult.point);
 						}
 					}
 				}
-				callLater(showInfoWindow, [infoData]);
+				callLater(showInfoWindow, [searchResult]);
             }
-
+			
+			private function getFileName(o:Object, c:DataGridColumn):String
+			{
+				return "relateClass";
+			}
 		]]>
 	</fx:Script>
 	<fx:Declarations>
@@ -970,14 +959,15 @@
 					  rollOut="highLightSel(event)" 
 					  rollOver="unhighLightSel(event)"
 					  wordWrap="false"
-					  horizontalScrollPolicy="auto"/>
+					  horizontalScrollPolicy="auto">
+	</mx:DataGrid>
 	<Search:controlBarContent>
 		<s:HGroup verticalAlign="middle" paddingLeft="4" >
 			<s:Label id="lblSum" text="{_labelSum}" visible="{sumVisible}" includeInLayout="{sumVisible}"/>
 			<s:TextArea id="taSum" heightInLines="1" editable="false" borderVisible="false" visible="{sumVisible}" includeInLayout="{sumVisible}"/>
 			<s:RadioButton label="{_exp2csvBtnLbl}" groupName="optiongroup" selected="true" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
 			<s:RadioButton label="{_exp2txtBtnLbl}" groupName="optiongroup" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
-			<s:Button label="{_exportButtonLbl}" id="Export" click="exportTo(event)" skinClass="widgets.eSearch.ExportButtonSkin" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
+			<s:Button label="{_exportButtonLbl}" id="Export" click="exportTo(event)" skinClass="widgets.eSearch.skins.ExportButtonSkin" visible="{_enableExport}" includeInLayout="{_enableExport}"/>
 		</s:HGroup>
 	</Search:controlBarContent>
 	<Search:controlBarLayout>
