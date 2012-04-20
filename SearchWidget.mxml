@@ -24,6 +24,9 @@ Version 2.5.1.7 - 4/19/2012
 * Links that are not associated with a field now work.
 * Ability to disable the relates tab in the fixed widget is now configurable.
 
+Version 2.5.1.7f - 4/19/2012
+* Fix for url search capability and verified the url search works with standalone tables
+
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
 				   xmlns:fx				="http://ns.adobe.com/mxml/2009"
@@ -310,9 +313,9 @@ Version 2.5.1.7 - 4/19/2012
 			private var resultSATSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.1.7";
+			protected const VERSION:String = "2.5.1.7f";
 			
-			protected const BUILDDATE:String = "4/5/2012";
+			protected const BUILDDATE:String = "4/19/2012";
 			
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
@@ -907,13 +910,21 @@ Version 2.5.1.7 - 4/19/2012
 				executingURLquery = true;
 				
 				var qFields:Array;
-				zoomScale = configSearchText[slayerId].zoomscale;
-				if(configSearchText[slayerId].zoomscale.@zoomPercent){
-					zoomPercent = configSearchText[slayerId].zoomscale.@zoomPercent;
-				}else{
-					zoomPercent = 1.2;
+				 if(configSearchText[slayerId].layer){
+					zoomScale = configSearchText[slayerId].zoomscale;
+					if(configSearchText[slayerId].zoompercent){
+						zoomPercent = configSearchText[slayerId].zoompercent;
+					}else{ 
+						zoomPercent = 1.2;
+					 }
+				} 
+				var typeQ:String = "layer";
+				if(configSearchText[slayerId].layer){
+					queryLayer = configSearchText[slayerId].layer;
+				}else if(configSearchText[slayerId].table){
+					queryLayer = configSearchText[slayerId].table;
+					typeQ = "table";
 				}
-				queryLayer = configSearchText[slayerId].layer;
 				queryExpr = configSearchText[slayerId].expr[exprNum].expression;
 				queryFields = configSearchText[slayerId].fields;
 				queryLayerRels = configSearchText[slayerId].relates;
@@ -1063,16 +1074,24 @@ Version 2.5.1.7 - 4/19/2012
 					// on result
 					function onResult(featureSet:FeatureSet, token:XMLList = null):void                 
 					{   
-						try
-						{
+						try{
 							var gid:Number = 0;
 							for each (var gra:Graphic in featureSet.features){   
 								var obj:Object = gra.attributes;
-								if(!queryLayer.layerDetails.objectIdField){
-									obj["oid"] = gid;
-									gid ++;
+								if(typeQ == "layer"){
+									if(!queryLayer.layerDetails.objectIdField){
+										obj["oid"] = gid;
+										gid ++;
+									}else{
+										obj["oid"] = gra.attributes[queryLayer.layerDetails.objectIdField];
+									}
 								}else{
-									obj["oid"] = gra.attributes[queryLayer.layerDetails.objectIdField];
+									if(!queryLayer.tableDetails.objectIdField){
+										obj["oid"] = gid;
+										gid ++;
+									}else{
+										obj["oid"] = gra.attributes[queryLayer.tableDetails.objectIdField];
+									}
 								}
 							}
 							gridDataProvider = featureSet.attributes;
@@ -1087,21 +1106,20 @@ Version 2.5.1.7 - 4/19/2012
 							showMessage(selectionLabel + " " + featureSet.features.length, false);
 							msgVisible = true;
 							map.cursorManager.removeBusyCursor();
-							
-							if(isNaN(zoomScale)){
-								zoomAll();
-							}else{
-								if (map.scale > zoomScale)
-									map.scale = zoomScale;
-								map.centerAt(searchResultAC[0].point);
+							if(typeQ == "layer"){
+								if(isNaN(zoomScale)){
+									zoomAll();
+								}else{
+									if (map.scale > zoomScale)
+										map.scale = zoomScale;
+									map.centerAt(searchResultAC[0].point);
+								}
 							}
-							
 							if(ViewerContainer.urlConfigParams.showdatagrid != null)
 								if(ViewerContainer.urlConfigParams.showdatagrid == "true" && floatorfixed == "float")
 									showGridResults();
 							
-							if(floatorfixed == "fixed")
-							{
+							if(floatorfixed == "fixed"){
 								var dgConfig:Object = {
 									widgetTitle: widgetTitle,
 									csvExportOptionLbl: exp2csvOptLbl,
@@ -1131,8 +1149,7 @@ Version 2.5.1.7 - 4/19/2012
 							}
 							executingURLquery = false;
 						}
-						catch (error:Error)
-						{
+						catch (error:Error){
 							showMessage(error.message, false);
 						}
 					}
@@ -1685,8 +1702,7 @@ Version 2.5.1.7 - 4/19/2012
 					// on result
 					function onResult(featureSet:FeatureSet, token:XMLList = null):void                
 					{   
-						//try
-						//{ 
+						try{ 
 							var gid:Number = 0;
 							for each (var gra:Graphic in featureSet.features){   
 								var obj:Object = gra.attributes;
@@ -1772,11 +1788,10 @@ Version 2.5.1.7 - 4/19/2012
 							
 							if (openDataGrid && floatorfixed != "fixed")
 								showGridResults(); 
-						//}
-						//catch (error:Error)
-						//{
-						//	showMessage(error.message, false);
-						//}
+						}
+						catch (error:Error){
+							showMessage(error.message, false);
+						}
 					}
 					
 					//on fault
