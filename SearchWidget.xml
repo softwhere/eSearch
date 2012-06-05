@@ -8,27 +8,27 @@
 			<name>Louisville Zoning</name>
 			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_LandRecords_Louisville/MapServer/2</url>
 			<expressions>
-				<expression alias="Zoning Code" textsearchlabel="Search Zoning Code [ Example: OR1 ]:"
-					userlist="OR1,C2,OTF">upper(ZONING_CODE) = upper('[value]')</expression>
-				<expression alias="Zoning Type"
-					textsearchlabel="Search Zoning Type [ Example: RESIDENTIAL ]:">upper(ZONING_TYPE) = upper('[value]')</expression>
-				<expression alias="Zoning Name"
-					textsearchlabel="Search Zoning Name [ Example: RES MULTI-FAMILY ]:">upper(ZONING_NAME) LIKE upper('%[value]%')
+				<expression alias="Zoning Code" textsearchlabel="Search Zoning Code:">
+					<values>
+						<value prompt="Example: OR1" userlist="OR1,C2,OTF">upper(ZONING_CODE) = upper('[value]')</value>
+					</values>
+				</expression>
+				<expression alias="Zoning Type" textsearchlabel="Search Zoning Type:">
+					<values>
+						<value prompt="Example: RESIDENTIAL">upper(ZONING_TYPE) = upper('[value]')</value>
+					</values>
+				</expression>
+				<expression alias="Zoning Name" textsearchlabel="Search Zoning Name [ Example: RES MULTI-FAMILY ]:">
+					<values>
+						<value prompt="Example: RES MULTI-FAMILY">upper(ZONING_NAME) LIKE upper('%[value]%')</value>
+					</values>
 				</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select Zoning</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
 			<titlefield>ZONING_NAME</titlefield>
 			<fields all="true" />
-			<links>
-				<link includeinresults="true" field="" alias="">
-					<linkprefix></linkprefix>
-					<linksuffix></linksuffix>
-					<iconfield></iconfield>
-					<iconprefix></iconprefix>
-					<iconsuffix></iconsuffix>
-				</link>
-			</links>
+			<links/>
 			<zoomscale usegeometry="true" zoompercent="1.6">10000</zoomscale>
 		</layer>
 		<layer>
@@ -37,7 +37,11 @@
 			<name>Parcels</name>
 			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_LandRecords_Louisville/MapServer/0</url>
 			<expressions>
-				<expression alias="Parcel ID" textsearchlabel="Search by Parcel ID  [ Example: 181001490000 or 1810%]:">PARCELID like '[value]'</expression>
+				<expression alias="Parcel ID" textsearchlabel="Search by Parcel ID:">
+					<values>
+						<value prompt="Example: 181001490000 or 1810%">PARCELID like '[value]'</value>
+					</values>
+				</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select parcels</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
@@ -45,15 +49,7 @@
 			<fields all="false">
 				<field name="PARCELID" alias="Parcel Id" />
 			</fields>
-			<links>
-				<link includeinresults="false" field="" alias="">
-					<linkprefix></linkprefix>
-					<linksuffix></linksuffix>
-					<iconfield></iconfield>
-					<iconprefix></iconprefix>
-					<iconsuffix></iconsuffix>
-				</link>
-			</links>
+			<links />
 			<zoomscale usegeometry="true" zoompercent="1.2"></zoomscale>
 		</layer>
 		<layer>
@@ -62,7 +58,11 @@
 			<name>Police Facilities</name>
 			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_PublicSafety_Louisville/MapServer/3</url>
 			<expressions>
-				<expression alias="Police Stations Name" textsearchlabel="Search Police Stations by name...[ Example: 2ND DIVISION or 2%]">PD_NAME like '[value]'</expression>
+				<expression alias="Police Stations Name" textsearchlabel="Search Police Stations by name">
+					<values>
+						<value prompt="Example: 2ND DIVISION or 2%">PD_NAME like '[value]'</value>
+					</values>
+				</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select Police Stations</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
@@ -72,12 +72,9 @@
 				<field name="ADDRESS" alias="Dept. Address" />
 			</fields>
 			<links>
-				<link includeinresults="false" field="" alias="REST Services Directory">
-					<linkprefix></linkprefix>
-					<linksuffix>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services</linksuffix>
-					<iconfield></iconfield>
-					<iconprefix></iconprefix>
-					<iconsuffix></iconsuffix>
+				<link alias="REST Services Directory">
+					<![CDATA[http://sampleserver1.arcgisonline.com/ArcGIS/rest/services]]>
+					<icon />
 				</link>
 			</links>
 			<zoomscale usegeometry="true" zoompercent="1.2"></zoomscale>
@@ -88,9 +85,11 @@
 			<name>Traffic Cameras</name>
 			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_PublicSafety_Louisville/MapServer/2</url>
 			<expressions>
-				<expression alias="Traffic Camera Description"
-					textsearchlabel="Search Traffic Cameras by Location... [ Example: I-71 ]"
-					userlist="I-71,I-64">upper(DESCRIPTION) LIKE upper('[value]%')</expression>
+				<expression alias="Traffic Camera Description" textsearchlabel="Search Traffic Cameras by Location">
+					<values>
+						<value prompt="Example: I-71" userlist="I-71,I-64">upper(DESCRIPTION) LIKE upper('[value]%')</value>
+					</values>
+				</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select Traffic Cameras</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
@@ -105,20 +104,10 @@
 					gridfieldonly="false" dateformat="MM/DD/YYYY" useutc="true" />
 			</fields>
 			<links>
-				<link includeinresults="false" field="URL" alias="">
-					<linkprefix></linkprefix>
-					<linksuffix></linksuffix>
-					<iconfield></iconfield>
-					<iconprefix></iconprefix>
-					<iconsuffix>assets/images/i_camera.png</iconsuffix>
+				<link alias="REST Services Directory">
+					<![CDATA[{URL}]]>
+					<icon><![CDATA[assets/images/i_camera.png]]></icon>
 				</link>
-				<!-- <link includeinresults="true" field="ONLINE" alias="">
-					<linkprefix></linkprefix>
-					<linksuffix></linksuffix>
-					<iconfield></iconfield>
-					<iconprefix></iconprefix>
-					<iconsuffix>assets/images/i_lego.png</iconsuffix>
-				</link> -->
 			</links>
 			<zoomscale>5000</zoomscale>
 		</layer>
@@ -128,9 +117,23 @@
 			<name>Road Centerlines</name>
 			<url>http://gislap134/ArcGIS/rest/services/Highway/MapServer/5</url>
 			<expressions>
-				<expression alias="Road Surface" textsearchlabel="Search by Surface Type..."
-					field="Surf_Type" usedomain="true">Surf_Type = '[value]'</expression>
-				<expression alias="Open SQL" textsearchlabel="Search by Typing Full SQL [RD_NAME = 'ANDREW' AND ZIP_L = 36201]...">[value]</expression>
+				<expression alias="Road Name and Zip" textsearchlabel="Search by Road Name and Left Zipcode and Right Zip:">
+					<values>
+						<value prompt="Exmaple: ANDREW">RD_NAME = '[value]'</value>
+						<value prompt="Exmaple: 36201">AND ZIP_L = [value]</value>
+						<value prompt="Exmaple: 36201">AND ZIP_R = [value]</value>
+					</values>
+				</expression>
+				<expression alias="Road Surface" textsearchlabel="Search by Surface Type:">
+					<values>
+						<value prompt="Example: Asphalt" field="Surf_Type" usedomain="true">Surf_Type = '[value]'</value>
+					</values>
+				</expression>
+				<expression alias="Open SQL" textsearchlabel="Search by Typing Full SQL:">
+					<values>
+						<value prompt="Exmaple: RD_NAME = 'ANDREW' AND ZIP_L = 36201">[value]</value>
+					</values>
+				</expression>
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select Roads</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
@@ -153,21 +156,18 @@
 				<field name="ZIP_R" gridfield="true" />
 			</fields>
 			<links>
-				<link includeinresults="false" field="" alias="">
-					<linkprefix></linkprefix>
-					<linksuffix></linksuffix>
-					<iconfield></iconfield>
-					<iconprefix></iconprefix>
-					<iconsuffix></iconsuffix>
-				</link>
+				<link alias="View Mon. Ref Sheet">
+					<![CDATA[http://surveyor.slco.org/gis/map/map_search/mrs_test.cfm?mrspoint={Name}&lat={ZIP_L}&long={ZIP_R}]]>
+					<icon><![CDATA[assets/images/w_link.png]]></icon>
+				</link> 
 			</links>
-			<zoomscale usegeometry="true" />
+			<zoomscale usegeometry="true" zoompercent="1.6" />
 			<autoopendatagrid>true</autoopendatagrid>
 			<relates>
-				<relate id="0" label="ABIMS Bridge" enableexport="true" icon="assets/images/i_clock.png">
+				<relate id="0" label="ABIMS Bridge" enableexport="true" icon="assets/images/i_hydro.png">
 					<fields all="true" />
 				</relate>
-				<relate id="1" label="Average Daily Traffic" enableexport="true" icon="assets/images/i_lego.png">
+				<relate id="1" label="Average Daily Traffic" enableexport="true" icon="assets/images/i_flag.png">
 					<fields all="false">
 						<field name="Date_" dateformat="MM/DD/YYYY" />
 						<field name="Road_Name" />
@@ -177,7 +177,7 @@
 						<field name="Percent_Tr" />
 					</fields>
 				</relate>
-				<relate id="2" label="Railroad Crossings" enableexport="true" icon="assets/images/i_flag.png">
+				<relate id="2" label="Railroad Crossings" enableexport="true" icon="assets/images/i_folder.png">
 					<fields all="false">
 						<field name="Gate" />
 						<field name="Lights" />
@@ -187,7 +187,7 @@
 						<field name="Control_Mark" />
 					</fields>
 				</relate>
-				<relate id="3" label="Signs" enableexport="false" icon="assets/images/i_hydro.png">
+				<relate id="3" label="Signs" enableexport="false" icon="assets/images/i_lego.png">
 					<fields all="false">
 						<field name="Type" />
 						<field name="Road_ID" />
@@ -198,7 +198,7 @@
 						<field name="post" />
 					</fields>
 				</relate>
-				<relate id="4" label="Guardrails" enableexport="true" icon="assets/images/i_folder.png">
+				<relate id="4" label="Guardrails" enableexport="true" icon="assets/images/i_clock.png">
 					<fields all="false">
 						<field name="Type" />
 						<field name="ID" />
@@ -210,6 +210,7 @@
 					</fields>
 				</relate>
 			</relates>
+			<queryattachments>false</queryattachments>
 		</layer> -->
 		<!-- <layer>
 			<definitionexpression/>
@@ -217,7 +218,11 @@
 			<enableexport>true</enableexport> 
 			<url>http://gislap134/ArcGIS/rest/services/Weather_Obs/MapServer/0</url> 
 			<expressions>
-				<expression alias="all" textsearchlabel="blah blah">1=1</expression> 
+				<expression alias="all" textsearchlabel="blah blah">
+					<values>
+						<value prompt="Example: nothing">1=1</value>
+					</values>
+				</expression> 
 			</expressions>
 			<graphicalsearchlabel>Blah Blah</graphicalsearchlabel>
 			<spatialsearchlayer>false</spatialsearchlayer> 
@@ -228,12 +233,9 @@
 				<field name="Temp" gridfield="true"/>
 			</fields>
 			<links>
-				<link includeinresults="false" field="URL" alias="Get Site Info">
-					<linkprefix>http://someWebSite/aspx/web/details.aspx?p_entity=</linkprefix>
-					<linksuffix>.apsx</linksuffix>
-					<iconfield></iconfield>
-					<iconprefix></iconprefix>
-					<iconsuffix></iconsuffix>
+				<link alias="Get Site Info">
+					<![CDATA[http://someWebSite/aspx/web/details.aspx?p_entity={URL}.aspx]]>
+					<icon><![CDATA[]]></icon>
 				</link>
 			</links>
 			<zoomscale>5000</zoomscale>
@@ -244,7 +246,11 @@
 			<enableexport>true</enableexport>
 			<url>http://gislap134/ArcGIS/rest/services/ParcelViewer/MapServer/67</url> 
 			<expressions>
-				<expression alias="Parcel PPIN" textsearchlabel="Search Parcel by PPIN... [ Example: 1234 ]">PPIN = '[value]'</expression> 
+				<expression alias="Parcel PPIN" textsearchlabel="Search Parcel by PPIN...">
+					<values>
+						<value prompt="Example: 1234">PPIN = '[value]'</value>
+					</values>
+				</expression> 
 			</expressions>
 			<graphicalsearchlabel>Use one of the graphical search tools to select Parcel</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer> 
@@ -273,43 +279,8 @@
 				<field name="OVER_COND" gridfield="true"/>
 				<field name="ADJUSTMENT PRICE" gridfield="true"/>
 			</fields> 
-			<links>
-				<link includeinresults="false" field="" alias="">
-					<linkprefix></linkprefix>
-					<linksuffix></linksuffix>
-					<iconfield></iconfield>
-					<iconprefix></iconprefix>
-					<iconsuffix></iconsuffix>
-				</link>
-			</links>
+			<links />
 			<zoomscale>5000</zoomscale>
-		</layer> -->
-		<!-- <layer>
-			<definitionexpression></definitionexpression>
-			<enableexport>true</enableexport>
-			<name>Sub Type</name>
-			<url>http://gislap134/ArcGIS/rest/services/SubTypes/MapServer/0</url>
-			<expressions>
-				<expression alias="Type Code" textsearchlabel="Search type Code [ Example: cross ]:"
-					field="SUB_TYPE" usedomain="true">SUB_TYPE = '[value]'</expression>
-			</expressions>
-			<graphicalsearchlabel>Use one of the graphical search tools to select type</graphicalsearchlabel>
-			<spatialsearchlayer>true</spatialsearchlayer>
-			<titlefield>FACILITY_I</titlefield>
-			<fields all="false">
-				<field name="FACILITY_I" alias="FACILITY_I" gridfield="true"/>
-				<field name="TYPECODE" alias="Type" gridfield="true"/>
-			</fields>
-			<links>
-				<link includeinresults="true" field="" alias="">
-					<linkprefix></linkprefix>
-					<linksuffix></linksuffix>
-					<iconfield></iconfield>
-					<iconprefix></iconprefix>
-					<iconsuffix></iconsuffix>
-				</link>
-			</links>
-			<zoomscale usegeometry="true">10000</zoomscale>
 		</layer> -->
 	</layers>
 	<tables><!-- This section is ONLY for tables (i.e. data that has no geometry)! -->
@@ -319,7 +290,11 @@
 			<name>Sub Type</name>
 			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/WaterTemplate/WaterDistributionAdministrativeReport/MapServer/6</url>
 			<expressions>
-				<expression alias="Replacement Score Greater Than" textsearchlabel="Search Replacement Score Greater Than [ Example: 100 ]:">REPLSCORE &gt; [value]</expression>
+				<expression alias="Replacement Score Greater Than" textsearchlabel="Search Replacement Score Greater Than:">
+					<values>
+						<value prompt="Example: 100">REPLSCORE &gt; [value]</value>
+					</values>
+				</expression>
 			</expressions>
 			<titlefield>FACILITYID</titlefield>
 			<fields all="false">
@@ -338,6 +313,8 @@
 					<iconsuffix></iconsuffix>
 				</link>
 			</links>
+			<relates/>
+			<queryattachments>false</queryattachments>
 		</table>
 		<table>
 			<definitionexpression></definitionexpression>
@@ -345,9 +322,16 @@
 			<name>SF Incidents</name>
 			<url>http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/MapServer/1</url>
 			<expressions>
-				<expression alias="Agree with incident" textsearchlabel="Search Incidents that are agreed to [ Example: True ]:"
-				field="agree_with_incident" usedomain="true">agree_with_incident = [value]</expression>
-				<expression alias="Incident date" textsearchlabel="Search Incidents on or after date [ Example: 2012/04/16 ]:">datetime >= '[value] 00:00:00'</expression>
+				<expression alias="Agree with incident" textsearchlabel="Search Incidents that are agreed to:">
+					<values>
+						<value prompt="Example: True" field="agree_with_incident" usedomain="true">agree_with_incident = [value]</value>
+					</values>
+				</expression>
+				<expression alias="Incident date" textsearchlabel="Search Incidents on or after date:">
+					<values>
+						<value prompt="Example: 2012/04/16">datetime >= '[value] 00:00:00'</value>
+					</values>
+				</expression>
 			</expressions>
 			<titlefield>sf_311_serviceoid</titlefield>
 			<fields all="false">
@@ -374,6 +358,7 @@
 					<fields all="true" />
 				</relate>
 			</relates>
+			<queryattachments>false</queryattachments>
 		</table>
 	</tables>
 	<spatialrelationships>
@@ -424,7 +409,7 @@
 	<enabledrawgraphicbutton>true</enabledrawgraphicbutton>
 	<enablebuffergraphicbutton>true</enablebuffergraphicbutton>
 	<selectedgraphicaltool></selectedgraphicaltool><!-- possible values are extent or polygon or mappoint or polyline or nothing -->
-	<multipartgraphicsearch>true</multipartgraphicsearch>
+	<multipartgraphicsearch>false</multipartgraphicsearch>
 	<floatorfixed disablerelatestabinfixed="false">float</floatorfixed><!-- possible values are fixed and float -->
 	<relatetooltip>Show Relates</relatetooltip>
 	<relateicon>widgets/eSearch/assets/images/i_relate.png</relateicon>

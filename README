@@ -1,4 +1,14 @@
-﻿Version 2.5.1.7 - 4/19/2012
+﻿Version 2.9.0 - 6/5/2012
+* Added multi-field search expression capability.
+* Added attachment support for popups.
+* Added multi-field hyperlinks capability.
+* When URL Search is performed the GUI reflects the that search criteria.
+* Fixed an issue with open SQL URL searches.
+* Added link icon tooltip.
+* Fixed issue with relate fixed datagrid hyperlinks.
+* Fixed issue with interaction with point buffer widget.
+
+Version 2.5.1.7 - 4/19/2012
 * Added ability to search (flat/standalone/no geometry) tables.
 * This time all Zooming uses the same scaling (popup, datagrid, widget results, zoom to all).
 * Added Relates icon/button to datagrids so that you can click on it in the datagrid to

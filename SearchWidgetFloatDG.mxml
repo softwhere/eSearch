@@ -25,6 +25,7 @@
 			import com.esri.ags.events.ZoomEvent;
 			import com.esri.ags.geometry.Geometry;
 			import com.esri.ags.geometry.MapPoint;
+			import com.esri.ags.layers.FeatureLayer;
 			import com.esri.ags.layers.GraphicsLayer;
 			import com.esri.ags.layers.supportClasses.CodedValue;
 			import com.esri.ags.layers.supportClasses.CodedValueDomain;
@@ -64,6 +65,7 @@
 		
 			private var _data:Object;
 			private var _graLyr:GraphicsLayer;
+			private var _featLayer:FeatureLayer;
 			private var _resultsGrid:DataGrid;
 			private var highlightedGraphic:Graphic;
 			private var _zoomScale:Number = 5000;
@@ -162,6 +164,11 @@
 			public function set layerDetails(value:*):void
 			{
 				_layerDetails = value;
+			}
+			
+			public function set featLayer(value:FeatureLayer):void
+			{
+				_featLayer = value;
 			}
 			
 			public function set csvExportOptionLbl(value:String):void
@@ -697,6 +704,8 @@
 										cDomain = fType.domains[fld.name] as CodedValueDomain;
 								}else if(fld.domain){
 									cDomain = fld.domain as CodedValueDomain;
+								}else{
+									cDomain = null;
 								}
 								if (cDomain){
 									for each (var codedValue:CodedValue in cDomain.codedValues){
@@ -843,12 +852,14 @@
 				map.infoWindow.show(showHighlightPoint);
 			}
 			
-			private function configurePopUpInfo(links:Array):PopUpInfo
+			private function configurePopUpInfo(links:Array):EnhancedPopUpInfo
 			{
-				var popUpInfo:PopUpInfo = new PopUpInfo;
+				var popUpInfo:EnhancedPopUpInfo = new EnhancedPopUpInfo;
 				
 				popUpInfo.title = "{title}";
 				popUpInfo.description = "{content}";
+				popUpInfo.showAttachments = true;
+				popUpInfo.featLayer = _featLayer;
 				var pminfos:Array = [];
 				
 				for(var l:int=0; l<links.length; l++){

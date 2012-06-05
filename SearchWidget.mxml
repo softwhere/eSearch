@@ -14,19 +14,7 @@
 -->
 
 <!-- 
-
-Version 2.5.1.7 - 4/19/2012
-* Added ability to search (flat/standalone/no geometry) tables.
-* This time all Zooming uses the same scaling (popup, datagrid, widget results, zoom to all).
-* Added Relates icon/button to datagrids so that you can click on it in the datagrid to
-  open relates choice dialog.
-* Move all skins to a skins package for cleaner organization.
-* Links that are not associated with a field now work.
-* Ability to disable the relates tab in the fixed widget is now configurable.
-
-Version 2.5.1.7f - 4/19/2012
-* Fix for url search capability and verified the url search works with standalone tables
-
+	See ReadMe.txt for Version updates and bug fixes
 --> 
 <viewer:BaseWidget xmlns:esri			="http://www.esri.com/2008/ags"
 				   xmlns:fx				="http://ns.adobe.com/mxml/2009"
@@ -37,7 +25,7 @@ Version 2.5.1.7f - 4/19/2012
 				   xmlns:Search       	="widgets.eSearch.*"
 				   xmlns:supportClasses ="com.esri.ags.tasks.supportClasses.*"
 				   currentState			="textInput"
-				   widgetConfigLoaded	="init()" >
+				   widgetConfigLoaded	="init()">
 	<viewer:states>
 		<s:State name="graphicalInput"/>
 		<s:State name="textInput"/>
@@ -63,6 +51,11 @@ Version 2.5.1.7f - 4/19/2012
 		<s:ColorMatrixFilter id="cOver" matrix="[0.5,0.5,0.5,0,0,0.5,0.5,0.5,0,0,0.5,0.5,0.5,0,0,0,0,0,0.6,0]"/>
 		<supportClasses:RelationshipQuery id="relatesQuery" outFields="[*]"/>
 		<mx:DateFormatter id="iDateFormat" />
+		<s:Animate id="anim" duration="500">
+			<s:motionPaths>
+				<s:SimpleMotionPath id="pth" property="verticalScrollPosition" />
+			</s:motionPaths>
+		</s:Animate>
 	</fx:Declarations>
 	
 	<fx:Script>
@@ -108,6 +101,7 @@ Version 2.5.1.7f - 4/19/2012
 			import com.esri.ags.tools.DrawTool;
 			import com.esri.ags.utils.GeometryUtil;
 			import com.esri.ags.utils.GraphicUtil;
+			import com.esri.ags.utils.StringUtil;
 			import com.esri.ags.webmap.PopUpRenderer;
 			import com.esri.ags.webmap.supportClasses.PopUpInfo;
 			import com.esri.ags.webmap.supportClasses.PopUpMediaInfo;
@@ -122,6 +116,7 @@ Version 2.5.1.7f - 4/19/2012
 			import mx.core.FlexGlobals;
 			import mx.core.IToolTip;
 			import mx.core.IUIComponent;
+			import mx.core.IVisualElement;
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
@@ -147,160 +142,128 @@ Version 2.5.1.7f - 4/19/2012
 			import widgets.eSearch.skins.PopUpRendererSkin;
 			
 			//labels
-			[Bindable]
-			private var lblbufferUserGraphic:String;
-			[Bindable]
-			private var noRelatesFound:String;
-			[Bindable]
-			private var noRelatesFoundAlertTitle:String;
+			[Bindable] private var lblbufferUserGraphic:String;
+			[Bindable] private var noRelatesFound:String;
+			[Bindable] private var noRelatesFoundAlertTitle:String;
+			[Bindable] private var enableMultiPartSearch:String;
+			[Bindable] private var lblTolerance:String;
+			[Bindable] private var layerLabel:String;
+			[Bindable] private var layerExprLabel:String;
+			[Bindable] private var submitLabel:String;	
+			[Bindable] private var pointLabel:String;
+			[Bindable] private var bufferAlphaLabel:String;
+			[Bindable] private var bufferColorLabel:String;
+			[Bindable] private var lineLabel:String;
+			[Bindable] private var rectangleLabel:String;
+			[Bindable] private var polygonLabel:String;
+			[Bindable] private var clearLabel:String;
+			[Bindable] private var zoomallLabel:String;
+			[Bindable] private var zoomallTip:String;	
+			[Bindable] private var drawGraLabel:String;
+			[Bindable] private var bufferGraLabel:String;
+			[Bindable] private var msgVisible:Boolean = false;
+			[Bindable] private var searchLayerLabel:String;
+			[Bindable] private var relatLayerWhereLabel:String;
+			[Bindable] private var bufferLabel:String;
+			[Bindable] private var drawGraphicsLayer:GraphicsLayer;
+			[Bindable] private var bufferGraphicsLayer:GraphicsLayer;
 			private var graphicalsearchLabel:String;
 			private var textsearchLabel:String;
 			private var resultsLabel:String;
 			private var gridresultsLabel:String;
-			[Bindable]
-			private var enableMultiPartSearch:String;
-			[Bindable]
-			private var lblTolerance:String;
-			[Bindable]
-			private var layerLabel:String;
-			[Bindable]
-			private var layerExprLabel:String;
-			private var nolayerLabel:String;
-			[Bindable]	
-			private var submitLabel:String;	
-			[Bindable]
-			private var pointLabel:String;
-			[Bindable]
-			private var bufferAlphaLabel:String;
-			[Bindable]
-			private var bufferColorLabel:String;
-			[Bindable]
-			private var lineLabel:String;
-			[Bindable]
-			private var rectangleLabel:String;
-			[Bindable]
-			private var polygonLabel:String;
-			[Bindable]
-			private var clearLabel:String;
-			[Bindable]
-			private var zoomallLabel:String;
-			[Bindable]
-			private var zoomallTip:String;
 			private var loadingLabel:String;	
-			private var selectionLabel:String;		
-			[Bindable]
-			private var drawGraLabel:String;
-			[Bindable]
-			private var bufferGraLabel:String;
-			[Bindable]
-			private var msgVisible:Boolean = false;
-			[Bindable]
-			private var searchLayerLabel:String;
-			[Bindable]
-			private var relatLayerWhereLabel:String;
-			[Bindable]
-			private var bufferLabel:String;
-			[Bindable]
-			private var drawGraphicsLayer:GraphicsLayer;
-			[Bindable]
-			private var bufferGraphicsLayer:GraphicsLayer;
+			private var selectionLabel:String;	
+			private var nolayerLabel:String;
 			
 			//Properties
-			private var relateIcon:String;
-			private var relateToolTip:String;
-			[Bindable]
-			private var eDrawEnabled:Boolean = false;
-			[Bindable]
-			private var pBufferEnabled:Boolean = false;
-			[Bindable]
-			private var applyBufferLabel:String;
-			private var resultsFeatureSet:FeatureSet;
-			private var zoomScale:Number = 5000;
-			private var zoomPercent:Number = 1.2;
-			private var configSearchGraphical:Array;
-			private var configSearchText:Array;
-			private var configDomainVals:Array;
-			private var configUserVals:Array;
-			private var queryLayerRels:Array;
-			private var queryLayer:FeatureLayer;
-			private var relqueryLayer:FeatureLayer;
-			private var queryGeom:Geometry;
-			private var queryExpr:String;
-			private var queryFields:XMLList;
+			[Bindable] private var graphicsLayer:GraphicsLayer;
+			[Bindable] private var searchResultAC:ArrayCollection;
+			[Bindable] private var eDrawEnabled:Boolean = false;
+			[Bindable] private var pBufferEnabled:Boolean = false;
+			[Bindable] private var applyBufferLabel:String;
+			[Bindable] private var multiPartGraphicSearch:Boolean;
+			[Bindable] private var applyTolleranceByDefault:Boolean;
+			[Bindable] private var widgetAndGridIteract:Boolean;
+			private var layerDetails:*;
 			private var gridFields:Array = [];
 			private var gridHyperFields:Array = [];
 			private var relateFields:Array = [];
 			private var qrelateFields:Array = [];
 			private var relateHyperFields:Array = [];
-			private var queryTitleField:String;
+			private var configSearchGraphical:Array;
+			private var configSearchText:Array;
+			private var configDomainVals:Array;
+			private var configUserVals:Array;
+			private var queryLayerRels:Array;
 			private var qLinks:Array = [];
 			private var lyrQLinks:Array = [];
-			private var queryDefExpr:String = "";
-			private var queryLinkIconIsField:Boolean;
-			private var queryEnableExport:Boolean;
-			private var timer:Timer;
-			private const ICON_URL:String = "assets/images/";
-			private var WIDGET_URL:String = "widgets/eSearch/assets/images/";
-			private var gridDataProvider:Object;
-			private var wFields:ArrayCollection;
-			private var myfloatdg:SearchWidgetFloatDG;
-			private var relfloatdg:SearchWidgetRelateFloatDG;
-			private var sWidget:SearchWidget;
-			private var _csvName:String;
-			private var relatescsvName:String;
-			private var fldAliases:Object;
-			private var relfldAliases:Object;
-			private var queryMultiImgField:String;
-			private var graphicsLayerBuffer:GraphicsLayer;
-			private var configSpatialSearchLayers:Array;
-			private var configSpatialSearchRelation:Array;
 			private var configLayerExprs:Array;
+			private var configLayerExprsVals:Array;
 			private var configTableExprs:Array;
+			private var configTableExprsVals:Array;
 			private var configLayerRels:Array;
 			private var configTableRels:Array;
 			private var configBufferUnits:Array;
-			private var spatialsearchLabel:String;
+			private var configSpatialSearchLayers:Array;
+			private var configSpatialSearchRelation:Array;
 			private var geomArr:Array;
+			private var wFields:ArrayCollection;
+			private var queryLinkIconIsField:Boolean;
+			private var queryEnableExport:Boolean;
+			private var queryExprForSpatRel:Boolean;
+			private var queryAttachments:Boolean;
+			private var openDataGrid:Boolean;
+			private var executingURLquery:Boolean;
+			private var disRelatesInFixed:Boolean;
+			private var qLayer:FeatureLayer;
+			private var queryLayer:FeatureLayer;
+			private var relqueryLayer:FeatureLayer;
+			private var resultsFeatureSet:FeatureSet;
+			private var queryGeom:Geometry;
+			private var graphicsLayerBuffer:GraphicsLayer;
+			private var graGraphicsLayer:GraphicsLayer;
+			private var selectedDrawingIcon:Image;
+			private var zoomScale:Number = 5000;
+			private var zoomPercent:Number = 1.2;
+			private var pointSearchTolerance:Number = 6;
+			private var numberValidator:NumberValidator;
+			private var gridDataProvider:Object;
+			private var fldAliases:Object;
+			private var relfldAliases:Object;
+			private var popUpRenderer:PopUpRenderer = new PopUpRenderer();
+			private var rWindow:RelatesWindow;
+			private var myfloatdg:SearchWidgetFloatDG;
+			private var relfloatdg:SearchWidgetRelateFloatDG;
+			private var sWidget:SearchWidget;
+			private var sReff:SpatialReference;
+			private var relateIcon:String;
+			private var relateToolTip:String;
+			private var queryExpr:String;
+			private var queryDefExpr:String = "";
+			private const ICON_URL:String = "assets/images/";
+			private var WIDGET_URL:String = "widgets/eSearch/assets/images/";
+			private var _csvName:String;
+			private var relatescsvName:String;
+			private var queryMultiImgField:String;
 			private var csvSep:String;
 			private var expBtnLbl:String;
 			private var exp2csvOptLbl:String;
 			private var exp2txtOptLbl:String;
-			private var queryExprForSpatRel:Boolean;
-			private var sReff:SpatialReference;
-			private var disableButtons:String;
-			private var defaultSelectionOption:String;
-			private var qLayer:FeatureLayer;
-			private var layerDetails:*;
-			private var myTip:ToolTip;
-			private var selectedDrawingIcon:Image;
-			private var lState:String = "textInput";
 			private var lblSum:String;
 			private var sumField:String;
-			private var pointSearchTolerance:Number = 6;
-			private var popUpRenderer:PopUpRenderer = new PopUpRenderer();
-			private var openDataGrid:Boolean;
-			private var lastTool:String;
-			private var graGraphicsLayer:GraphicsLayer;
-			private var selectedGraphicalTool:String;
-			[Bindable] private var multiPartGraphicSearch:Boolean;
-			[Bindable] private var applyTolleranceByDefault:Boolean;
-			[Bindable] private var widgetAndGridIteract:Boolean;
-			
-			private var executingURLquery:Boolean;
-			
+			private var disableButtons:String;
+			private var spatialsearchLabel:String;
 			private var floatorfixed:String;
-			
-			private var disRelatesInFixed:Boolean;
-			
-			private var numberValidator:NumberValidator;
-			
-			private var rWindow:RelatesWindow;
-			
-			[Bindable]
-			private var searchResultAC:ArrayCollection;
+			private var selectedGraphicalTool:String;
+			private var lastTool:String;
+			private var lState:String = "textInput";
+			private var queryTitleField:String;
+			private var defaultSelectionOption:String;
+			private var timer:Timer;
+			private var myTip:ToolTip;
+			private var queryFields:XMLList;
+
 			//Formatters
-			[Bindable]
-			private var graphicsLayer:GraphicsLayer;
 			private var dateFormatter:DateFormatter = new DateFormatter();
 			private var numFormatter:NumberFormatter = new NumberFormatter();
 			private var currFormatter:CurrencyFormatter = new CurrencyFormatter();
@@ -313,10 +276,11 @@ Version 2.5.1.7f - 4/19/2012
 			private var resultSATSymbol:Symbol;
 			private var overFillSymbol:Symbol;
 			
-			protected const VERSION:String = "2.5.1.7f";
+			//Build Constants
+			protected const VERSION:String = "2.9.0";
+			protected const BUILDDATE:String = "5/15/2012";
 			
-			protected const BUILDDATE:String = "4/19/2012";
-			
+			//Resources
 			[Embed(source="assets/images/i_about.png")]
 			private var iconClass:Class;
 			
@@ -476,6 +440,7 @@ Version 2.5.1.7f - 4/19/2012
 					var i:Number;
 					var j:Number;
 					var l:Number;
+					var v:Number;
 					var lyrList:XMLList = configXML..layer;
 					for (i = 0; i < lyrList.length(); i++){
 						configLayerExprs = [];
@@ -503,17 +468,27 @@ Version 2.5.1.7f - 4/19/2012
 						for (j = 0; j < lyrExprList.length(); j++){
 							var lyrExprAlias:String = lyrExprList[j].@alias;
 							var lyrTextLabel:String = lyrExprList[j].@textsearchlabel;
-							var lyrExpr:String = lyrExprList[j];
-							var lyrField:String = lyrExprList[j].@field;
-							var lyrUserList:String = lyrExprList[j].@userlist;
-							var lyrDomain:Boolean = lyrExprList[j].@usedomain && lyrExprList[j].@usedomain == "true";
+							var lyrExprVals:XMLList = lyrExprList[j]..value;
+							configLayerExprsVals = [];
+							for (v = 0; v < lyrExprVals.length(); v++){
+								var valPrompt:String = lyrExprVals[v].@prompt;
+								var valExpr:String = lyrExprVals[v];
+								var valField:String = lyrExprVals[v].@field;
+								var valUserList:String = lyrExprVals[v].@userlist;
+								var valDomain:Boolean = lyrExprVals[v].@usedomain && lyrExprVals[v].@usedomain == "true";
+								var exprVals:Object = {
+									prompt: valPrompt,
+									expression: valExpr,
+									field: valField,
+									usedomain: valDomain,
+									userlist: valUserList
+								}
+								configLayerExprsVals.push(exprVals)
+							}
 							var expr:Object ={
 								label: lyrExprAlias,
 								textlabel: lyrTextLabel,
-								expression: lyrExpr,
-								field: lyrField,
-								usedomain: lyrDomain,
-								userlist: lyrUserList
+								values: configLayerExprsVals
 							}
 							configLayerExprs.push(expr);
 						}
@@ -524,26 +499,17 @@ Version 2.5.1.7f - 4/19/2012
 						var lyrLinks:Array = [];
 						var lyrLinkList:XMLList = lyrList[i]..link;
 						for (l = 0; l < lyrLinkList.length(); l++){
+							var lyrLink:String = XML(lyrLinkList[l]).text() || "";
 							var lyrLinkAlias:String = lyrLinkList[l].@alias || "";
-							var lyrLinkField:String = lyrLinkList[l].@field || "";
-							var lyrLinkPre:String = lyrLinkList[l].linkprefix || "";
-							var lyrLinkSuffix:String = lyrLinkList[l].linksuffix || "";
-							var lyrLinkIconField:String = lyrLinkList[l].iconfield || "";
-							var lyrLinkIconPre:String = lyrLinkList[l].iconprefix || "";
-							var lyrLinkIconSuffix:String = lyrLinkList[l].iconsuffix || "";
-							var incLinkInRslts:Boolean = lyrLinkList[l].@includeinresults && lyrLinkList[l].@includeinresults == "true";
+							var lyrIcon:String = XML(lyrLinkList[l]).child("icon") || "";
 							var linkObj:Object = {
-								field: lyrLinkField,
-								pre: lyrLinkPre,
-								suf: lyrLinkSuffix,
-								inc: incLinkInRslts,
+								link: lyrLink,
 								alias: lyrLinkAlias,
-								icon: lyrLinkIconField,
-								iconpre: lyrLinkIconPre,
-								iconsuf: lyrLinkIconSuffix
+								icon: lyrIcon
 							}
 							lyrLinks.push(linkObj);
 						}
+						var lyrQueryAttach:Boolean = lyrList[i].queryattachments && lyrList[i].queryattachments == "true";
 						var lyrEnableExport:Boolean = lyrList[i].enableexport && lyrList[i].enableexport == "true";
 						var lyrMultiImgField:String = lyrList[i].multiimagefield;
 						var useProxy:Boolean = lyrList[i].useproxy && lyrList[i].useproxy == "true";
@@ -596,22 +562,16 @@ Version 2.5.1.7f - 4/19/2012
 							enableexport: lyrEnableExport,
 							defexpr: lyrDefExpr,
 							opendg: openDG,
-							relates: configLayerRels
+							relates: configLayerRels,
+							attachments: lyrQueryAttach
 						}
 						configSearchGraphical.push(searchLayer);
 						
 						if (searchLayer.spatialsearchlayer == "true")
 							configSpatialSearchLayers.push(searchLayer);
 						
-						if (lyrExpr){
+						if (configLayerExprs && configLayerExprs.length > 0){
 							configSearchText.push(searchLayer);
-							if(i==0){
-								qLayer = new FeatureLayer(lyrURL);
-								if(configLayerExprs[0].usedomain)
-									popCBwithDomain(configLayerExprs[0].field);
-								else if(configLayerExprs[0].userlist != "")
-									popCBwithUserList(configLayerExprs[0].userlist);
-							}
 						}
 					}
 //------------------------------------------------------------------------------------------------------
@@ -641,17 +601,27 @@ Version 2.5.1.7f - 4/19/2012
 						for (j = 0; j < tblExprList.length(); j++){
 							var tblExprAlias:String = tblExprList[j].@alias;
 							var tblTextLabel:String = tblExprList[j].@textsearchlabel;
-							var tblExpr:String = tblExprList[j];
-							var tblField:String = tblExprList[j].@field;
-							var tblUserList:String = tblExprList[j].@userlist;
-							var tblDomain:Boolean = tblExprList[j].@usedomain && tblExprList[j].@usedomain == "true";
+							var tblExprVals:XMLList = tblExprList[j]..value;
+							configTableExprsVals = [];
+							for (v = 0; v < tblExprVals.length(); v++){
+								var tblPrompt:String = tblExprVals[v].@prompt;
+								var tblExpr:String = tblExprVals[v];
+								var tblField:String = tblExprVals[v].@field;
+								var tblUserList:String = tblExprVals[v].@userlist;
+								var tblDomain:Boolean = tblExprVals[v].@usedomain && tblExprVals[v].@usedomain == "true";
+								var tblexprVals:Object = {
+									prompt: tblPrompt,
+									expression: tblExpr,
+									field: tblField,
+									usedomain: tblDomain,
+									userlist: tblUserList
+								}
+								configTableExprsVals.push(tblexprVals)
+							}
 							var tblexpr:Object ={
 								label: tblExprAlias,
 								textlabel: tblTextLabel,
-								expression: tblExpr,
-								field: tblField,
-								usedomain: tblDomain,
-								userlist: tblUserList
+								values: configTableExprsVals
 							}
 							configTableExprs.push(tblexpr);
 						}
@@ -687,6 +657,7 @@ Version 2.5.1.7f - 4/19/2012
 						var tbluseProxy:Boolean = tblList[i].useproxy && tblList[i].useproxy == "true";
 						var tbluseAMF:String = tblList[i].useamf;
 						var tblopenDG:Boolean = tblList[i].autoopendatagrid && tblList[i].autoopendatagrid == "true";
+						var tblQueryAttach:Boolean = tblList[i].@queryattachments && tblList[i].@queryattachments == "true";
 	
 						var table:FeatureLayer = new FeatureLayer(tblURL);
 						if (useProxy && configData.proxyUrl)
@@ -715,17 +686,18 @@ Version 2.5.1.7f - 4/19/2012
 							enableexport: tblEnableExport,
 							defexpr: tblDefExpr,
 							opendg: tblopenDG,
-							relates: configTableRels
+							relates: configTableRels,
+							attachments: tblQueryAttach
 						}
 						
 						if (tblExpr){
 							configSearchText.push(searchTable);
 							if(i==0){
 								qLayer = new FeatureLayer(tblURL);
-								if(configTableExprs[0].usedomain)
-									popCBwithDomain(configTableExprs[0].field);
-								else if(configTableExprs[0].userlist != "")
-									popCBwithUserList(configTableExprs[0].userlist);
+								if(configTableExprs[0].values[0].usedomain)
+									popCBwithDomain(configTableExprs[0].values[0].field, sItemVal);
+								else if(configTableExprs[0].values[0].userlist != "")
+									popCBwithUserList(configTableExprs[0].values[0].userlist, sItemVal);
 							}
 						}
 					}
@@ -840,14 +812,36 @@ Version 2.5.1.7f - 4/19/2012
 				if (configSearchText.length){
 					cboLayerText.dataProvider = configSearchText;
 					txtLabelText.text = configSearchText[0].expr[0].textlabel;
-					if (configSearchText.length == 1)
-					{
+					
+					var sItemVal:SearchExpValueItem;
+					for(v=0; v<configSearchText[0].expr[0].values.length; v++){
+						if(v == 0){
+							sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
+							sItemVal.changeToTextBox();
+							sItemVal.setPrompt = configSearchText[0].expr[0].values[v].prompt;
+							sItemVal.addEventListener("dataChange", valueItemEvent);
+							sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
+						}else{
+							sItemVal = new SearchExpValueItem;
+							sItemVal.wTemplateWidth = wTemplate.width;
+							sItemVal.percentWidth = 100;
+							sItemVal.setPrompt = configSearchText[0].expr[0].values[v].prompt;
+							sItemVal.addEventListener("dataChange", valueItemEvent);
+							sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
+							searchGroup.addElement(sItemVal);
+						}
+						if(configSearchText[0].expr[0].values[v].usedomain)
+							popCBwithDomain(configSearchText[0].expr[0].values[v].field, sItemVal);
+						else if(configSearchText[0].expr[0].values[v].userlist != "")
+							popCBwithUserList(configSearchText[0].expr[0].values[v].userlist, sItemVal);
+					}
+					
+					if (configSearchText.length == 1){
 						boxText.visible = false;
 						boxText.includeInLayout = false;
 					}
 					cboLayerExpr.dataProvider = configSearchText[0].expr;
-					if (configSearchText[0].expr.length == 1)
-					{
+					if (configSearchText[0].expr.length == 1){
 						boxTextexpr.visible = false;
 						boxTextexpr.includeInLayout = false;
 					}
@@ -892,8 +886,14 @@ Version 2.5.1.7f - 4/19/2012
 				}
 				wTemplate.visible = true;
 				wTemplate.header.addEventListener(MouseEvent.CLICK, DisplayVersion);
-				txtSearch.addEventListener(FlexEvent.ENTER, equeryFeaturesText);
 				searchBtn.addEventListener(MouseEvent.CLICK, equeryFeaturesText);
+			}
+			
+			private function valueItemEvent(evt:Event):void
+			{
+				if(searchGroup.numElements == 1){
+					equeryFeaturesText(null);
+				}
 			}
 			
 			private function equeryFeaturesText(evt:Event):void
@@ -904,10 +904,72 @@ Version 2.5.1.7f - 4/19/2012
 			//Added for URL Query			
 			public function queryFromURL(value:String, slayerId:int = 0, exprNum:int = 0):void
 			{
+				//First check if the layer or table is loaded.
+				var typeQ:String = "layer";
+				if(configSearchText[slayerId].layer){
+					queryLayer = configSearchText[slayerId].layer;
+				}else if(configSearchText[slayerId].table){
+					queryLayer = configSearchText[slayerId].table;
+					typeQ = "table";
+				}
+				
+				if (queryLayer && !queryLayer.loaded){
+					queryLayer.addEventListener(LayerEvent.LOAD, queryLayer_loadHandler);
+					function queryLayer_loadHandler(event:LayerEvent):void
+					{
+						queryFromURL(value, slayerId, exprNum);
+					}
+					return;
+				}
+				
+				if(searchGroup.numElements > 1){
+					for(var sgi:Number = searchGroup.numElements - 1; sgi >= 1; sgi--){
+						searchGroup.removeElementAt(sgi);
+					}
+				}
+				var v:int;
+				var sItemVal:SearchExpValueItem;
+				for(v=0; v<configSearchText[slayerId].expr[exprNum].values.length; v++){
+					if(v == 0){
+						sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
+						sItemVal.setPrompt = configSearchText[slayerId].expr[exprNum].values[v].prompt;
+						sItemVal.changeToTextBox();
+					}else{
+						sItemVal = new SearchExpValueItem;
+						sItemVal.wTemplateWidth = wTemplate.width;
+						sItemVal.percentWidth = 100;
+						sItemVal.setPrompt = configSearchText[slayerId].expr[exprNum].values[v].prompt;
+						sItemVal.addEventListener("dataChange", valueItemEvent);
+						sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
+						searchGroup.addElement(sItemVal);
+					}
+					if(configSearchText[slayerId].expr[exprNum].values[v].usedomain)
+						popCBwithDomain(configSearchText[slayerId].expr[exprNum].values[v].field, sItemVal);
+					else if(configSearchText[slayerId].expr[exprNum].values[v].userlist != "")
+						popCBwithUserList(configSearchText[slayerId].expr[exprNum].values[v].userlist, sItemVal);
+				}
+				searchBtn.addEventListener(MouseEvent.CLICK, equeryFeaturesText);
+
+				txtLabelText.text = configSearchText[slayerId].expr[exprNum].textlabel;
+				cboLayerExpr.dataProvider = configSearchText[slayerId].expr;
+				if (configSearchText[slayerId].expr.length == 1)
+				{
+					boxTextexpr.visible = false;
+					boxTextexpr.includeInLayout = false;
+				}else{
+					boxTextexpr.visible = true;
+					boxTextexpr.includeInLayout = true;
+				}
+				
 				//hide infowindow if any
 				hideInfoWindow();
 				
 				executingURLquery = true;
+				
+				cboLayerText.selectedIndex = slayerId;
+				cboLayerExpr.selectedIndex = exprNum;
+
+				sItemVal.textValue = value;
 				
 				var qFields:Array;
 				 if(configSearchText[slayerId].layer){
@@ -918,34 +980,17 @@ Version 2.5.1.7f - 4/19/2012
 						zoomPercent = 1.2;
 					 }
 				} 
-				var typeQ:String = "layer";
-				if(configSearchText[slayerId].layer){
-					queryLayer = configSearchText[slayerId].layer;
-				}else if(configSearchText[slayerId].table){
-					queryLayer = configSearchText[slayerId].table;
-					typeQ = "table";
-				}
-				queryExpr = configSearchText[slayerId].expr[exprNum].expression;
+
+				queryExpr = configSearchText[slayerId].expr[exprNum].values[0].expression;
 				queryFields = configSearchText[slayerId].fields;
 				queryLayerRels = configSearchText[slayerId].relates;
 				queryDefExpr = configSearchText[slayerId].defexpr;
-				
-				if (queryLayer && !queryLayer.loaded)
-				{
-					queryLayer.addEventListener(LayerEvent.LOAD, queryLayer_loadHandler);
-					function queryLayer_loadHandler(event:LayerEvent):void
-					{
-						queryFromURL(value, slayerId, exprNum);
-					}
-					return;
-				}
-				
+	
 				var gfields:XMLList;
 				sumField = "";
 				gridFields = [];
 				gridHyperFields = [];
 				
-								
 				if (queryFields){
 					gfields = queryFields.field;
 					for each (var fieldXML:XML in gfields){
@@ -1053,16 +1098,20 @@ Version 2.5.1.7f - 4/19/2012
 				queryTitleField = configSearchText[slayerId].titlefield;
 				qLinks = configSearchText[slayerId].links;
 				queryMultiImgField = configSearchText[slayerId].multi;
+				queryAttachments = configSearchText[slayerId].attachments;
 				queryEnableExport = configSearchText[slayerId].enableexport;
 				var fields:XMLList;
 				
-				if (queryLayer)
-				{
+				if (queryLayer){
 					var query:Query = new Query();
 					var myPattern:RegExp = /\[value\]/g;
 					var expr:String;
-					value = value.replace("'","''");
-					expr = queryExpr.replace(myPattern, value);
+					var eVal:String;
+					if(queryExpr != "[value]")//meaning an open SQL expression
+						eVal = value.replace("'","''");
+					else
+						eVal = value;
+					expr = queryExpr.replace(myPattern, eVal);
 					query.where = expr;
 					query.outSpatialReference = map.spatialReference;
 					if(queryDefExpr != "")
@@ -1217,28 +1266,45 @@ Version 2.5.1.7f - 4/19/2012
 			
 			private function searchLayerChangedText():void
 			{
-				cbSearch.visible = false;
-				cbSearch.includeInLayout = false;
-				txtSearch.visible = true;
-				txtSearch.includeInLayout = true;
-				txtSearch.restrict = null;
-				txtSearch.errorString = "";
-				if(numberValidator){
-					numberValidator.property = "";
-					numberValidator.source = null;
+				//queryAttachments = false;
+				if(searchGroup.numElements > 1){
+					for(var sgi:Number = searchGroup.numElements - 1; sgi >= 1; sgi--){
+						searchGroup.removeElementAt(sgi);
+					}
 				}
-					
-				txtSearch.addEventListener(FlexEvent.ENTER, equeryFeaturesText);
-				searchBtn.addEventListener(MouseEvent.CLICK, equeryFeaturesText);
+				var v:int;
 				var i:Number = cboLayerText.selectedIndex;
-				if(configSearchText[i].expr[0].usedomain)
-					popCBwithDomain(configSearchText[i].expr[0].field);
-				else if(configSearchText[i].expr[0].userlist != "")
-					popCBwithUserList(configSearchText[i].expr[0].userlist);
+				var sItemVal:SearchExpValueItem;
+				for(v=0; v<configSearchText[i].expr[0].values.length; v++){
+					if(v == 0){
+						sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
+						sItemVal.setPrompt = configSearchText[i].expr[0].values[v].prompt;
+						sItemVal.changeToTextBox();
+					}else{
+						sItemVal = new SearchExpValueItem;
+						sItemVal.wTemplateWidth = wTemplate.width;
+						sItemVal.percentWidth = 100;
+						sItemVal.setPrompt = configSearchText[i].expr[0].values[v].prompt;
+						sItemVal.addEventListener("dataChange", valueItemEvent);
+						sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
+						searchGroup.addElement(sItemVal);
+					}
+					if(configSearchText[i].expr[0].values[v].usedomain)
+						popCBwithDomain(configSearchText[i].expr[0].values[v].field, sItemVal);
+					else if(configSearchText[i].expr[0].values[v].userlist != "")
+						popCBwithUserList(configSearchText[i].expr[0].values[v].userlist, sItemVal); 
+				}
+				searchBtn.addEventListener(MouseEvent.CLICK, equeryFeaturesText);
+				
+				for(v=0; v<configSearchText[i].expr[0].values.length; v++){
+					if(configSearchText[i].expr[0].values[v].usedomain)
+						popCBwithDomain(configSearchText[i].expr[0].values[v].field, sItemVal);
+					else if(configSearchText[i].expr[0].values[v].userlist != "")
+						popCBwithUserList(configSearchText[i].expr[0].values[v].userlist, sItemVal);
+				}
 				txtLabelText.text = configSearchText[i].expr[0].textlabel;
 				cboLayerExpr.dataProvider = configSearchText[i].expr;
-				if (configSearchText[i].expr.length == 1)
-				{
+				if (configSearchText[i].expr.length == 1){
 					boxTextexpr.visible = false;
 					boxTextexpr.includeInLayout = false;
 				}else{
@@ -1251,20 +1317,32 @@ Version 2.5.1.7f - 4/19/2012
 			{
 				var i:Number = cboLayerText.selectedIndex;
 				var j:Number = cboLayerExpr.selectedIndex;
-				cbSearch.visible = false;
-				cbSearch.includeInLayout = false;
-				txtSearch.visible = true;
-				txtSearch.includeInLayout = true;
-				if(numberValidator){
-					numberValidator.property = "";
-					numberValidator.source = null;
+				if(searchGroup.numElements > 1){
+					for(var sgi:Number = searchGroup.numElements - 1; sgi >= 1; sgi--){
+						searchGroup.removeElementAt(sgi);
+					}
+				}
+				var sItemVal:SearchExpValueItem;
+				for(var v:int=0; v<configSearchText[i].expr[j].values.length; v++){
+					if(v == 0){
+						sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
+						sItemVal.setPrompt = configSearchText[i].expr[j].values[v].prompt;
+						sItemVal.changeToTextBox();
+					}else{
+						sItemVal = new SearchExpValueItem;
+						sItemVal.wTemplateWidth = wTemplate.width;
+						sItemVal.percentWidth = 100;
+						sItemVal.setPrompt = configSearchText[i].expr[j].values[v].prompt;
+						sItemVal.addEventListener("dataChange", valueItemEvent);
+						sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
+						searchGroup.addElement(sItemVal);
+					}
+					if(configSearchText[i].expr[j].values[v].usedomain)
+						popCBwithDomain(configSearchText[i].expr[j].values[v].field, sItemVal);
+					else if(configSearchText[i].expr[j].values[v].userlist != "")
+						popCBwithUserList(configSearchText[i].expr[j].values[v].userlist, sItemVal);
 				}
 				searchBtn.addEventListener(MouseEvent.CLICK, equeryFeaturesText);
-				txtSearch.addEventListener(FlexEvent.ENTER, equeryFeaturesText);
-				if(configSearchText[i].expr[j].usedomain)
-					popCBwithDomain(configSearchText[i].expr[j].field);
-				else if(configSearchText[i].expr[j].userlist != "")
-					popCBwithUserList(configSearchText[i].expr[j].userlist);
 				txtLabelText.text = configSearchText[i].expr[j].textlabel;
 			}
 			
@@ -1530,6 +1608,7 @@ Version 2.5.1.7f - 4/19/2012
 				hideInfoWindow();
 				var typeQ:String = "layer";
 				var i:int = cboLayerText.selectedIndex;
+				
 				if(configSearchText[i].layer){
 					queryLayer = configSearchText[i].layer;
 				}else if(configSearchText[i].table){
@@ -1556,7 +1635,6 @@ Version 2.5.1.7f - 4/19/2012
 				zoomPercent = configSearchText[i].zoompercent;
 				queryLayer = (typeQ == "layer") ? configSearchText[i].layer : configSearchText[i].table;
 				var j:Number = cboLayerExpr.selectedIndex;
-				queryExpr = configSearchText[i].expr[j].expression;
 				queryFields = configSearchText[i].fields;
 				queryDefExpr = configSearchText[i].defexpr;
 				queryLayerRels = configSearchText[i].relates;
@@ -1671,26 +1749,44 @@ Version 2.5.1.7f - 4/19/2012
 				queryTitleField = configSearchText[i].titlefield;
 				qLinks = configSearchText[i].links;
 				queryMultiImgField = configSearchText[i].multi;
+				queryAttachments = configSearchText[i].attachments;
 				queryEnableExport = configSearchText[i].enableexport;
 				openDataGrid = configSearchText[i].opendg;
-
+				var isAllInputsfilled:Boolean;
+				var sItemVal:SearchExpValueItem;
+				if(searchGroup.numElements > 1){
+					isAllInputsfilled = true;
+					for(var sgi:Number = 0; sgi < searchGroup.numElements; sgi++){
+						sItemVal = searchGroup.getElementAt(sgi) as SearchExpValueItem;
+						if(sItemVal.textValue == ""){
+							isAllInputsfilled = false;
+							break;
+						}
+					}
+				}else{
+					sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
+					isAllInputsfilled = (sItemVal.textValue !="")?true:false;
+				}
+				
 				var fields:XMLList;
-				if ((queryLayer) && (txtSearch.text || cbSearch.text))
+				if ((queryLayer) && (isAllInputsfilled))
 				{
 					var query:Query = new Query();
 					var myPattern:RegExp = /\[value\]/g;
-					var expr:String;
-					var eVal:String;
-					if (txtSearch.visible){
+					var expr:String = "";
+					var eVal:String = "";
+					
+					for(var sg:Number = 0; sg < searchGroup.numElements; sg++){
+						sItemVal = searchGroup.getElementAt(sg) as SearchExpValueItem;
+						queryExpr = configSearchText[i].expr[j].values[sg].expression;
+						
 						if(queryExpr != "[value]")//meaning an open SQL expression
-							eVal = txtSearch.text.replace("'","''");
+							eVal = sItemVal.textValue.replace("'","''");
 						else
-							eVal = txtSearch.text;
-						expr = queryExpr.replace(myPattern, eVal); 
-					}else{
-						eVal = cbSearch.selectedItem.value.replace("'","''");
-						expr = queryExpr.replace(myPattern, eVal); 
+							eVal = sItemVal.textValue;
+						expr += queryExpr.replace(myPattern, eVal);
 					}
+					
 					query.where = expr;
 					query.outSpatialReference = map.spatialReference;
 					if(queryDefExpr != "")
@@ -1751,6 +1847,7 @@ Version 2.5.1.7f - 4/19/2012
 									myfloatdg.zoomScale = zoomScale;
 									myfloatdg.zoomPercent = zoomPercent;
 									myfloatdg.ownerWidget = sWidget;
+									myfloatdg.featLayer = queryLayer;
 									myfloatdg.layerDetails = (queryLayer.layerDetails)?queryLayer.layerDetails:queryLayer.tableDetails;
 									myfloatdg.enableExport = queryEnableExport;
 									myfloatdg.widgetInteract = widgetAndGridIteract;
@@ -1776,6 +1873,7 @@ Version 2.5.1.7f - 4/19/2012
 									zoomScale: zoomScale,
 									zoomPercent: zoomPercent,
 									ownerWidget: sWidget,
+									featLayer: queryLayer,
 									layerDetails: (queryLayer.layerDetails)?queryLayer.layerDetails:queryLayer.tableDetails,
 									enableExport: queryEnableExport,
 									widgetInteract: widgetAndGridIteract,
@@ -1925,8 +2023,9 @@ Version 2.5.1.7f - 4/19/2012
 				}
 				queryTitleField = layerConfig.titlefield;
 				qLinks = layerConfig.links;
-				//queryLinkIconIsField = layerConfig.linkiconisfield;
+
 				queryMultiImgField = layerConfig.multi;
+				queryAttachments = layerConfig.attachments;
 				queryExprForSpatRel = layerConfig.useforspatial;
 				queryEnableExport = layerConfig.enableexport;
 				queryDefExpr = layerConfig.defexpr;
@@ -1988,6 +2087,7 @@ Version 2.5.1.7f - 4/19/2012
 									myfloatdg.zoomPercent = zoomPercent;
 									myfloatdg.ownerWidget = sWidget;
 									myfloatdg.layerDetails = queryLayer.layerDetails;
+									myfloatdg.featLayer = queryLayer;
 									myfloatdg.enableExport = queryEnableExport;
 									myfloatdg.widgetInteract = widgetAndGridIteract;
 								}
@@ -2012,7 +2112,8 @@ Version 2.5.1.7f - 4/19/2012
 									zoomScale: zoomScale,
 									zoomPercent: zoomPercent,
 									ownerWidget: sWidget,
-									layerDetails: queryLayer.layerDetails,
+									featLayer: queryLayer,
+									layerDetails: (queryLayer.layerDetails)?queryLayer.layerDetails:queryLayer.tableDetails,
 									enableExport: queryEnableExport,
 									widgetInteract: widgetAndGridIteract,
 									disableRelateTab: disRelatesInFixed
@@ -2265,6 +2366,7 @@ Version 2.5.1.7f - 4/19/2012
 			//create Search Results
 			private function createSearchResults(featureSet:FeatureSet, queryFields:XMLList, queryRelates:Array = null):ArrayCollection
 			{
+				var a:int;
 				graphicsLayer.clear();
 				if(queryLayer.layerDetails)
 					layerDetails = queryLayer.layerDetails;
@@ -2284,115 +2386,14 @@ Version 2.5.1.7f - 4/19/2012
 					fldAliases = featureSet.fieldAliases;
 					lyrQLinks = [];
 					
-					//Go through the fields looking for the links
-					var excludeLinkinResults:ArrayCollection = new ArrayCollection();
-					var obj:Object = graphic.attributes;
-					for (var a:int = 0; a < qLinks.length; a++){
+					//work with the links now
+					for (a = 0; a < qLinks.length; a++){
 						var link:String = "";
-						var linkicon:String = "";
 						var alias:String = "";
-						if (queryFields && queryFields[0].@all[0] == "true"){
-							if (layerDetails.fields){
-								for each (var field:Field in layerDetails.fields){
-									var val:String;
-									try{	        	    		       
-										val = obj[field.name] ? String(obj[field.name]) : "";
-									} catch (error: Error){
-										val = "";
-									}
-									if (field.name.toUpperCase() == qLinks[a].field.toUpperCase() || field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
-										if (field.name.toUpperCase() == qLinks[a].field.toUpperCase()){
-											if(qLinks[a].alias)
-												alias = qLinks[a].alias;
-											//Add the field name if the link field is to be included in the
-											//results as well as used for a link.
-											if(!qLinks[a].inc)
-												excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
-											//concatenate
-											if(val != "" && val != "Null" && val != "unavailable")
-												link = qLinks[a].pre + val + qLinks[a].suf;
-											if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
-												linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
-											if(field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
-												//concatenate
-												if(val != "" && val != "Null" && val != "unavailable"){
-													linkicon = qLinks[a].iconpre + val + qLinks[a].iconsuf;
-												}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
-													linkicon = qLinks[a].iconpre + val + qLinks[a].iconsuf;
-												}
-											}
-										}
-									}
-								}
-							}else{
-								for (var fieldName:String in graphic.attributes){
-									var val2:String;
-									try{	        	    		       
-										val2 = obj[fieldName] ? String(obj[fieldName]) : "";
-									} catch (error: Error){
-										val2 = "";
-									}
-									if (fieldName.toUpperCase() == qLinks[a].field.toUpperCase() || fieldName.toUpperCase() == qLinks[a].icon.toUpperCase()){
-										if (fieldName.toUpperCase() == qLinks[a].field.toUpperCase()){
-											if(qLinks[a].alias)
-												alias = qLinks[a].alias;
-											//Add the field name if the link field is to be included in the
-											//results as well as used for a link.
-											if(!qLinks[a].inc)
-												excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
-											//concatenate
-											if(val2 != "" && val2 != "Null" && val2 != "unavailable")
-												link = qLinks[a].pre + val2 + qLinks[a].suf;
-											if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
-												linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
-											if(field.name.toUpperCase() == qLinks[a].icon.toUpperCase()){
-												//concatenate
-												if(val2 != "" && val2 != "Null" && val2 != "unavailable"){
-													linkicon = qLinks[a].iconpre + val2 + qLinks[a].iconsuf;
-												}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
-													linkicon = qLinks[a].iconpre + val2 + qLinks[a].iconsuf;
-												}
-											}
-										}
-									}
-								}
-							}
-						}else{
-							for each (var fieldXML:XML in fields){ // display the fields in the same order as specified
-								var val3:String;
-								try{	        	    		       
-									val3 = obj[fieldXML.@name[0]] ? String(obj[fieldXML.@name[0]]) : "";
-								} catch (error: Error){
-									val3 = "";
-								}
-								if (fieldXML.@name[0].toUpperCase() == qLinks[a].field.toUpperCase() || fieldXML.@name[0].toUpperCase() == qLinks[a].icon.toUpperCase()){
-									if (fieldXML.@name[0].toUpperCase() == qLinks[a].field.toUpperCase()){
-										if(qLinks[a].alias)
-											alias = qLinks[a].alias;
-										//Add the field name if the link field is to be included in the
-										//results as well as used for a link.
-										if(!qLinks[a].inc)
-											excludeLinkinResults.addItem(qLinks[a].field.toUpperCase());
-										//concatenate
-										if(val3 != "" && val3 != "Null" && val3 != "unavailable")
-											link = qLinks[a].pre + val3 + qLinks[a].suf;
-										if( qLinks[a].iconpre != "" || qLinks[a].iconsuf != "")
-											linkicon = qLinks[a].iconpre + qLinks[a].iconsuf;
-										if(fieldXML.@name[0].toUpperCase() == qLinks[a].icon.toUpperCase()){
-											//concatenate
-											if(val3 != "" && val3 != "Null" && val3 != "unavailable"){
-												linkicon = qLinks[a].iconpre + val3 + qLinks[a].iconsuf;
-											}else if(qLinks[a].iconpre != "" || qLinks[a].iconsuf != ""){
-												linkicon = qLinks[a].iconpre + val3 + qLinks[a].iconsuf;
-											}
-										}
-									}
-								}
-							}
-						}
-						//Handle a link that is not associated with a field
-						if(qLinks[a].field == "" && (qLinks[a].pre != "" || qLinks[a].suf != ""))
-							link = qLinks[a].pre + qLinks[a].suf;
+						var linkicon:String = "";
+						link = com.esri.ags.utils.StringUtil.substitute(qLinks[a].link, graphic.attributes);
+						alias = qLinks[a].alias;
+						linkicon = com.esri.ags.utils.StringUtil.substitute(qLinks[a].icon, graphic.attributes);
 						
 						var lObj:Object ={
 							link: link,
@@ -2509,9 +2510,9 @@ Version 2.5.1.7f - 4/19/2012
 							if(fieldXML){
 								if(fieldXML.@gridfieldonly[0] && fieldXML.@gridfieldonly[0] == "true" || 
 									fieldXML.@hyperlinkgridfieldonly[0] && fieldXML.@hyperlinkgridfieldonly[0] == "true"){
-								 //ignore
+									//ignore
 								}else{
-									if(!excludeLinkinResults.contains(fieldName.toUpperCase())){
+									if(!fieldXML.@visible[0] || (fieldXML.@visible[0] && fieldXML.@visible[0] != "false")){
 										if (fieldXML && fieldXML.@alias[0])
 											content += "<b>" + fieldXML.@alias[0];
 										else
@@ -2521,10 +2522,8 @@ Version 2.5.1.7f - 4/19/2012
 								}
 							}else{
 								if(fieldName != "oid"){
-									if(!excludeLinkinResults.contains(fieldName.toUpperCase())){
-										content += "<b>" + featureSet.fieldAliases[fieldName];
-										content += ": </b><i>" + value + "</i><br>";
-									}
+									content += "<b>" + featureSet.fieldAliases[fieldName];
+									content += ": </b><i>" + value + "</i><br>";
 								}
 							} 
 						}
@@ -2547,15 +2546,16 @@ Version 2.5.1.7f - 4/19/2012
 					}
 					if(!queryLayer.layerDetails){
 						if(!queryLayer.tableDetails.objectIdField){
-							searchResult.oid = graphic.attributes["oid"];
+							searchResult.oid = searchResult.fid = searchResult.objectid = graphic.attributes["oid"];
+							
 						}else{
-							searchResult.oid = graphic.attributes[queryLayer.tableDetails.objectIdField];
+							searchResult.oid = searchResult.fid = searchResult.objectid = graphic.attributes[queryLayer.tableDetails.objectIdField];
 						}
 					}else{
 						if(!queryLayer.layerDetails.objectIdField){
-							searchResult.oid = graphic.attributes["oid"];
+							searchResult.oid = searchResult.fid = searchResult.objectid = graphic.attributes["oid"];
 						}else{
-							searchResult.oid = graphic.attributes[queryLayer.layerDetails.objectIdField];
+							searchResult.oid = searchResult.fid = searchResult.objectid = graphic.attributes[queryLayer.layerDetails.objectIdField];
 						}
 					}
 					searchResult.graphic = graphic;
@@ -2587,7 +2587,7 @@ Version 2.5.1.7f - 4/19/2012
 				
 					if (searchResult.point && !isNaN(searchResult.point.x) && !isNaN(searchResult.point.y)) // make sure it is a valid point
 						graphicsLayer.add(graphic);
-					// infowWindowRenderer on each graphic
+					// infoWindowRenderer on each graphic
 					var infoWindowRenderer:ClassFactory = new ClassFactory(PopUpRenderer);
 					infoWindowRenderer.properties = {popUpInfo:configurePopUpInfo(lyrQLinks)};
 					graphic.infoWindowRenderer = infoWindowRenderer;
@@ -2716,11 +2716,11 @@ Version 2.5.1.7f - 4/19/2012
 				return result;
 			}
 			
-			private function popCBwithUserList(userList:String):void
+			private function popCBwithUserList(userList:String, sItemVal:SearchExpValueItem):void
 			{
 				configUserVals = [];
 				
-				var uArray:Array = StringUtil.trimArrayElements(userList,",").split(",");
+				var uArray:Array = mx.utils.StringUtil.trimArrayElements(userList,",").split(",");
 				
 				for each (var val:String in uArray){
 					var uval:String = val;
@@ -2732,15 +2732,10 @@ Version 2.5.1.7f - 4/19/2012
 					}
 					configUserVals.push(uVal);
 				}
-				
-				cbSearch.dataProvider = configUserVals;
-				cbSearch.visible = true;
-				cbSearch.includeInLayout = true;
-				txtSearch.visible = false;
-				txtSearch.includeInLayout = false;
+				sItemVal.setCBDataProvider(configUserVals);
 			}
 			
-			private function popCBwithDomain(fieldName:String):void
+			private function popCBwithDomain(fieldName:String, sItemVal:SearchExpValueItem):void
 			{
 				configDomainVals = [];
 				
@@ -2763,7 +2758,7 @@ Version 2.5.1.7f - 4/19/2012
 					queryLayer.addEventListener(LayerEvent.LOAD, queryLayer_loadHandler);
 					function queryLayer_loadHandler(event:LayerEvent):void
 					{
-						popCBwithDomain(fieldName);
+						popCBwithDomain(fieldName, sItemVal);
 					}
 					return;
 				}
@@ -2829,44 +2824,14 @@ Version 2.5.1.7f - 4/19/2012
 						}
 						configDomainVals.push(domVal);
 					}
-					cbSearch.prompt = "";
-					cbSearch.dataProvider = configDomainVals;
-					cbSearch.visible = true;
-					cbSearch.editable = false;
-					cbSearch.includeInLayout = true;
-					txtSearch.restrict = null;
-					txtSearch.errorString = "";
-					if(numberValidator){
-						numberValidator.property = "";
-						numberValidator.source = null;
-					}
-					txtSearch.visible = false;
-					txtSearch.includeInLayout = false;
+					sItemVal.setCBDataProvider(configDomainVals);
 				}
 				if(rangeDomain){
-					
-					searchBtn.removeEventListener(MouseEvent.CLICK, equeryFeaturesText);
-					
-					txtSearch.removeEventListener(FlexEvent.ENTER, equeryFeaturesText);
-					txtSearch.errorString = "";
-					txtSearch.restrict = "0-9\\.\\-";					
-					numberValidator = new NumberValidator();
-					numberValidator.required = false;
-					numberValidator.domain = "int";
-					numberValidator.source = txtSearch;
-					numberValidator.property = "text";
-					numberValidator.minValue = rangeDomain.minValue;
-					numberValidator.maxValue = rangeDomain.maxValue;
-					numberValidator.trigger = txtSearch;
-					numberValidator.triggerEvent = "enter";
-					numberValidator.exceedsMaxError +=  " " + rangeDomain.minValue.toString() + " - " + rangeDomain.maxValue.toString();
-					numberValidator.lowerThanMinError += " " + rangeDomain.minValue.toString() + " - " + rangeDomain.maxValue.toString();
-					numberValidator.addEventListener(ValidationResultEvent.VALID, equeryFeaturesText);
-					
+					sItemVal.restrictTextBox(rangeDomain);
 					searchBtn.addEventListener(MouseEvent.CLICK, inputValidate);
 					function inputValidate(evt:Event):void
 					{
-						numberValidator.validate();
+						sItemVal.validateNum();
 					}
 				}
 			}
@@ -3008,8 +2973,14 @@ Version 2.5.1.7f - 4/19/2012
 				graphicsLayerBuffer.clear();
 				graGraphicsLayer.clear();
 				clearMessage();
-				txtSearch.text = "";
-				txtSearch.errorString = "";
+				var sItemVal:SearchExpValueItem;
+				for(var sgi:int = 0; sgi < searchGroup.numElements; sgi++){
+					sItemVal = searchGroup.getElementAt(sgi) as SearchExpValueItem;
+					if(sItemVal.isTextBox()){
+						sItemVal.textValue = "";
+						sItemVal.resetTxtSearch();
+					}
+				}
 				sumField = "";
 				searchResultAC = null;
 				if (myfloatdg){
@@ -3465,6 +3436,7 @@ Version 2.5.1.7f - 4/19/2012
 								dgColumns: relateFields,
 								dgHyperColumns: relateHyperFields,
 								dProvider: fset.attributes,
+								featLayer: queryLayer,
 								layerDetails: (relqueryLayer.layerDetails)?relqueryLayer.layerDetails:relqueryLayer.tableDetails,
 								enableExport: relExportEnabled
 							}
@@ -3607,7 +3579,7 @@ Version 2.5.1.7f - 4/19/2012
 			
 			private function showGridResults():void
 			{
-				///try{
+				try{
 					if(gridFields.length == 0){
 						showMessage("No Datagrid configured for this layer", false);
 						return;
@@ -3633,6 +3605,7 @@ Version 2.5.1.7f - 4/19/2012
 						if(!gridFields)
 							gridFields = configSearchText[0].gridfields;
 						myfloatdg.enableExport = configSearchText[0].enableexport;
+						myfloatdg.featLayer = queryLayer;
 						myfloatdg.layerDetails = (queryLayer.layerDetails)?queryLayer.layerDetails:queryLayer.tableDetails;
 						myfloatdg.csvSeperator = csvSep;
 						myfloatdg.csvExportOptionLbl = exp2csvOptLbl;
@@ -3664,10 +3637,10 @@ Version 2.5.1.7f - 4/19/2012
 						myfloatdg.ownerWidget = this;
 					}
 					
-				///}
-				///catch (error:Error){
-				///	showMessage(error.message, false);
-				///}
+				}
+				catch (error:Error){
+					showMessage(error.message, false);
+				}
 			}
 			
 			public function highlightDataGroupItemByOID(oid:Number):void
@@ -3740,11 +3713,15 @@ Version 2.5.1.7f - 4/19/2012
 				map.infoWindow.show(showHighlightPoint);
 			}
 			
-			private function configurePopUpInfo(links:Array):PopUpInfo
+			private function configurePopUpInfo(links:Array):EnhancedPopUpInfo//:PopUpInfo
 			{
-				var popUpInfo:PopUpInfo = new PopUpInfo;
+				var popUpInfo:EnhancedPopUpInfo = new EnhancedPopUpInfo;
+				//var popUpInfo:PopUpInfo = new PopUpInfo;
 				popUpInfo.title = "{title}";
 				popUpInfo.description = "{content}";
+				if(queryAttachments)
+					popUpInfo.showAttachments = true;
+				popUpInfo.featLayer = queryLayer;
 				var pminfos:Array = [];
 				
 				for(var l:int=0; l<links.length; l++){
@@ -3808,8 +3785,8 @@ Version 2.5.1.7f - 4/19/2012
 			{
 				setMapAction(null, null, null, null);
 				graphicsLayer.visible = false;
-				if(bufferGraphicsLayer)
-					bufferGraphicsLayer.visible = false;
+				//if(bufferGraphicsLayer)
+				//	bufferGraphicsLayer.visible = false;
 				if(graGraphicsLayer)
 					graGraphicsLayer.visible = false;
 				hideInfoWindow();
@@ -3827,45 +3804,6 @@ Version 2.5.1.7f - 4/19/2012
 			private function sldrDataTipFormatter(value:Number):String 
 			{ 
 				return int(value * 100) + "%"; 
-			}
-			
-			private function fnInit():void
-			{
-				cbSearch.addEventListener(ListEvent.ITEM_ROLL_OVER,fnCreToolTip);
-				cbSearch.addEventListener(ListEvent.ITEM_ROLL_OUT,fnCreToolTip);
-				cbSearch.addEventListener(ListEvent.CHANGE,fnCreToolTip);
-			}
-			
-			private function fnCreToolTip(e:ListEvent):void
-			{
-				switch(e.type)
-				{
-					case ListEvent.ITEM_ROLL_OVER:{
-						try{
-							ToolTipManager.destroyToolTip(myTip);
-						}
-						catch(error:Error){}
-						//creates a tooltip.
-						myTip = ToolTipManager.createToolTip(cbSearch.dataProvider[e.rowIndex].label,stage.mouseX+10,stage.mouseY) as ToolTip; // array2 is id of arraylist  
-						break;
-					}
-					case ListEvent.ITEM_ROLL_OUT:{
-						//destroy the created tooltip, so that we can create a new one for others.
-						try{
-							ToolTipManager.destroyToolTip(myTip);
-						}
-						catch(error:Error){}
-						break;
-					}
-					case ListEvent.CHANGE:{
-						//destroy the created tooltip, so that we can create a new one for others.
-						try{
-							ToolTipManager.destroyToolTip(myTip);
-						}
-						catch(error:Error){}
-						break;
-					}
-				}
 			}
 			
 			private function zoomAll():void
@@ -3888,7 +3826,7 @@ Version 2.5.1.7f - 4/19/2012
 			
 			private function geometryService_faultHandler(event:FaultEvent):void
 			{
-				Alert.show(event.fault.toString(), wTemplate.widgetTitle,4,wTemplate);
+				Alert.show(event.fault.toString(), wTemplate.widgetTitle, 4, wTemplate);
 			}
 			
 			private function iconRollOverHandler(event:MouseEvent):void
@@ -3938,7 +3876,16 @@ Version 2.5.1.7f - 4/19/2012
 			{
 				if(evt.altKey)
 					Alert.show("Enhanched Search Widget Version: " + VERSION + "\nBuild Date: " + BUILDDATE, 
-						wTemplate.widgetTitle,4,null,null,iconClass);
+						wTemplate.widgetTitle, 4, null, null, iconClass);
+			}
+			
+			protected function searchGroupItem_focusInHandler(evt:FocusEvent):void {
+				var idx:int = searchGroup.getElementIndex(evt.currentTarget as IVisualElement);
+				var lay:VerticalLayout = searchGroup.layout as VerticalLayout;
+				if (lay.fractionOfElementInView(idx) < 1) {
+					pth.valueBy = lay.getScrollPositionDeltaToElement(idx).y + 3;
+					anim.play([lay]);
+				}
 			}
 		]]>
 	</fx:Script>
@@ -3949,7 +3896,7 @@ Version 2.5.1.7f - 4/19/2012
 						   width="400" height="240"
 						   minHeight="160"
 						   minWidth="210"
-						   visible="false">
+						   visible="false" >
 		<s:Group id="textInput"
 				 width="100%" height="100%"
 				 visible="false"
@@ -3976,11 +3923,13 @@ Version 2.5.1.7f - 4/19/2012
 					 editable="false"
 					 width="100%"
 					 text=""
-					 textAlign="center"/>
-			<s:TextInput id="txtSearch" width="90%"/>
-			<mx:ComboBox id="cbSearch" creationComplete="{cbSearch.width = wTemplate.width - 40; fnInit();}"
-						 change="queryFeaturesText()" visible="false" includeInLayout="false" 
-						 labelField="label"/>
+					 textAlign="center"
+					 tabEnabled="false" tabFocusEnabled="false"/>
+			<s:Scroller width="100%" height="100%" hasFocusableChildren="true">
+				<s:VGroup id="searchGroup" width="100%" paddingTop="3" paddingBottom="3">
+					<Search:SearchExpValueItem width="100%" wTemplateWidth="{wTemplate.width}" />
+				</s:VGroup>
+			</s:Scroller>
 			<s:HGroup width="100%" horizontalAlign="center"  verticalAlign="middle">
 				<s:Button id="searchBtn" label="{submitLabel}"/>
 				<s:Button click="clear()" label="{clearLabel}"/>
@@ -4170,7 +4119,7 @@ Version 2.5.1.7f - 4/19/2012
 					<Search:layout>
 						<s:VerticalLayout gap="2"
 										  horizontalAlign="justify"
-										  useVirtualLayout="false"/>
+										  useVirtualLayout="true"/>
 					</Search:layout>
 				</Search:SearchResultDataGroup>
 			</s:Scroller>

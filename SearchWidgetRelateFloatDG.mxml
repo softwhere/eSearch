@@ -20,6 +20,7 @@
 	</Search:layout>
 	<fx:Script>
 		<![CDATA[
+			import com.esri.ags.layers.supportClasses.FeatureType;
 			import com.esri.ags.Map;
 			import com.esri.ags.layers.supportClasses.CodedValue;
 			import com.esri.ags.layers.supportClasses.CodedValueDomain;
@@ -652,12 +653,31 @@
 						var cDomain:CodedValueDomain;
 						for each (fld in _layerDetails.fields)
 						{
-							cDomain = fld.domain;
-							if (cDomain){
-								for each (cVal in cDomain.codedValues)
-								{
-									if(cVal.code == attributes[fld.name])
-										attributes[fld.name] = cVal.name;
+							var typeID:String = _layerDetails.typeIdField ? attributes[fld.name] : null;
+							if (_layerDetails.typeIdField && fld.name.toUpperCase() == _layerDetails.typeIdField.toUpperCase()){
+								// replace value with feature type name
+								var featureType:FeatureType = getFeatureType(typeID,_layerDetails);
+								if (featureType && featureType.name)
+									attributes[fld.name] = featureType.name;
+							}else{
+								// replace value with coded value name if one exists
+								if (typeID){
+									var fType:FeatureType = getFeatureType(typeID,_layerDetails);
+									if (fType)
+										cDomain = fType.domains[fld.name] as CodedValueDomain;
+								}else if(fld.domain){
+									cDomain = fld.domain as CodedValueDomain;
+								}else{
+									cDomain = null;
+								}
+								
+								if (cDomain){
+									for each (var codedValue:CodedValue in cDomain.codedValues){
+										if (attributes[fld.name] == codedValue.code){
+											attributes[fld.name] = codedValue.name;
+											break;
+										}
+									}
 								}
 							}
 						}
@@ -713,6 +733,19 @@
 						sumVisible = false;
 					}
 				}
+			}
+			
+			private function getFeatureType(typeID:String, lDtls:LayerDetails):FeatureType
+			{
+				var result:FeatureType;
+				
+				for each (var featureType:FeatureType in lDtls.types){
+					if (typeID == featureType.id){
+						result = featureType;
+						break;
+					}
+				}
+				return result;
 			}
 			
 			private function init():void

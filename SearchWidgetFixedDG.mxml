@@ -9,6 +9,7 @@
 	
 	<fx:Script>
 		<![CDATA[
+			import com.esri.ags.layers.FeatureLayer;
 			import com.esri.ags.Graphic;
 			import com.esri.ags.Map;
 			import com.esri.ags.geometry.Geometry;
@@ -55,6 +56,7 @@
 			private var _data:Object;
 			private var _rdata:Object;
 			private var _graLyr:GraphicsLayer;
+			private var _featLayer:FeatureLayer;
 			private var highlightedGraphic:Graphic;
 			private var _zoomScale:Number = 5000;
 			private var _zoomPercent:Number = 1.2;
@@ -871,10 +873,11 @@
 									var fType:FeatureType = getFeatureType(typeID,_layerDetails);
 									if (fType)
 										cDomain = fType.domains[fld.name] as CodedValueDomain;
-								}else{
+								}else if(fld.domain){
 									cDomain = fld.domain as CodedValueDomain;
+								}else{
+									cDomain = null;
 								}
-								
 								if (cDomain){
 									for each (var codedValue:CodedValue in cDomain.codedValues){
 										if (attributes[fld.name] == codedValue.code){
@@ -1060,6 +1063,7 @@
 						var theObj:Object = data.collection[0];
 						mWidgetTitle = theObj.widgetTitle;
 						_layerDetails = theObj.layerDetails;
+						_featLayer = theObj.featLayer;
 						_exp2csvBtnLbl = theObj.csvExportOptionLbl;
 						_exp2txtBtnLbl = theObj.txtExportOptionLbl;
 						_exportButtonLbl = theObj.ExportButtonLbl;
@@ -1183,12 +1187,14 @@
 				map.infoWindow.show(showHighlightPoint);
 			}
 			
-			private function configurePopUpInfo(links:Array):PopUpInfo
+			private function configurePopUpInfo(links:Array):EnhancedPopUpInfo
 			{
-				var popUpInfo:PopUpInfo = new PopUpInfo;
+				var popUpInfo:EnhancedPopUpInfo = new EnhancedPopUpInfo;
 				
 				popUpInfo.title = "{title}";
 				popUpInfo.description = "{content}";
+				popUpInfo.showAttachments = true;
+				popUpInfo.featLayer = _featLayer;
 				var pminfos:Array = [];
 				
 				for(var l:int=0; l<links.length; l++){
