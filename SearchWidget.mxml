@@ -88,6 +88,9 @@
 			import com.esri.ags.layers.supportClasses.LayerDetails;
 			import com.esri.ags.layers.supportClasses.RangeDomain;
 			import com.esri.ags.layers.supportClasses.Relationship;
+			import com.esri.ags.portal.PopUpRenderer;
+			import com.esri.ags.portal.supportClasses.PopUpInfo;
+			import com.esri.ags.portal.supportClasses.PopUpMediaInfo;
 			import com.esri.ags.symbols.PictureMarkerSymbol;
 			import com.esri.ags.symbols.SimpleFillSymbol;
 			import com.esri.ags.symbols.SimpleLineSymbol;
@@ -102,9 +105,6 @@
 			import com.esri.ags.utils.GeometryUtil;
 			import com.esri.ags.utils.GraphicUtil;
 			import com.esri.ags.utils.StringUtil;
-			import com.esri.ags.webmap.PopUpRenderer;
-			import com.esri.ags.webmap.supportClasses.PopUpInfo;
-			import com.esri.ags.webmap.supportClasses.PopUpMediaInfo;
 			import com.esri.viewer.AppEvent;
 			import com.esri.viewer.ViewerContainer;
 			import com.esri.viewer.components.TitlebarButton;
@@ -139,7 +139,7 @@
 			
 			import spark.components.supportClasses.ItemRenderer;
 			
-			import widgets.eSearch.skins.PopUpRendererSkin;
+			//import widgets.eSearch.skins.PopUpRendererSkin;
 			
 			//labels
 			[Bindable] private var lblbufferUserGraphic:String;
@@ -277,8 +277,8 @@
 			private var overFillSymbol:Symbol;
 			
 			//Build Constants
-			protected const VERSION:String = "2.9.0";
-			protected const BUILDDATE:String = "5/15/2012";
+			protected const VERSION:String = "3.0.0";
+			protected const BUILDDATE:String = "6/13/2012";
 			
 			//Resources
 			[Embed(source="assets/images/i_about.png")]
@@ -629,7 +629,7 @@
 						var tblFields:XMLList = tblList[i].fields;
 						var tblTitleField:String = tblList[i].titlefield;
 						
-						var tblLinks:Array = [];
+						/* var tblLinks:Array = [];
 						var tblLinkList:XMLList = tblList[i]..link;
 						for (l = 0; l < tblLinkList.length(); l++){
 							var tblLinkAlias:String = tblLinkList[l].@alias || "";
@@ -651,7 +651,20 @@
 								iconsuf: tblLinkIconSuffix
 							}
 							tblLinks.push(tbllinkObj);
-						}
+						} */
+						var tblLinks:Array = [];
+						var tblLinkList:XMLList = tblList[i]..link;
+						for (l = 0; l < tblLinkList.length(); l++){
+							var tblLink:String = XML(tblLinkList[l]).text() || "";
+							var tblLinkAlias:String = tblLinkList[l].@alias || "";
+							var tblIcon:String = XML(tblLinkList[l]).child("icon") || "";
+							var tbllinkObj:Object = {
+								link: tblLink,
+								alias: tblLinkAlias,
+								icon: tblIcon
+							}
+							tblLinks.push(tbllinkObj);
+						}	
 						var tblEnableExport:Boolean = tblList[i].enableexport && tblList[i].enableexport == "true";
 						var tblMultiImgField:String = tblList[i].multiimagefield;
 						var tbluseProxy:Boolean = tblList[i].useproxy && tblList[i].useproxy == "true";
@@ -744,17 +757,17 @@
 					
 					graphicsLayerBuffer = new GraphicsLayer();
 					graphicsLayerBuffer.name = "Search Buffer Results";
-					map.addLayer(graphicsLayerBuffer);
+					//map.addLayer(graphicsLayerBuffer);
 					
 					graphicsLayer = new GraphicsLayer();
-					graphicsLayer.name = "Search Results";
+					graphicsLayer.name = "eSearch Results";
 					graphicsLayer.symbol = resultMarkerSymbol;
 					graphicsLayer.addEventListener(FlexEvent.HIDE, graphicsLayer_hideHandler);
 					map.addLayer(graphicsLayer);
 					
 					graGraphicsLayer = new GraphicsLayer();
 					graGraphicsLayer.name = "Graphical Search Layer";
-					map.addLayer(graGraphicsLayer);
+					//map.addLayer(graGraphicsLayer);
 					
 					var userTolerance:Number = Number(configXML.toleranceforpointgraphicalselection);
 					if (userTolerance > 0)
@@ -1908,7 +1921,11 @@
 				
 				var qFields:Array;
 				queryLayer = layerConfig.layer;
-				var oidFld:String = queryLayer.layerDetails.objectIdField;
+				
+				var oidFld:String;
+				if(queryLayer.layerDetails)
+					oidFld = queryLayer.layerDetails.objectIdField;
+				
 				queryGeom = geom;
 				zoomScale = layerConfig.zoomscale;
 				zoomPercent = layerConfig.zoompercent;
@@ -2537,8 +2554,6 @@
 						searchResult.point = getGeomCenter(graphic);
 					searchResult.links = lyrQLinks;
 					searchResult.relateicon = relateIcon ? relateIcon : null;
-					if(graphic.geometry)
-						searchResult.geometry = graphic.geometry;
 					searchResult.multi = multi ? multi :null;
 					if(graphic.geometry){
 						searchResult.zoomscale = zoomScale;
@@ -2567,26 +2582,30 @@
 					if(graphic.geometry){
 						switch (graphic.geometry.type){
 							case Geometry.MAPPOINT:{
-								graphic.symbol = searchResult.symbol = resultMarkerSymbol;
+								graphic.symbol = resultMarkerSymbol;
 								break;
 							}
 							case Geometry.POLYLINE:{
-								graphic.symbol = searchResult.symbol = resultLineSymbol;
+								graphic.symbol = resultLineSymbol;
 								break;
 							}
 							case Geometry.POLYGON:{
-								graphic.symbol = searchResult.symbol = resultFillSymbol;
+								graphic.symbol = resultFillSymbol;
 								break;
 							}
 						}
 					}else{
-						searchResult.symbol = resultSATSymbol;
+						graphic.symbol = resultSATSymbol;
 					}
 					graphic.attributes = searchResult;
 					result.addItem(searchResult);
-				
-					if (searchResult.point && !isNaN(searchResult.point.x) && !isNaN(searchResult.point.y)) // make sure it is a valid point
+					
+					var isValidPoint:Boolean = searchResult.point && !isNaN(searchResult.point.x) && !isNaN(searchResult.point.y);
+					
+					if (isValidPoint){
 						graphicsLayer.add(graphic);
+					}
+
 					// infoWindowRenderer on each graphic
 					var infoWindowRenderer:ClassFactory = new ClassFactory(PopUpRenderer);
 					infoWindowRenderer.properties = {popUpInfo:configurePopUpInfo(lyrQLinks)};
@@ -2780,10 +2799,10 @@
 						rangeDomain = domainsCache[domainsKey];
 				}else{
 					var field:Field = getField(fieldName);
-					if (field && field.domain && field.domain.hasOwnProperty("codedValues")){
+					if (field && field.domain && field.domain is CodedValueDomain){
 						codedValueDomain = field.domain as CodedValueDomain;
 						domainsCache[domainsKey] = codedValueDomain;
-					}else if (field && field.domain && field.domain.hasOwnProperty("minValue")){
+					}else if (field && field.domain && field.domain is RangeDomain){
 						rangeDomain = field.domain as RangeDomain;
 						domainsCache[domainsKey] = rangeDomain;						
 					}else{
@@ -3472,8 +3491,8 @@
 					zoomPercent = configSearchGraphical[i2].zoompercent;
 				}
 				
-				if (searchResult.geometry){
-					if (searchResult.geometry.type == Geometry.MAPPOINT){
+				if (searchResult.graphic.geometry){
+					if (searchResult.graphic.geometry.type == Geometry.MAPPOINT){
 						if(isNaN(zoomScale)){
 							map.zoom(1 / 16, searchResult.point);
 							map.centerAt(searchResult.point);
@@ -3484,8 +3503,8 @@
 						}
 					}else{
 						if(isNaN(zoomScale)){
-							map.extent = searchResult.geometry.extent.expand(zoomPercent);
-							if (!map.extent.contains(searchResult.geometry))
+							map.extent = searchResult.graphic.geometry.extent.expand(zoomPercent);
+							if (!map.extent.contains(searchResult.graphic.geometry))
 								map.level--;
 						}else{
 							if (map.scale > zoomScale)
@@ -3704,16 +3723,18 @@
 			
 			private function showHighlight(params:Array):void
 			{
-				var showHighlightPoint:MapPoint = params[0].point as MapPoint;
-				popUpRenderer.popUpInfo = configurePopUpInfo(params[0].graphic.attributes.links);
-				popUpRenderer.graphic = params[0].graphic;
+				var searchResult:SearchResult = params[0];
+				var showHighlightPoint:MapPoint = searchResult.point as MapPoint;
+				popUpRenderer.popUpInfo = configurePopUpInfo(searchResult.links);
+				popUpRenderer.graphic = searchResult.graphic;
 				popUpRenderer.setStyle("skinClass", widgets.eSearch.skins.PopUpRendererSkin);
+				
 				map.infoWindow.content = popUpRenderer;
 				map.infoWindow.contentOwner = popUpRenderer.graphic;
 				map.infoWindow.show(showHighlightPoint);
 			}
 			
-			private function configurePopUpInfo(links:Array):EnhancedPopUpInfo//:PopUpInfo
+			private function configurePopUpInfo(links:Array):EnhancedPopUpInfo
 			{
 				var popUpInfo:EnhancedPopUpInfo = new EnhancedPopUpInfo;
 				//var popUpInfo:PopUpInfo = new PopUpInfo;
@@ -3785,8 +3806,6 @@
 			{
 				setMapAction(null, null, null, null);
 				graphicsLayer.visible = false;
-				//if(bufferGraphicsLayer)
-				//	bufferGraphicsLayer.visible = false;
 				if(graGraphicsLayer)
 					graGraphicsLayer.visible = false;
 				hideInfoWindow();

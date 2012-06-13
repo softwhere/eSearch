@@ -1,4 +1,8 @@
-﻿Version 2.9.0 - 6/5/2012
+﻿Version 3.0 - 6/13/2012
+* Recompiled for Flex Viewer 3.0
+* Fixed issue this tables and new link style
+
+Version 2.9.0 - 6/5/2012
 * Added multi-field search expression capability.
 * Added attachment support for popups.
 * Added multi-field hyperlinks capability.

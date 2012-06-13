@@ -16,7 +16,6 @@
 -->
 <s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009"
              xmlns:s="library://ns.adobe.com/flex/spark"
-             xmlns:mx="library://ns.adobe.com/flex/mx"
              xmlns:esri="http://www.esri.com/2008/ags"
              xmlns:supportClasses="com.esri.ags.skins.supportClasses.*"
              width="270"
@@ -24,53 +23,44 @@
              preinitialize="skin_preinitializeHandler(event)">
 
     <fx:Metadata>
-        /** 
+        /**
          * A strongly typed property that references the component to which this skin is applied.
          */
-        [HostComponent("com.esri.ags.webmap.PopUpRenderer")]
+        [HostComponent("com.esri.ags.portal.PopUpRenderer")]
     </fx:Metadata>
-
-    <fx:Style>
-        .formStyle
-        {
-            indicatorGap: 5;
-            labelWidth: 100;
-            paddingBottom: 5;
-            paddingLeft: 0;
-            paddingRight: 0;
-            paddingTop: 5;
-			labelWidth: 150;
-        }
-    </fx:Style>
 
     <fx:Script>
         <![CDATA[
-			import com.esri.ags.Graphic;
-			import com.esri.ags.Map;
-			import com.esri.ags.geometry.Extent;
-			import com.esri.ags.geometry.Geometry;
-			import com.esri.ags.geometry.MapPoint;
-			import com.esri.ags.geometry.Multipoint;
-			import com.esri.ags.layers.FeatureLayer;
-			import com.esri.ags.layers.supportClasses.LayerDetails;
-			import com.esri.ags.skins.supportClasses.AttachmentMouseEvent;
-			import com.esri.ags.skins.supportClasses.PopUpText;
-			import com.esri.ags.utils.StringUtil;
-			import com.esri.ags.webmap.supportClasses.PopUpFieldInfo;
-			import com.esri.ags.webmap.supportClasses.PopUpInfo;
-			
-			import mx.containers.Form;
-			import mx.containers.FormItem;
-			import mx.controls.Alert;
-			import mx.controls.Label;
-			import mx.core.FlexGlobals;
-			import mx.core.ScrollPolicy;
-			import mx.events.FlexEvent;
-			import mx.utils.ObjectUtil;
-			
+            import com.esri.ags.Graphic;
+            import com.esri.ags.Map;
+            import com.esri.ags.geometry.Extent;
+            import com.esri.ags.geometry.Geometry;
+            import com.esri.ags.geometry.MapPoint;
+            import com.esri.ags.geometry.Multipoint;
+            import com.esri.ags.layers.FeatureLayer;
+            import com.esri.ags.layers.supportClasses.LayerDetails;
+            import com.esri.ags.skins.supportClasses.AttachmentMouseEvent;
+            import com.esri.ags.utils.StringUtil;
+            import com.esri.ags.portal.supportClasses.PopUpFieldInfo;
+            import com.esri.ags.portal.supportClasses.PopUpInfo;
+
+            import flashx.textLayout.conversion.TextConverter;
+            import flashx.textLayout.elements.Configuration;
+            import flashx.textLayout.elements.LinkElement;
+            import flashx.textLayout.elements.TextFlow;
+            import flashx.textLayout.events.FlowElementMouseEvent;
+            import flashx.textLayout.formats.TextDecoration;
+            import flashx.textLayout.formats.TextLayoutFormat;
+            import flashx.textLayout.formats.WhiteSpaceCollapse;
+
+            import mx.containers.utilityClasses.ConstraintRow;
+            import mx.events.FlexEvent;
+
+            import spark.components.Label;
+//My 3.0 Add		
 			import widgets.eSearch.EnhancedPopUpInfo;
 
-            private var textStyleSheet:StyleSheet;
+            private var textLayoutConfiguration:Configuration;
 
             /* Define the symbol fill items that should be colored by the "symbolColor" style.*/
             private static const symbols:Array = [ "titleLineSymbol" ];
@@ -85,21 +75,27 @@
 
             private function skin_preinitializeHandler(event:FlexEvent):void
             {
-                // set the "a" tag styles
-                textStyleSheet = new StyleSheet();
-                textStyleSheet.setStyle("a:link", { color: getCSSStyleColor("linkNormalColor"), textDecoration: "underline" });
-                textStyleSheet.setStyle("a:hover", { color: getCSSStyleColor("linkHoverColor"), textDecoration: "underline" });
-                textStyleSheet.setStyle("a:active", { color: getCSSStyleColor("linkActiveColor"), textDecoration: "underline" });
+                // set the link styles
+                textLayoutConfiguration = new Configuration();
+                var textLayoutFormat:TextLayoutFormat = new TextLayoutFormat();
+                textLayoutFormat.color = getStyle("linkActiveColor")
+                textLayoutFormat.textDecoration = TextDecoration.UNDERLINE;
+                textLayoutConfiguration.defaultLinkActiveFormat = textLayoutFormat;
+                textLayoutFormat = new TextLayoutFormat();
+                textLayoutFormat.color = getStyle("linkHoverColor")
+                textLayoutFormat.textDecoration = TextDecoration.UNDERLINE;
+                textLayoutConfiguration.defaultLinkHoverFormat = textLayoutFormat;
+                textLayoutFormat = new TextLayoutFormat();
+                textLayoutFormat.color = getStyle("linkNormalColor")
+                textLayoutFormat.textDecoration = TextDecoration.UNDERLINE;
+                textLayoutConfiguration.defaultLinkNormalFormat = textLayoutFormat;
+
+                // preserve white space
+                textLayoutFormat = new TextLayoutFormat();
+                textLayoutFormat.whiteSpaceCollapse = WhiteSpaceCollapse.PRESERVE;
+                textLayoutConfiguration.textFlowInitialFormat = textLayoutFormat;
 
                 attachmentInspector.addEventListener(AttachmentMouseEvent.ATTACHMENT_CLICK, attachmentInspector_attachmentClickHandler);
-            }
-
-            private function getCSSStyleColor(styleProp:String):String
-            {
-                var color:uint = getStyle(styleProp);
-                var cssColor:String = color.toString(16).toUpperCase();
-                cssColor = ("00000" + cssColor).substr(-6); // make sure value is padded with 0's
-                return "#" + cssColor;
             }
 
             private function attachmentInspector_attachmentClickHandler(event:AttachmentMouseEvent):void
@@ -118,84 +114,112 @@
                 var formattedAttributes:Object = hostComponent.formattedAttributes;
                 var graphic:Graphic = hostComponent.graphic;
                 var map:Map = hostComponent.map;
-                var popUpInfo:EnhancedPopUpInfo = hostComponent.popUpInfo as EnhancedPopUpInfo;
+//My 3.0 Change				
+                /* var popUpInfo:PopUpInfo = hostComponent.popUpInfo; */
+				var popUpInfo:EnhancedPopUpInfo = hostComponent.popUpInfo as EnhancedPopUpInfo;
                 var validMediaInfos:Array = hostComponent.validPopUpMediaInfos;
                 var geometry:Geometry = graphic ? graphic.geometry : null;
+
                 var layerDetails:LayerDetails = featureLayer ? featureLayer.layerDetails : null;
+//My 3.0 Add
 				if(!layerDetails && popUpInfo && popUpInfo.featLayer)
 					layerDetails = popUpInfo.featLayer ? popUpInfo.featLayer.layerDetails : null;
 
                 vGroup.removeAllElements();
-				//vGroup.addElement(ToggleLayers);
-                if (popUpInfo){
-                    if (popUpInfo.title){
+                if (popUpInfo)
+                {
+                    if (popUpInfo.title)
+                    {
                         titleText.text = StringUtil.substitute(popUpInfo.title, formattedAttributes);
-                        if (titleText.text){
+                        if (titleText.text)
+                        {
                             vGroup.addElement(titleText);
                             vGroup.addElement(titleLine);
                         }
                     }
 
                     var htmlText:String;
-                    if (popUpInfo.description){
+                    if (popUpInfo.description)
+                    {
                         htmlText = StringUtil.substitute(popUpInfo.description, formattedAttributes);
-                        if (htmlText){
-                            var descriptionText:Text = new PopUpText();
-                            descriptionText.percentWidth = 100;
-                            descriptionText.styleSheet = textStyleSheet;
-							
-                            cleanAndSetHtmlText(descriptionText, htmlText);
-							//trace(descriptionText.htmlText);
+                        if (htmlText)
+                        {
+                            setTextFlow(descriptionText, htmlText);
                             vGroup.addElement(descriptionText);
                         }
-                    }else{
-                        var descriptionForm:Form;
-                        for each (var fieldInfo:PopUpFieldInfo in popUpInfo.popUpFieldInfos){
-                            if (fieldInfo.visible){
-                                var formItem:FormItem = new FormItem();
-                                formItem.label = fieldInfo.label || fieldInfo.fieldName;
-								
-                                var label:Label;
+                    }
+                    else if (popUpInfo.popUpFieldInfos)
+                    {
+                        // make sure there's enough constraint rows
+                        var constraintRows:Vector.<ConstraintRow> = keyValueGroupLayout.constraintRows; // returns a clone
+                        if (constraintRows.length < popUpInfo.popUpFieldInfos.length)
+                        {
+                            for (var i:int = constraintRows.length + 1; i <= popUpInfo.popUpFieldInfos.length; i++)
+                            {
+                                var constraintRow:ConstraintRow = new ConstraintRow();
+                                constraintRow.initialized(this, null); // required
+                                constraintRow.id = "row" + i;
+                                constraintRows.push(constraintRow);
+                            }
+                            keyValueGroupLayout.constraintRows = constraintRows;
+                        }
+
+                        keyValueGroup.removeAllElements();
+                        var rowID:int = 1;
+                        for each (var fieldInfo:PopUpFieldInfo in popUpInfo.popUpFieldInfos)
+                        {
+                            if (fieldInfo.visible)
+                            {
+                                var fieldLabel:Label = new Label();
+                                fieldLabel.text = fieldInfo.label || fieldInfo.fieldName;
+                                fieldLabel.left = 0;
+                                fieldLabel.right = "col1:0";
+                                fieldLabel.top = "row" + rowID + ":" + (rowID == 1 ? 5 : 15);
+                                keyValueGroup.addElement(fieldLabel);
+
+                                var fieldValue:RichEditableText;
                                 htmlText = formattedAttributes[fieldInfo.fieldName];
-                                if (htmlText){
-                                    // convert attribute field values that just contain URLs into links 
+                                if (htmlText)
+                                {
+                                    fieldValue = new RichEditableText();
+                                    // convert attribute field values that just contain URLs into links
                                     var match:Array = htmlText.match(/^\s*((https?|ftp):\/\/\S+)\s*$/i);
-                                    if (match && match.length > 0){
-                                        label = new Label();
+                                    if (match && match.length > 0)
+                                    {
                                         htmlText = '<a href="' + match[1] + '" target="_blank">' + match[1] + "</a>";
-                                    }else if (fieldInfo.fieldName == "PROJNUM"){
-										label = new mx.controls.Label();
-										htmlText = "<a href='http://webistehere/PW/WebForm2.aspx?FirstName=" + FlexGlobals.topLevelApplication.firstName + "&LastName=" + FlexGlobals.topLevelApplication.lastName + "&email=" + FlexGlobals.topLevelApplication.email + "&ConstId=" + htmlText + "' target='_blank'><b>MP 116-1284</b></a>";
-									}else{
-                                        label = new PopUpText();
                                     }
-                                    cleanAndSetHtmlText(label, htmlText);
-                                    label.selectable = true;
-                                    label.styleSheet = this.textStyleSheet;
-                                    label.width = 150;
-                                    formItem.addChild(label);
+                                    setTextFlow(fieldValue, htmlText);
+                                    fieldValue.editable = false;
+                                    fieldValue.left = "col2:5";
+                                    fieldValue.right = 0;
+                                    fieldValue.top = fieldLabel.top;
+                                    keyValueGroup.addElement(fieldValue);
                                 }
-                                if (!descriptionForm){
-                                    descriptionForm = new Form();
-                                    descriptionForm.percentWidth = 100;
-                                    descriptionForm.horizontalScrollPolicy = ScrollPolicy.OFF;
-                                    descriptionForm.verticalScrollPolicy = ScrollPolicy.OFF;
-                                    descriptionForm.styleName = "formStyle";
-                                }
-                                descriptionForm.addChild(formItem);
+                                rowID++;
                             }
                         }
-                        if (descriptionForm)
-                            vGroup.addElement(descriptionForm);
+                        if (keyValueGroup.numElements > 0)
+                        {
+                            fieldLabel.bottom = "row" + --rowID + ":5"; // add a little bottom padding to last label
+                            vGroup.addElement(keyValueGroup);
+                        }
                     }
 
-                    if (validMediaInfos && validMediaInfos.length > 0){
+                    if (validMediaInfos && validMediaInfos.length > 0)
+                    {
                         vGroup.addElement(mediaBrowser);
                         mediaBrowser.attributes = graphic.attributes;
                         mediaBrowser.formattedAttributes = formattedAttributes;
                         mediaBrowser.popUpFieldInfos = popUpInfo.popUpFieldInfos;
                         mediaBrowser.popUpMediaInfos = validMediaInfos;
                     }
+//My 3.0 Change
+                    /* if (popUpInfo.showAttachments && graphic && featureLayer
+                        && layerDetails && layerDetails.hasAttachments && layerDetails.objectIdField)
+                    {
+                        vGroup.addElement(attachmentInspector);
+                        attachmentInspector.showAttachments(graphic, featureLayer);
+                    } */
 					
 					if (popUpInfo.showAttachments && graphic && popUpInfo.featLayer
 						&& layerDetails && layerDetails.hasAttachments && layerDetails.objectIdField){
@@ -204,18 +228,31 @@
 					}
 
                     if (map && geometry)
+                    {
                         vGroup.addElement(zoomToButton);
+                    }
                 }
             }
 
-            private function cleanAndSetHtmlText(labelCntrl:Label, htmlText:String):void
+            private function setTextFlow(textComp:RichEditableText, htmlText:String):void
             {
-                if (labelCntrl && htmlText != null){
-                    htmlText = htmlText.replace(/<div/gi, "<br /><div"); // divs are ignored so put br's in front of them
-                    htmlText = htmlText.replace(/<div><br ?\/><\/div>/gi, ""); // remove existing <div><br /></div>'s so we don't have too many new lines
-                    // add target="_blank" to all anchor tags
-                    htmlText = htmlText.replace(/<a.*?href\s*=\s*["']([^"']*).*?>(.*?)<\/a\s*>/gi, '<a href="$1" target="_blank">$2</a>');
-                    labelCntrl.htmlText = htmlText;
+                if (textComp && htmlText != null)
+                {
+                    var textFlow:TextFlow = TextConverter.importToFlow(htmlText, TextConverter.TEXT_FIELD_HTML_FORMAT, textLayoutConfiguration);
+                    if (textFlow)
+                    {
+                        textFlow.addEventListener(FlowElementMouseEvent.CLICK, textFlow_linkClickHandler, false, 0, true);
+                        textComp.textFlow = textFlow;
+                    }
+                }
+            }
+
+            private function textFlow_linkClickHandler(event:FlowElementMouseEvent):void
+            {
+                var linkElement:LinkElement = event.flowElement as LinkElement;
+                if (linkElement && linkElement.target != "_blank")
+                {
+                    linkElement.target = "_blank"; // make sure target is "_blank"
                 }
             }
 
@@ -224,54 +261,85 @@
                 var graphic:Graphic = hostComponent.graphic;
                 var map:Map = hostComponent.map;
                 var geometry:Geometry = graphic.geometry;
-				
-				if(geometry){
-					var extent:Extent = geometry.extent; // returns null for MapPoint or Multipoint's with only one point
-					if (extent){
-						if(isNaN(graphic.attributes.zoomscale)){
-							map.extent = geometry.extent.expand(graphic.attributes.zoompercent);
-							if (!map.extent.contains(geometry))
-								map.level--;
-						}else{
-							if (map.scale > graphic.attributes.zoomscale)
-								map.scale = graphic.attributes.zoomScale;
-							map.centerAt(graphic.attributes.point);
-						}
-					}else{
-						var mapPoint:MapPoint;
-						if (geometry is MapPoint){
-							mapPoint = geometry as MapPoint;
-						}else if (geometry is Multipoint){
-							var multipoint:Multipoint = geometry as Multipoint;
-							if (multipoint.points && multipoint.points.length > 0)
-								mapPoint = multipoint.points[0];
-						}
-						if (mapPoint){
-							// Zoom to 1/16th the size of the current extent.
-							// This is the same as calling map.zoomIn() four times.
-							map.zoom(1 / 16, mapPoint);
-						}
-					}
-				}
+
+                var extent:Extent = geometry.extent; // returns null for MapPoint or Multipoint's with only one point
+                if (extent)
+                {
+                    map.extent = extent;
+                    // make sure the whole extent is visible
+                    if (!map.extent.contains(extent))
+                    {
+                        map.level--;
+                    }
+                }
+                else
+                {
+                    var mapPoint:MapPoint;
+                    if (geometry is MapPoint)
+                    {
+                        mapPoint = geometry as MapPoint;
+                    }
+                    else if (geometry is Multipoint)
+                    {
+                        var multipoint:Multipoint = geometry as Multipoint;
+                        if (multipoint.points && multipoint.points.length > 0)
+                        {
+                            mapPoint = multipoint.points[0];
+                        }
+                    }
+                    if (mapPoint)
+                    {
+                        // make sure the infoWindow always points to the current (selected)feature
+                        map.infoWindow.show(mapPoint);
+                        // Zoom to 1/16th the size of the current extent.
+                        // This is the same as calling map.zoomIn() four times.
+                        map.zoom(1 / 16, mapPoint);
+                        if (!map.extent.contains(mapPoint))
+                        {
+                            map.centerAt(mapPoint);
+                        }
+                    }
+                }
             }
-			
-		]]>
+        ]]>
     </fx:Script>
 
     <fx:Declarations>
         <!--- @private -->
-        <mx:Text id="titleText"
-                 width="100%"
-                 fontWeight="bold"/>
+        <s:RichEditableText id="titleText"
+                            width="100%"
+                            editable="false"
+                            fontWeight="bold"/>
 
         <!--- @private -->
         <s:Line id="titleLine" width="100%">
             <s:stroke>
+                <!--- @private -->
                 <s:SolidColorStroke id="titleLineSymbol"
                                     color="black"
                                     weight="1"/>
             </s:stroke>
         </s:Line>
+
+        <!--- @private -->
+        <s:RichEditableText id="descriptionText"
+                            width="100%"
+                            editable="false"/>
+
+        <!--- @private -->
+        <s:Group id="keyValueGroup" width="100%">
+            <s:layout>
+                <!--- @private -->
+                <s:ConstraintLayout id="keyValueGroupLayout">
+                    <s:constraintColumns>
+                        <!--- @private -->
+                        <s:ConstraintColumn id="col1" maxWidth="100"/>
+                        <!--- @private -->
+                        <s:ConstraintColumn id="col2" width="100%"/>
+                    </s:constraintColumns>
+                </s:ConstraintLayout>
+            </s:layout>
+        </s:Group>
 
         <!--- @private -->
         <supportClasses:PopUpMediaBrowser id="mediaBrowser"
@@ -285,10 +353,10 @@
                                   deleteEnabled="false"/>
 
         <!--- @private -->
-        <mx:LinkButton id="zoomToButton"
-                       click="zoomToButton_clickHandler(event)"
-                       fontWeight="bold"
-                       label="{resourceManager.getString('ESRIMessages', 'zoomLabel')}"/>
+        <s:Button id="zoomToButton"
+                  click="zoomToButton_clickHandler(event)"
+                  fontWeight="bold"
+                  label="{resourceManager.getString('ESRIMessages', 'zoomLabel')}"/>
     </fx:Declarations>
 
     <s:Scroller width="100%" height="100%">
@@ -301,4 +369,5 @@
             <!-- elements are added in commitProperties() -->
         </s:VGroup>
     </s:Scroller>
+
 </s:SparkSkin>

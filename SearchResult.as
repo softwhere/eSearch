@@ -11,11 +11,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 package widgets.eSearch
 {
-
 	import com.esri.ags.Graphic;
-	import com.esri.ags.geometry.Geometry;
 	import com.esri.ags.geometry.MapPoint;
-	import com.esri.ags.symbols.Symbol;
 	
 	import flash.events.EventDispatcher;
 	
@@ -25,8 +22,6 @@ package widgets.eSearch
 	public class SearchResult extends EventDispatcher
 	{
 	    public var title:String;
-	
-	    public var symbol:Symbol;
 		
 		public var icon:String;
 	
@@ -39,8 +34,6 @@ package widgets.eSearch
 	    public var point:MapPoint;
 		
 		public var links:Array = [];
-	
-	    public var geometry:Geometry;
 		
 		public var graphic:Graphic;
 		

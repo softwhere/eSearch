@@ -762,14 +762,19 @@
 			{
 				PopUpManager.removePopUp(this);
 			}
+			
+			private function clickRow(event:ListEvent):void
+			{
+				
+			}
 		]]>
 	</fx:Script>
 	<fx:Declarations>
 		<s:RadioButtonGroup id="optiongroup"/>
 	</fx:Declarations>
 	<mx:DataGrid id="resultsGrid" height="100%" width="100%"
-					  wordWrap="false"
-					  horizontalScrollPolicy="auto"/>
+				 wordWrap="false"
+				 horizontalScrollPolicy="auto"/>
 	<Search:controlBarContent>
 		<s:HGroup verticalAlign="middle" paddingLeft="4" >
 			<s:Label id="lblSum" text="{_labelSum}" visible="{sumVisible}" includeInLayout="{sumVisible}"/>

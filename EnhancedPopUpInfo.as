@@ -1,7 +1,7 @@
 package widgets.eSearch
 {
 	import com.esri.ags.layers.FeatureLayer;
-	import com.esri.ags.webmap.supportClasses.PopUpInfo;
+	import com.esri.ags.portal.supportClasses.PopUpInfo;
 	
 	public class EnhancedPopUpInfo extends PopUpInfo
 	{

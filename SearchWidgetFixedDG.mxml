@@ -20,9 +20,9 @@
 			import com.esri.ags.layers.supportClasses.FeatureType;
 			import com.esri.ags.layers.supportClasses.LayerDetails;
 			import com.esri.ags.layers.supportClasses.TableDetails;
-			import com.esri.ags.webmap.PopUpRenderer;
-			import com.esri.ags.webmap.supportClasses.PopUpInfo;
-			import com.esri.ags.webmap.supportClasses.PopUpMediaInfo;
+			import com.esri.ags.portal.PopUpRenderer;
+			import com.esri.ags.portal.supportClasses.PopUpInfo;
+			import com.esri.ags.portal.supportClasses.PopUpMediaInfo; 
 			import com.esri.viewer.AppEvent;
 			import com.esri.viewer.BaseWidget;
 			import com.esri.viewer.IBaseWidget;
@@ -824,7 +824,7 @@
 				rhypercols = new ArrayCollection();
 				for(var i:int=0; i < _rdgHyperColumns.length; i++){
 					var cArr:Array = _rdgHyperColumns[i].split("~");
-					hypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4]});
+					rhypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4]});
 					dgCol= new DataGridColumn(cArr[0]);
 					dgCol.labelFunction = labelFunc2;
 					if (cArr[2] != "NA")
@@ -1267,8 +1267,8 @@
 				}
 				var pt:MapPoint = searchResult.point;
 				var map:Map = ViewerContainer.getInstance().mapManager.map;
-				if (searchResult.geometry){
-					if (searchResult.geometry.type == Geometry.MAPPOINT){
+				if (searchResult.graphic.geometry){
+					if (searchResult.graphic.geometry.type == Geometry.MAPPOINT){
 						if(isNaN(_zoomScale)){
 							map.zoom(1 / 16, searchResult.point);
 							map.centerAt(searchResult.point);
@@ -1279,8 +1279,8 @@
 						}
 					}else{
 						if(isNaN(_zoomScale)){
-							map.extent = searchResult.geometry.extent.expand(_zoomPercent);
-							if (!map.extent.contains(searchResult.geometry))
+							map.extent = searchResult.graphic.geometry.extent.expand(_zoomPercent);
+							if (!map.extent.contains(searchResult.graphic.geometry))
 								map.level--;
 						}else{
 							if (map.scale > _zoomScale)

@@ -86,19 +86,15 @@
 			
 			protected function itemrenderer1_dataChangeHandler(event:FlexEvent):void
 			{
-				//huge point of optimization don't do anything if this is the
-				//same SearchResult that has already been processed.
-				/* if(data as SearchResult === searchResult && lContent.text.length > 0)
-					return; */
 				
 				searchResult = data as SearchResult;
 				
 				if (searchResult){
-					if (lastResultSymbol !== searchResult.symbol){
+					if (lastResultSymbol !== searchResult.graphic.symbol){
 						if (resultIcon.numChildren > 0){
 							resultIcon.removeChildAt(0);
 						}
-						lastResultSymbol = searchResult.symbol;
+						lastResultSymbol = searchResult.graphic.symbol;
 						lastResultSwatch = lastResultSymbol.createSwatch(20, 20);
 					}
 					lContent.textFlow = TextConverter.importToFlow(searchResult.content, TextConverter.TEXT_FIELD_HTML_FORMAT);
