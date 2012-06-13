@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="100%" horizontalAlign="center"
+		 creationComplete="init(event)">
+	
+	<fx:Metadata>
+		[Event(name="dataChange", type="flash.events.Event")] 
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.esri.ags.layers.supportClasses.RangeDomain;
+			
+			import mx.controls.ComboBase;
+			import mx.controls.ComboBox;
+			import mx.controls.ToolTip;
+			import mx.core.IToolTip;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.events.ValidationResultEvent;
+			import mx.managers.ToolTipManager;
+			import mx.validators.NumberValidator;
+			
+			import spark.components.TextInput;
+			import spark.events.IndexChangeEvent;
+		
+			private var _type:String;
+			
+			private var myTip:ToolTip;
+			
+			private var numberValidator:NumberValidator;
+			
+			[Bindable] private var _wTemplateWidth:Number;
+			
+			[Bindable] private var _textValue:String;
+			
+			[Bindable] private var _prompt:String;
+			
+			public function set wTemplateWidth(value:Number):void
+			{
+				_wTemplateWidth = value;
+			}
+			
+			public function resetTxtSearch():void
+			{
+				txtSearch.restrict = null;
+				txtSearch.errorString = "";
+				txtSearch.text = "";
+				
+				if(numberValidator){
+					numberValidator.property = "";
+					numberValidator.source = null;
+				}
+			}
+			
+			public function validateNum():void
+			{
+				numberValidator.validate();
+			}
+			
+			public function setCBDataProvider(value:Array):void
+			{
+				resetTxtSearch();
+				txtSearch.visible = false;
+				txtSearch.includeInLayout = false;
+				cbSearch.visible = true;
+				cbSearch.includeInLayout = true;
+				cbSearch.prompt = "";
+				cbSearch.dataProvider = value;
+				cbSearch.editable = false;
+			}
+			
+			public function restrictTextBox(rangeDomain:RangeDomain):void
+			{
+				changeToTextBox();
+				txtSearch.removeEventListener(FlexEvent.ENTER, dChange);
+				txtSearch.errorString = "";
+				txtSearch.restrict = "0-9\\.\\-";
+				numberValidator = new NumberValidator();
+				numberValidator.required = false;
+				numberValidator.domain = "int";
+				numberValidator.source = txtSearch;
+				numberValidator.property = "text";
+				numberValidator.minValue = rangeDomain.minValue;
+				numberValidator.maxValue = rangeDomain.maxValue;
+				numberValidator.trigger = txtSearch;
+				numberValidator.triggerEvent = "enter";
+				numberValidator.exceedsMaxError +=  " " + rangeDomain.minValue.toString() + " - " + rangeDomain.maxValue.toString();
+				numberValidator.lowerThanMinError += " " + rangeDomain.minValue.toString() + " - " + rangeDomain.maxValue.toString();
+				numberValidator.addEventListener(ValidationResultEvent.VALID, dChange);
+			}
+			
+			private function dChange(event:Event):void
+			{
+				var eventObj:Event = new Event("dataChange"); 
+				dispatchEvent(eventObj); 
+			}
+			
+			public function changeToTextBox():void
+			{
+				cbSearch.visible = false;
+				cbSearch.includeInLayout = false;
+				txtSearch.visible = true;
+				txtSearch.includeInLayout = true;
+				resetTxtSearch();
+			}
+			
+			public function changeToComboBox():void
+			{
+				cbSearch.visible = true;
+				cbSearch.includeInLayout = true;
+				txtSearch.visible = false;
+				txtSearch.includeInLayout = false;
+			}
+			
+			public function set setPrompt(value:String):void
+			{
+				_prompt = value;
+			}
+			
+			public function set textValue(value:String):void
+			{
+				_textValue = value;
+				if (txtSearch.visible){
+					txtSearch.text = _textValue;
+				}else{
+					cbSearch.text = _textValue;
+				}
+			}
+			
+			public function get textValue():String
+			{
+				if (txtSearch.visible){
+					_textValue = txtSearch.text;
+				}else{
+					_textValue = cbSearch.selectedItem.value;
+				}
+				return _textValue;
+			}
+			
+			public function isTextBox():Boolean
+			{
+				return txtSearch.visible;
+			}
+			
+			private function fnInit():void
+			{
+				cbSearch.addEventListener(ListEvent.ITEM_ROLL_OVER,fnCreToolTip);
+				cbSearch.addEventListener(ListEvent.ITEM_ROLL_OUT,fnCreToolTip);
+				cbSearch.addEventListener(ListEvent.CHANGE,fnCreToolTip);
+			}
+			
+			private function fnCreToolTip(e:ListEvent):void
+			{
+				switch(e.type)
+				{
+					case ListEvent.ITEM_ROLL_OVER:{
+						try{
+							ToolTipManager.destroyToolTip(myTip);
+						}
+						catch(error:Error){}
+						//creates a tooltip.
+						myTip = ToolTipManager.createToolTip(cbSearch.dataProvider[e.rowIndex].label,stage.mouseX+10,stage.mouseY) as ToolTip; // array2 is id of arraylist  
+						break;
+					}
+					case ListEvent.ITEM_ROLL_OUT:{
+						//destroy the created tooltip, so that we can create a new one for others.
+						try{
+							ToolTipManager.destroyToolTip(myTip);
+						}
+						catch(error:Error){}
+						break;
+					}
+					case ListEvent.CHANGE:{
+						//destroy the created tooltip, so that we can create a new one for others.
+						try{
+							ToolTipManager.destroyToolTip(myTip);
+						}
+						catch(error:Error){}
+						break;
+					}
+				}
+			}
+			
+			protected function init(event:FlexEvent):void
+			{
+				txtSearch.addEventListener(FlexEvent.ENTER, dChange);
+			}
+			
+		]]>
+	</fx:Script>
+	<s:RichEditableText id="prompt" width="100%" text="{_prompt}" paddingLeft="2" selectable="true" editable="false" tabEnabled="false" tabFocusEnabled="false"/>
+	<s:TextInput id="txtSearch" width="99%" />
+	<mx:ComboBox id="cbSearch" creationComplete="{cbSearch.width = _wTemplateWidth - 42; fnInit();}"
+				 change="dChange(event)" visible="false" includeInLayout="false" 
+				 labelField="label"/>
+</s:VGroup>
