@@ -20,6 +20,8 @@
 	</Search:layout>
 	<fx:Script>
 		<![CDATA[
+			import spark.collections.Sort;
+			import spark.collections.SortField;
 			import com.esri.ags.layers.supportClasses.FeatureType;
 			import com.esri.ags.Map;
 			import com.esri.ags.layers.supportClasses.CodedValue;
@@ -80,6 +82,11 @@
 			private var useUTC:Boolean;
 			[Bindable]
 			private var _title:String;
+			
+			private var sortArr:Array = [];
+			private var sortAC:ArrayCollection;
+			private var dgSort:Sort = new Sort();
+			private var sortDetails:String = "";
 			
 			private var uic:UIComponent;
 			
@@ -144,8 +151,13 @@
 			public function set dgColumns(value:Array):void
 			{
 				resultsGrid.columns = [];
+				sortArr = [];
+				sortAC = new ArrayCollection();
 				sumFormat = "";
+				sortDetails = "";
 				_dgColumns = value;
+				var args:Array;
+				var sortFld:SortField;
 				var dgCol:DataGridColumn;
 				var jdgCol:joinDataGridColumn;
 				var dgColArr:Array = [];
@@ -178,6 +190,13 @@
 							else
 								useUTC = false;
 						}
+						if (cArr[6] != "NA"){
+							sortDetails = cArr[6];
+							args = sortDetails.split("|");
+							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
+							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
+							sortAC.addItem({data: sortFld,index: parseInt(args[1])});
+						}
 						if (_dgFieldAliases)
 							jdgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
@@ -208,6 +227,13 @@
 							else
 								useUTC = false;
 						}
+						if (cArr[6] != "NA"){
+							sortDetails = cArr[6];
+							args = sortDetails.split("|");
+							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
+							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
+							sortAC.addItem({data: sortFld,index: parseInt(args[1])});
+						}
 						if (_dgFieldAliases)
 							dgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
@@ -219,6 +245,12 @@
 				dgCol.visible = false;
 				dgColArr.push(dgCol);
 				resultsGrid.columns = dgColArr;
+			}
+			
+			private function date_sortCompareFunc(itemA:Object, itemB:Object, fields:Array = null):int {
+				var dateA:Date = new Date(Date.parse(itemA.COMPLETION));
+				var dateB:Date = new Date(Date.parse(itemB.COMPLETION));
+				return ObjectUtil.dateCompare(dateA, dateB);
 			}
 			
 			public function set dgFieldAliases(value:Object):void
@@ -733,6 +765,18 @@
 						sumVisible = false;
 					}
 				}
+				
+				var dgAc:ArrayCollection = resultsGrid.dataProvider as ArrayCollection;
+				var isrt:Sort = new Sort();
+				isrt.fields = [new SortField("index",false,true)];
+				sortAC.sort = isrt;
+				sortAC.refresh();
+				for(var s:int = 0; s < sortAC.length; s++){
+					sortArr.push(sortAC[s].data);
+				}
+				dgSort.fields = sortArr;
+				dgAc.sort = dgSort;
+				dgAc.refresh();
 			}
 			
 			private function getFeatureType(typeID:String, lDtls:LayerDetails):FeatureType

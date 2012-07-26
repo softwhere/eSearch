@@ -5,15 +5,20 @@
 				   xmlns:viewer="com.esri.viewer.*"
 				   xmlns:Search="widgets.eSearch.*"
 				   height="200" width="800"
-				   creationComplete="init()">
+				   widgetConfigLoaded="init()">
+	
+	<fx:Declarations>
+		<mx:Move id="panelOut" yTo="0" duration="0" startDelay="0"/>
+		<mx:Move id="panelIn" yTo="175"  duration="2000"  />	
+	</fx:Declarations>
 	
 	<fx:Script>
 		<![CDATA[
-			import com.esri.ags.layers.FeatureLayer;
 			import com.esri.ags.Graphic;
 			import com.esri.ags.Map;
 			import com.esri.ags.geometry.Geometry;
 			import com.esri.ags.geometry.MapPoint;
+			import com.esri.ags.layers.FeatureLayer;
 			import com.esri.ags.layers.GraphicsLayer;
 			import com.esri.ags.layers.supportClasses.CodedValue;
 			import com.esri.ags.layers.supportClasses.CodedValueDomain;
@@ -22,7 +27,7 @@
 			import com.esri.ags.layers.supportClasses.TableDetails;
 			import com.esri.ags.portal.PopUpRenderer;
 			import com.esri.ags.portal.supportClasses.PopUpInfo;
-			import com.esri.ags.portal.supportClasses.PopUpMediaInfo; 
+			import com.esri.ags.portal.supportClasses.PopUpMediaInfo;
 			import com.esri.viewer.AppEvent;
 			import com.esri.viewer.BaseWidget;
 			import com.esri.viewer.IBaseWidget;
@@ -37,6 +42,7 @@
 			import mx.core.FlexGlobals;
 			import mx.core.Repeater;
 			import mx.core.UIComponent;
+			import mx.events.EffectEvent;
 			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
 			import mx.events.MenuEvent;
@@ -46,6 +52,8 @@
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
+			import spark.collections.Sort;
+			import spark.collections.SortField;
 			import spark.components.Button;
 			
 			import widgets.eSearch.skins.PopUpRendererSkin;
@@ -89,6 +97,8 @@
 			[Bindable] private var _labelSum:String;
 			[Bindable] private var _hasRelates:Boolean;
 			private var _sumField:String = "";
+			private var sortDetails:String = "";
+			private var rsortDetails:String = "";
 			
 			[Bindable] private var _widgetInteract:Boolean;
 			[Bindable] private var _disableRelateTab:Boolean;
@@ -97,6 +107,13 @@
 			[Bindable] private var rsumVisible:Boolean;
 			[Bindable] private var _rlabelSum:String;
 			private var _rsumField:String = "";
+			
+			private var sortArr:Array = [];
+			private var sortAC:ArrayCollection;
+			private var dgSort:Sort = new Sort();
+			private var rsortArr:Array = [];
+			private var rsortAC:ArrayCollection;
+			private var rdgSort:Sort = new Sort();
 			
 			private var sumFormat:String;
 			
@@ -114,6 +131,25 @@
 			
 			[Embed(source="widgets/eSearch/assets/images/i_relate.png")]
 			public var relateClass:Class;
+			
+			private var autoHide:Boolean;
+			
+			private function init():void
+			{
+				if (configXML){
+					
+					autoHide = configXML.autohide && configXML.autohide == "true";
+					
+					if(autoHide){
+						panelIn.target = panel;
+						panelOut.target = panel;
+						panelIn.play();
+					}
+				}
+				AppEvent.addListener(AppEvent.DATA_PUBLISH, sharedDataUpdated);
+				appWidth = FlexGlobals.topLevelApplication.width;
+				
+			}
 			
 			public function set zoomScale(value:Number):void
 			{
@@ -152,7 +188,12 @@
 			{
 				resultsGrid.columns = [];
 				sumFormat = "";
+				sortDetails = "";
+				sortArr = [];
+				sortAC = new ArrayCollection();
 				_dgColumns = value;
+				var args:Array;
+				var sortFld:SortField;
 				var dgCol:DataGridColumn;
 				var jdgCol:joinDataGridColumn;
 				var dgColArr:Array = [];
@@ -193,6 +234,13 @@
 							else
 								useUTC = false;
 						}
+						if (cArr[6] != "NA"){
+							sortDetails = cArr[6];
+							args = sortDetails.split("|");
+							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
+							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
+							sortAC.addItem({data: sortFld,index: parseInt(args[1])});
+						}
 						if (_dgFieldAliases)
 							jdgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
@@ -223,6 +271,13 @@
 							else
 								useUTC = false;
 						}
+						if (cArr[6] != "NA"){
+							sortDetails = cArr[6];
+							args = sortDetails.split("|");
+							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
+							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
+							sortAC.addItem({data: sortFld,index: parseInt(args[1])});
+						}
 						if (_dgFieldAliases)
 							dgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
@@ -235,12 +290,23 @@
 				dgColArr.push(dgCol);
 				resultsGrid.columns = dgColArr;
 			}
+			
+			private function date_sortCompareFunc(itemA:Object, itemB:Object, fields:Array = null):int {
+				var dateA:Date = new Date(Date.parse(itemA.COMPLETION));
+				var dateB:Date = new Date(Date.parse(itemB.COMPLETION));
+				return ObjectUtil.dateCompare(dateA, dateB);
+			}
 
 			private function rdgColumns(value:Array):void
 			{
 				relatesGrid.columns = [];
 				rsumFormat = "";
+				rsortDetails = "";
 				_rdgColumns = value;
+				rsortArr = [];
+				rsortAC = new ArrayCollection();
+				var args:Array;
+				var sortFld:SortField;
 				var dgCol:DataGridColumn;
 				var jdgCol:joinDataGridColumn;
 				var dgColArr:Array = [];
@@ -273,6 +339,13 @@
 							else
 								useUTC = false;
 						}
+						if (cArr[6] != "NA"){
+							rsortDetails = cArr[6];
+							args = rsortDetails.split("|");
+							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
+							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
+							rsortAC.addItem({data: sortFld,index: parseInt(args[1])});
+						}
 						if (_dgFieldAliases)
 							jdgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
@@ -302,6 +375,13 @@
 								useUTC = true;
 							else
 								useUTC = false;
+						}
+						if (cArr[6] != "NA"){
+							rsortDetails = cArr[6];
+							args = rsortDetails.split("|");
+							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
+							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
+							rsortAC.addItem({data: sortFld,index: parseInt(args[1])});
 						}
 						if (_rdgFieldAliases)
 							dgCol.headerText = _rdgFieldAliases[cArr[0]];
@@ -937,6 +1017,18 @@
 						sumVisible = false;
 					}
 				}
+				
+				var dgAc:ArrayCollection = resultsGrid.dataProvider as ArrayCollection;
+				var isrt:Sort = new Sort();
+				isrt.fields = [new SortField("index",false,true)];
+				sortAC.sort = isrt;
+				sortAC.refresh();
+				for(var s:int = 0; s < sortAC.length; s++){
+					sortArr.push(sortAC[s].data);
+				}
+				dgSort.fields = sortArr;
+				dgAc.sort = dgSort;
+				dgAc.refresh();
 			}
 			
 			private function getFeatureType(typeID:String, lDtls:LayerDetails):FeatureType
@@ -1045,13 +1137,30 @@
 					catch (error:Error){
 						rsumVisible = false;
 					}
-				} 
+				}
+				
+				var dgAc:ArrayCollection = relatesGrid.dataProvider as ArrayCollection;
+				var isrt:Sort = new Sort();
+				isrt.fields = [new SortField("index",false,true)];
+				rsortAC.sort = isrt;
+				rsortAC.refresh();
+				for(var s:int = 0; s < rsortAC.length; s++){
+					rsortArr.push(rsortAC[s].data);
+				}
+				rdgSort.fields = rsortArr;
+				dgAc.sort = rdgSort;
+				dgAc.refresh();
 			}
 			
-			private function init():void
+			private function panel_rollOutHandler(event:MouseEvent):void
 			{
-				AppEvent.addListener(AppEvent.DATA_PUBLISH, sharedDataUpdated);
-				appWidth = FlexGlobals.topLevelApplication.width;
+				panelIn.play();
+			}
+			
+			private function panel_rollOverHandler(event:MouseEvent):void
+			{
+				panelIn.end();
+				panelOut.play();
 			}
 			
 			private function sharedDataUpdated(event:AppEvent):void
@@ -1149,17 +1258,11 @@
 			private function onItemRollOver(event:ListEvent):void
 			{
 				if(_widgetInteract){
-					highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid);
-					if(!highlightedGraphic){
-						_bWidget.highlightDataGroupItemByOID(event.itemRenderer.data.oid);
-						return;
-					}
-					_bWidget.highlightDataGroupItem(highlightedGraphic);
-					highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-					if(highlightedGraphic){
-						var infoData:Object = highlightedGraphic.attributes;
-						if (map.extent.containsXY(infoData.point.x, infoData.point.y)){
-							showInfoWindow2(infoData);
+					_bWidget.highlightDataGroupItemByOID(event.itemRenderer.data.oid);
+					var searchResult:* = findSearchResultByOID(event.itemRenderer.data.oid);
+					if(searchResult.graphic){
+						if (map.extent.containsXY(searchResult.point.x, searchResult.point.y)){
+							showInfoWindow2(searchResult);
 						}else{
 							hideInfoWindow();
 						}
@@ -1179,7 +1282,7 @@
 			private function showInfoWindow2(infoData:Object):void
 			{
 				var showHighlightPoint:MapPoint = infoData.point as MapPoint;
-				popUpRenderer.popUpInfo = configurePopUpInfo(infoData.graphic.attributes.links);
+				popUpRenderer.popUpInfo = configurePopUpInfo(infoData.links);
 				popUpRenderer.graphic = infoData.graphic;
 				popUpRenderer.setStyle("skinClass", widgets.eSearch.skins.PopUpRendererSkin);
 				map.infoWindow.content = popUpRenderer;
@@ -1221,15 +1324,13 @@
 			{
 				resultsGrid.selectedItem
 				if(resultsGrid.selectedItem){
-					highlightedGraphic = findGraphicByAttribute(resultsGrid.selectedItem.oid)
-					_bWidget.highlightDataGroupItem(highlightedGraphic);
+					_bWidget.highlightDataGroupItemByOID(resultsGrid.selectedItem.oid);
 				}
 			}
 			
 			private function unhighLightSel(event:Event):void
 			{
 				if(resultsGrid.selectedItem){
-					highlightedGraphic = findGraphicByAttribute(resultsGrid.selectedItem.oid);
 					_bWidget.unhighlightDataGroupItems();
 				}
 			}
@@ -1237,32 +1338,33 @@
 			private function onItemRollOut(event:ListEvent):void
 			{
 				if(_widgetInteract){
-					highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
 					_bWidget.unhighlightDataGroupItems();
 				}
 			}
 			
-			public function findGraphicByAttribute(attributes:Object):Graphic
+			private function findSearchResultByOID(oid:Number):*
 			{
-				for each( var graphic:Graphic in _graLyr.graphicProvider){
-					if ( graphic.attributes.oid === attributes)
-						return graphic;
-				}            
-				return null;
+				var retSR:*;	
+				for (var i:Number = 0; i < _bWidget.searchResultAC.length; i++){
+					var sr:* = _bWidget.searchResultAC[i];
+					if(sr.oid == oid){
+						retSR = sr;
+						break;
+					}
+				}
+				return retSR;
 			}
 			
 			private function clickRow(event:ListEvent):void
-			{            		
-				var vSW:* = _bWidget;
-				highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid);
-				if(!highlightedGraphic){
+			{
+				var searchResult:* = findSearchResultByOID(event.itemRenderer.data.oid);
+				if(!searchResult.graphic){
 					if(event.itemRenderer is CenteredEmbededImage)
-						vSW.standaloneRelate(event.itemRenderer.data.oid);
+						_bWidget.standaloneRelate(event.itemRenderer.data.oid);
 					return;
 				}
-				var searchResult:Object = highlightedGraphic.attributes;
 				if(event.itemRenderer is CenteredEmbededImage){
-					vSW.clickSearchRelateResult(highlightedGraphic.attributes);
+					_bWidget.clickSearchRelateResult(searchResult);
 					return;
 				}
 				var pt:MapPoint = searchResult.point;
@@ -1302,9 +1404,12 @@
 		<s:RadioButtonGroup id="optiongroup"/>
 		<s:RadioButtonGroup id="roptiongroup"/>
 	</fx:Declarations>
-	<s:VGroup gap="-1" height="100%" width="100%">
-		<s:TabBar id="tabs" dataProvider="{vs}" skinClass="widgets.eSearch.skins.TabBarSkin"/>
-		<mx:ViewStack id="vs" height="100%" width="100%" creationPolicy="all">
+	<s:VGroup gap="-1" height="100%" width="100%" id="panel">
+		<s:TabBar id="tabs" dataProvider="{vs}" skinClass="widgets.eSearch.skins.TabBarSkin"
+				  rollOut="panel_rollOutHandler(event)" 
+				  rollOver="panel_rollOverHandler(event)"/>
+		<mx:ViewStack id="vs" height="100%" width="100%" creationPolicy="all" rollOut="panel_rollOutHandler(event)" 
+					  rollOver="panel_rollOverHandler(event)">
 			<s:NavigatorContent label="Search Results" width="100%"  height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}">
 				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}">
 					<s:VGroup gap="0" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" >

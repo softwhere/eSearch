@@ -58,9 +58,11 @@
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
+			import spark.collections.Sort;
+			import spark.collections.SortField;
 			import spark.components.Button;
 			
-			import widgets.eSearch.SearchWidget;
+			import widgets.eSearch.eSearchWidget;
 			import widgets.eSearch.skins.PopUpRendererSkin;
 		
 			private var _data:Object;
@@ -70,7 +72,7 @@
 			private var highlightedGraphic:Graphic;
 			private var _zoomScale:Number = 5000;
 			private var _zoomPercent:Number = 1.2;
-			private var _bWidget:BaseWidget;
+			private var _bWidget:*;
 			private var _dgColumns:Array=[];
 			private var _dgFieldAliases:Object;
 			private var _dgHyperColumns:Array=[];
@@ -94,8 +96,12 @@
 			[Bindable] private var _labelSum:String;
 			private var _sumField:String = "";
 			private var sumFormat:String;
+			private var sortDetails:String = "";
 			private var useUTC:Boolean;
 			[Bindable] private var _title:String;
+			private var sortArr:Array = [];
+			private var sortAC:ArrayCollection;
+			private var dgSort:Sort = new Sort();
 			
 			private var uic:UIComponent;
 			
@@ -189,8 +195,13 @@
 			public function set dgColumns(value:Array):void
 			{
 				resultsGrid.columns = [];
+				sortArr = [];
+				sortAC = new ArrayCollection();
 				sumFormat = "";
+				sortDetails = "";
 				_dgColumns = value;
+				var args:Array;
+				var sortFld:SortField;
 				var dgCol:DataGridColumn;
 				var jdgCol:joinDataGridColumn;
 				var dgColArr:Array = [];
@@ -234,6 +245,13 @@
 							else
 								useUTC = false;
 						}
+						if (cArr[6] != "NA"){
+							sortDetails = cArr[6];
+							args = sortDetails.split("|");
+							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
+							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
+							sortAC.addItem({data: sortFld,index: parseInt(args[1])});
+						}
 						if (_dgFieldAliases)
 							jdgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
@@ -263,6 +281,13 @@
 								useUTC = true;
 							else
 								useUTC = false;
+						}
+						if (cArr[6] != "NA"){
+							sortDetails = cArr[6];
+							args = sortDetails.split("|");
+							sortFld = new SortField(dgCol.dataField,(args[0] && args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?true:false);
+							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
+							sortAC.addItem({data: sortFld,index: parseInt(args[1])});
 						}
 						if (_dgFieldAliases)
 							dgCol.headerText = _dgFieldAliases[cArr[0]];
@@ -769,6 +794,24 @@
 						sumVisible = false;
 					}
 				}
+				
+				var dgAc:ArrayCollection = resultsGrid.dataProvider as ArrayCollection;
+				var isrt:Sort = new Sort();
+				isrt.fields = [new SortField("index",false,true)];
+				sortAC.sort = isrt;
+				sortAC.refresh();
+				for(var s:int = 0; s < sortAC.length; s++){
+					sortArr.push(sortAC[s].data);
+				}
+				dgSort.fields = sortArr;
+				dgAc.sort = dgSort;
+				dgAc.refresh();
+			}
+			
+			private function date_sortCompareFunc(itemA:Object, itemB:Object, fields:Array = null):int {
+				var dateA:Date = new Date(Date.parse(itemA.COMPLETION));
+				var dateB:Date = new Date(Date.parse(itemB.COMPLETION));
+				return ObjectUtil.dateCompare(dateA, dateB);
 			}
 			
 			private function getFeatureType(typeID:String):FeatureType
@@ -803,18 +846,11 @@
 			private function onItemRollOver(event:ListEvent):void
             {
 				if(_widgetInteract){
-	            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-	            	var vSW:SearchWidget = _bWidget as SearchWidget;
-					if(!highlightedGraphic){
-						vSW.highlightDataGroupItemByOID(event.itemRenderer.data.oid);
-						return;
-					}
-					vSW.highlightDataGroupItem(highlightedGraphic);
-	            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-					if(highlightedGraphic){
-	            		var infoData:Object = highlightedGraphic.attributes;
-						if (map.extent.containsXY(infoData.point.x, infoData.point.y)){
-							showInfoWindow(infoData);
+					_bWidget.highlightDataGroupItemByOID(event.itemRenderer.data.oid);
+					var searchResult:SearchResult = findSearchResultByOID(event.itemRenderer.data.oid);
+					if(!searchResult.graphic){
+						if (map.extent.containsXY(searchResult.point.x, searchResult.point.y)){
+							showInfoWindow(searchResult);
 						}else{
 							hideInfoWindow();
 						}
@@ -825,9 +861,7 @@
 			private function onItemRollOut(event:ListEvent):void
 			{
 				if(_widgetInteract){
-					highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid)
-					var vSW:SearchWidget = _bWidget as SearchWidget;
-					vSW.unhighlightDataGroupItems();
+					_bWidget.unhighlightDataGroupItems();
 				}
 			}
 			
@@ -844,7 +878,7 @@
 			private function showInfoWindow(infoData:Object):void
 			{
 				var showHighlightPoint:MapPoint = infoData.point as MapPoint;
-				popUpRenderer.popUpInfo = configurePopUpInfo(infoData.graphic.attributes.links);
+				popUpRenderer.popUpInfo = configurePopUpInfo(infoData.links);
 				popUpRenderer.graphic = infoData.graphic;
 				popUpRenderer.setStyle("skinClass", widgets.eSearch.skins.PopUpRendererSkin);
 				map.infoWindow.content = popUpRenderer;
@@ -886,45 +920,40 @@
             {
             	resultsGrid.selectedItem
             	if(resultsGrid.selectedItem){
-	            	highlightedGraphic = findGraphicByAttribute(resultsGrid.selectedItem.oid)
-					var vSW:SearchWidget = _bWidget as SearchWidget;
-					vSW.highlightDataGroupItem(highlightedGraphic);
+					_bWidget.highlightDataGroupItemByOID(resultsGrid.selectedItem.oid);
             	}
             }
             
             private function unhighLightSel(event:Event):void
             {
             	if(resultsGrid.selectedItem){
-            		highlightedGraphic = findGraphicByAttribute(resultsGrid.selectedItem.oid);
-            		var vSW:SearchWidget = _bWidget as SearchWidget;
-					vSW.unhighlightDataGroupItems();
+					_bWidget.unhighlightDataGroupItems();
             	}
             }
-
-            public function findGraphicByAttribute(attributes:Object):Graphic
-            {
-                for each( var graphic:Graphic in _graLyr.graphicProvider)
-                {
-                    if ( graphic.attributes.oid === attributes)
-                    { 
-                        return graphic;
-                    }
-                }            
-                return null;
-            }
+			
+			private function findSearchResultByOID(oid:Number):SearchResult
+			{
+				var retSR:SearchResult;	
+				for (var i:Number = 0; i < _bWidget.searchResultAC.length; i++){
+					var sr:SearchResult = _bWidget.searchResultAC[i];
+					if(sr.oid == oid){
+						retSR = sr;
+						break;
+					}
+				}
+				return retSR;
+			}
             
             private function clickRow(event:ListEvent):void
             {
-				var vSW:SearchWidget = _bWidget as SearchWidget;
-            	highlightedGraphic = findGraphicByAttribute(event.itemRenderer.data.oid);
-				if(!highlightedGraphic){
+				var searchResult:SearchResult = findSearchResultByOID(event.itemRenderer.data.oid);
+				if(!searchResult.graphic){
 					if(event.itemRenderer is CenteredEmbededImage)
-						vSW.standaloneRelate(event.itemRenderer.data.oid);
+						_bWidget.standaloneRelate(event.itemRenderer.data.oid);
 					return;
 				}
-				var searchResult:SearchResult = highlightedGraphic.attributes as SearchResult;
 				if(event.itemRenderer is CenteredEmbededImage){
-					vSW.clickSearchRelateResult(searchResult);
+					_bWidget.clickSearchRelateResult(searchResult);
 					return;
 				}
 				var pt:MapPoint = searchResult.point;

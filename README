@@ -1,4 +1,15 @@
-﻿Version 3.0 - 6/13/2012
+﻿Version 3.0.1 - 7/26/2012
+
+* The name of the swf and xml file has changed to eSearchWidget.swf and eSearchWidget.xml
+* Fixed application hang bug when using the eSearch and new 3.0 print widget.
+* Added autozoom configuration to zoom to the selected features automatically whena search is complete.
+* Added keepgraphicalsearchenabled configuration option to keep the graphical selection tool that the 
+  user chooses active even after a selection has been made. This means that you will not have to clear 
+  your selection and re-choose a graphical selection tool in order to make another selection.
+* Added autohide to the fixed datagrid. Control of this is now in the SearchWidgetFixedDG.xml file.
+* Added predefined datagrid column sorting to all the datagrids. 
+
+Version 3.0 - 6/13/2012
 * Recompiled for Flex Viewer 3.0
 * Fixed issue this tables and new link style
 

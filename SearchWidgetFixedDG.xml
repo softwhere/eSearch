@@ -1,0 +1,5 @@
+<?xml version="1.0" ?>
+<!-- See Enhanced Search Widget Fixed Datagrid Setup.pdf for detailed explanation -->
+<configuration>
+	<autohide>true</autohide>
+</configuration>

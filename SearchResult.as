@@ -41,10 +41,6 @@ package widgets.eSearch
 		
 		public var oid:Number;
 		
-		public var objectid:Number;
-		
-		public var fid:Number;
-		
 		public var multi:String;
 		
 		public var relateicon:String;
