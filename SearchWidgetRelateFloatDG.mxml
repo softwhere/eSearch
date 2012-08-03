@@ -189,7 +189,7 @@
 							else
 								useUTC = false;
 						}
-						if (cArr[6] != "NA"){
+						if (cArr[6] != "NA" && cArr[6] != null){
 							sortDetails = cArr[6];
 							args = sortDetails.split("|");
 							jdgCol.sortDescending = (args[0] == "asc")?false:true;

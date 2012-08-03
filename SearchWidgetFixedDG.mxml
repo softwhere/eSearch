@@ -249,7 +249,7 @@
 						}
 						if (_dgFieldAliases)
 							jdgCol.headerText = _dgFieldAliases[cArr[0]];
-						if (cArr[1] != "NA")
+						if (cArr[1] != "NA" && cArr[6] != null)
 							jdgCol.headerText = cArr[1];
 						dgColArr.addItem(jdgCol);
 					}else{
@@ -277,7 +277,7 @@
 							else
 								useUTC = false;
 						}
-						if (cArr[6] != "NA"){
+						if (cArr[6] != "NA" && cArr[6] != null){
 							sortDetails = cArr[6];
 							args = sortDetails.split("|");
 							dgCol.sortDescending = (args[0] == "asc")?false:true;
@@ -359,7 +359,7 @@
 						}
 						if (_dgFieldAliases)
 							jdgCol.headerText = _dgFieldAliases[cArr[0]];
-						if (cArr[1] != "NA")
+						if (cArr[1] != "NA" && cArr[6] != null)
 							jdgCol.headerText = cArr[1];
 						dgColArr.addItem(jdgCol);
 					}else{
@@ -387,7 +387,7 @@
 							else
 								useUTC = false;
 						}
-						if (cArr[6] != "NA"){
+						if (cArr[6] != "NA" && cArr[6] != null){
 							rsortDetails = cArr[6];
 							args = rsortDetails.split("|");
 							dgCol.sortDescending = (args[0] == "asc")?false:true;
