@@ -1,16 +1,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Version 2.2.2 - Jan 31, 2011
-//
 // Delevoped by Robert Scheitlin
 //
 ////////////////////////////////////////////////////////////////////////////////
 
 package widgets.eSearch
 {
-	import mx.controls.dataGridClasses.DataGridColumn;
+	import spark.components.gridClasses.GridColumn;
 	
-	public class joinDataGridColumn extends DataGridColumn
+	public class joinDataGridColumn extends GridColumn
 	{
 		public function joinDataGridColumn(columnName:String=null)
 		{

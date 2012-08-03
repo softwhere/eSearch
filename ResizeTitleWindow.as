@@ -8,15 +8,15 @@
 
 package widgets.eSearch
 {
+	import flash.events.Event;
 	import flash.events.MouseEvent;
 	
-	import mx.controls.Image;
 	import mx.events.FlexEvent;
 	import mx.managers.CursorManager;
 	
+	import spark.components.Image;
 	import spark.components.TitleWindow;
 	import spark.primitives.BitmapImage;
-	import flash.events.Event;
 	
 	public class ResizeTitleWindow extends TitleWindow
 	{

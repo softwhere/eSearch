@@ -1,4 +1,17 @@
-﻿Version 3.0.1 - 7/26/2012
+﻿Version 3.0.2 - 8/3/2012
+
+* Added the ability to have a grid hyperlink icon instead of only hyper link text. This is achieved through
+  the new hyperlinkgridicon attribute of a field element.
+* Added a new option to the graphical search page that allow you to include the text search options to the
+  graphical search if the search layer dropdown is the same on both pages.
+* The buffer graphics have a new popup GUI for adjusting their graphics symbology.
+* The userlist attribute have a new ability, when you add the text "all" to the comma separated userlist
+  and the user chooses this value, then all the values of the userlist will be selected when the query is
+  executed.
+* All possible items in code have been migrated from mx to spark (probably doesn't mean much to you as the 
+  end user, but for me as the developer, it allowed to enhancement to be accomplished).
+
+Version 3.0.1 - 7/26/2012
 
 * The name of the swf and xml file has changed to eSearchWidget.swf and eSearchWidget.xml
 * Fixed application hang bug when using the eSearch and new 3.0 print widget.

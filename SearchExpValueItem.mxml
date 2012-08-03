@@ -13,18 +13,17 @@
 		<![CDATA[
 			import com.esri.ags.layers.supportClasses.RangeDomain;
 			
-			import mx.controls.ComboBase;
-			import mx.controls.ComboBox;
+			import mx.collections.ArrayCollection;
 			import mx.controls.ToolTip;
 			import mx.core.IToolTip;
 			import mx.events.FlexEvent;
-			import mx.events.ListEvent;
 			import mx.events.ValidationResultEvent;
 			import mx.managers.ToolTipManager;
 			import mx.validators.NumberValidator;
 			
 			import spark.components.TextInput;
 			import spark.events.IndexChangeEvent;
+			import spark.events.ListEvent;
 		
 			private var _type:String;
 			
@@ -68,8 +67,8 @@
 				cbSearch.visible = true;
 				cbSearch.includeInLayout = true;
 				cbSearch.prompt = "";
-				cbSearch.dataProvider = value;
-				cbSearch.editable = false;
+				cbSearch.dataProvider = new ArrayCollection(value);
+				cbSearch.selectedIndex = 0;
 			}
 			
 			public function restrictTextBox(rangeDomain:RangeDomain):void
@@ -126,7 +125,7 @@
 				if (txtSearch.visible){
 					txtSearch.text = _textValue;
 				}else{
-					cbSearch.text = _textValue;
+					cbSearch.selectedItem = _textValue;
 				}
 			}
 			
@@ -145,45 +144,6 @@
 				return txtSearch.visible;
 			}
 			
-			private function fnInit():void
-			{
-				cbSearch.addEventListener(ListEvent.ITEM_ROLL_OVER,fnCreToolTip);
-				cbSearch.addEventListener(ListEvent.ITEM_ROLL_OUT,fnCreToolTip);
-				cbSearch.addEventListener(ListEvent.CHANGE,fnCreToolTip);
-			}
-			
-			private function fnCreToolTip(e:ListEvent):void
-			{
-				switch(e.type)
-				{
-					case ListEvent.ITEM_ROLL_OVER:{
-						try{
-							ToolTipManager.destroyToolTip(myTip);
-						}
-						catch(error:Error){}
-						//creates a tooltip.
-						myTip = ToolTipManager.createToolTip(cbSearch.dataProvider[e.rowIndex].label,stage.mouseX+10,stage.mouseY) as ToolTip; // array2 is id of arraylist  
-						break;
-					}
-					case ListEvent.ITEM_ROLL_OUT:{
-						//destroy the created tooltip, so that we can create a new one for others.
-						try{
-							ToolTipManager.destroyToolTip(myTip);
-						}
-						catch(error:Error){}
-						break;
-					}
-					case ListEvent.CHANGE:{
-						//destroy the created tooltip, so that we can create a new one for others.
-						try{
-							ToolTipManager.destroyToolTip(myTip);
-						}
-						catch(error:Error){}
-						break;
-					}
-				}
-			}
-			
 			protected function init(event:FlexEvent):void
 			{
 				txtSearch.addEventListener(FlexEvent.ENTER, dChange);
@@ -193,7 +153,17 @@
 	</fx:Script>
 	<s:RichEditableText id="prompt" width="100%" text="{_prompt}" paddingLeft="2" selectable="true" editable="false" tabEnabled="false" tabFocusEnabled="false"/>
 	<s:TextInput id="txtSearch" width="99%" />
-	<mx:ComboBox id="cbSearch" creationComplete="{cbSearch.width = _wTemplateWidth - 42; fnInit();}"
-				 change="dChange(event)" visible="false" includeInLayout="false" 
-				 labelField="label"/>
+	<s:DropDownList id="cbSearch" creationComplete="{cbSearch.width = _wTemplateWidth - 42; }"
+				 change="dChange(event)" visible="false" includeInLayout="false"
+				 labelField="label">
+		<s:itemRenderer>
+			<fx:Component>
+				<s:ItemRenderer toolTip="{data.label}">
+					<s:Group verticalCenter="0" left="6" right="6" top="6" bottom="4">
+						<s:Label text="{data.label}"/>
+					</s:Group>
+				</s:ItemRenderer>
+			</fx:Component>
+		</s:itemRenderer>
+	</s:DropDownList>
 </s:VGroup>

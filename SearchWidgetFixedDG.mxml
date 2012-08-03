@@ -8,8 +8,8 @@
 				   widgetConfigLoaded="init()">
 	
 	<fx:Declarations>
-		<mx:Move id="panelOut" yTo="0" duration="0" startDelay="0"/>
-		<mx:Move id="panelIn" yTo="175"  duration="2000"  />	
+		<s:Move id="panelOut" yTo="0" duration="0" startDelay="0"/>
+		<s:Move id="panelIn" yTo="175"  duration="2000"  />
 	</fx:Declarations>
 	
 	<fx:Script>
@@ -34,11 +34,10 @@
 			import com.esri.viewer.ViewerContainer;
 			
 			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
 			import mx.collections.IViewCursor;
 			import mx.controls.Alert;
-			import mx.controls.DataGrid;
 			import mx.controls.Menu;
-			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.FlexGlobals;
 			import mx.core.Repeater;
 			import mx.core.UIComponent;
@@ -46,23 +45,26 @@
 			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
 			import mx.events.MenuEvent;
-			import mx.formatters.CurrencyFormatter;
-			import mx.formatters.DateFormatter;
-			import mx.formatters.NumberFormatter;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
 			import spark.collections.Sort;
 			import spark.collections.SortField;
 			import spark.components.Button;
+			import spark.components.DataGrid;
+			import spark.components.gridClasses.GridColumn;
+			import spark.formatters.CurrencyFormatter;
+			import spark.formatters.DateTimeFormatter;
+			import spark.formatters.NumberFormatter;
+			import spark.events.GridEvent;
 			
 			import widgets.eSearch.skins.PopUpRendererSkin;
 			
 			[Bindable]
 			private var appWidth:Number;
 			
-			private var _data:Object;
-			private var _rdata:Object;
+			private var _data:Array;
+			private var _rdata:Array;
 			private var _graLyr:GraphicsLayer;
 			private var _featLayer:FeatureLayer;
 			private var highlightedGraphic:Graphic;
@@ -80,7 +82,7 @@
 			private var hypercols:ArrayCollection;
 			private var _csvName:String;
 			private var _rcsvName:String;
-			private var dateFormatter:DateFormatter = new DateFormatter();
+			private var dateFormatter:DateTimeFormatter = new DateTimeFormatter();
 			private var numFormatter:NumberFormatter = new NumberFormatter();
 			private var currFormatter:CurrencyFormatter = new CurrencyFormatter();
 			private var _dateFormat:String = "";
@@ -96,6 +98,8 @@
 			[Bindable] private var sumVisible:Boolean;
 			[Bindable] private var _labelSum:String;
 			[Bindable] private var _hasRelates:Boolean;
+			[Bindable] private var _relateTooltip:String = "Show Relates";
+			[Bindable] private var _relateIcon:String = "widgets/eSearch/assets/images/i_relate.png";
 			private var _sumField:String = "";
 			private var sortDetails:String = "";
 			private var rsortDetails:String = "";
@@ -108,7 +112,6 @@
 			[Bindable] private var _rlabelSum:String;
 			private var _rsumField:String = "";
 			
-			private var sortArr:Array = [];
 			private var sortAC:ArrayCollection;
 			private var dgSort:Sort = new Sort();
 			private var rsortArr:Array = [];
@@ -186,29 +189,30 @@
 			
 			private function dgColumns(value:Array):void
 			{
-				resultsGrid.columns = [];
+				resultsGrid.columns = null;
 				sumFormat = "";
 				sortDetails = "";
-				sortArr = [];
 				sortAC = new ArrayCollection();
 				_dgColumns = value;
 				var args:Array;
 				var sortFld:SortField;
-				var dgCol:DataGridColumn;
+				var dgCol:GridColumn;
 				var jdgCol:joinDataGridColumn;
-				var dgColArr:Array = [];
+				var dgColArr:ArrayList = new ArrayList();
 				if(_hasRelates){
-					dgCol = new DataGridColumn();
+					dgCol = new GridColumn();
 					dgCol.dataField = "icon";
-					dgCol.headerText = "Relate(s)";
 					dgCol.width = 65;
+					dgCol.dataTipField = _relateIcon;
+					dgCol.showDataTips = false;
+					dgCol.headerText = "Relate(s)";
 					dgCol.labelFunction = getFileName;
-					dgCol.itemRenderer = new ClassFactory(CenteredEmbededImage);
-					dgColArr.push(dgCol);
+					dgCol.itemRenderer = new ClassFactory(widgets.eSearch.HyperLinkIconColumn);
+					dgColArr.addItem(dgCol);
 				}
 				for(var i:int=0; i < _dgColumns.length; i++){
 					var cArr:Array = _dgColumns[i].split("~");						
-					dgCol= new DataGridColumn(cArr[0]);
+					dgCol= new GridColumn(cArr[0]);
 					if(cArr[0].indexOf( "." ) != -1){
 						jdgCol= new joinDataGridColumn(cArr[0]);
 						jdgCol.labelFunction = getLabel;
@@ -237,17 +241,19 @@
 						if (cArr[6] != "NA"){
 							sortDetails = cArr[6];
 							args = sortDetails.split("|");
-							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
-							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
-							sortAC.addItem({data: sortFld,index: parseInt(args[1])});
+							jdgCol.sortDescending = (args[0] == "asc")?false:true;
+							if(args[2] == "date"){
+								jdgCol.sortCompareFunction = date_sortCompareFunc;
+							}
+							sortAC.addItem({data: jdgCol,index: parseInt(args[1])});
 						}
 						if (_dgFieldAliases)
 							jdgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
 							jdgCol.headerText = cArr[1];
-						dgColArr.push(jdgCol);
+						dgColArr.addItem(jdgCol);
 					}else{
-						dgCol= new DataGridColumn(cArr[0]);
+						dgCol= new GridColumn(cArr[0]);
 						dgCol.labelFunction = getLabel;
 						if (cArr[2] != "NA"){
 							dgCol.labelFunction = getDateLbl;
@@ -274,46 +280,49 @@
 						if (cArr[6] != "NA"){
 							sortDetails = cArr[6];
 							args = sortDetails.split("|");
-							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
-							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
-							sortAC.addItem({data: sortFld,index: parseInt(args[1])});
+							dgCol.sortDescending = (args[0] == "asc")?false:true;
+							if(args[2] == "date"){
+								dgCol.sortCompareFunction = date_sortCompareFunc;
+							}
+							sortAC.addItem({data: dgCol,index: parseInt(args[1])});
 						}
 						if (_dgFieldAliases)
 							dgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
 							dgCol.headerText = cArr[1];
-						dgColArr.push(dgCol);
+						dgColArr.addItem(dgCol);
 					}
 				}
-				dgCol= new DataGridColumn("oid");
+				dgCol = new GridColumn("oid");
 				dgCol.visible = false;
-				dgColArr.push(dgCol);
+				dgColArr.addItem(dgCol);
 				resultsGrid.columns = dgColArr;
+				(resultsGrid.columns.getItemAt(resultsGrid.columnsLength - 1) as GridColumn).width = NaN;
 			}
 			
-			private function date_sortCompareFunc(itemA:Object, itemB:Object, fields:Array = null):int {
-				var dateA:Date = new Date(Date.parse(itemA.COMPLETION));
-				var dateB:Date = new Date(Date.parse(itemB.COMPLETION));
+			private function date_sortCompareFunc(itemA:Object, itemB:Object, column:GridColumn = null):int
+			{
+				var dateA:Date = new Date(itemA[column.dataField]);
+				var dateB:Date = new Date(itemB[column.dataField]);
 				return ObjectUtil.dateCompare(dateA, dateB);
 			}
 
 			private function rdgColumns(value:Array):void
 			{
-				relatesGrid.columns = [];
+				relatesGrid.columns = null;
 				rsumFormat = "";
 				rsortDetails = "";
 				_rdgColumns = value;
 				rsortArr = [];
 				rsortAC = new ArrayCollection();
 				var args:Array;
-				var sortFld:SortField;
-				var dgCol:DataGridColumn;
+				var dgCol:GridColumn;
 				var jdgCol:joinDataGridColumn;
-				var dgColArr:Array = [];
+				var dgColArr:ArrayList = new ArrayList();
 				for(var i:int=0; i < _rdgColumns.length; i++)
 				{
 					var cArr:Array = _rdgColumns[i].split("~");						
-					dgCol= new DataGridColumn(cArr[0]);
+					dgCol= new GridColumn(cArr[0]);
 					if(cArr[0].indexOf( "." ) != -1){
 						jdgCol= new joinDataGridColumn(cArr[0]);
 						jdgCol.labelFunction = getLabel;
@@ -342,17 +351,19 @@
 						if (cArr[6] != "NA"){
 							rsortDetails = cArr[6];
 							args = rsortDetails.split("|");
-							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
-							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
-							rsortAC.addItem({data: sortFld,index: parseInt(args[1])});
+							jdgCol.sortDescending = (args[0] == "asc")?false:true;
+							if(args[2] == "date"){
+								jdgCol.sortCompareFunction = date_sortCompareFunc;
+							}
+							rsortAC.addItem({data: jdgCol,index: parseInt(args[1])});
 						}
 						if (_dgFieldAliases)
 							jdgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
 							jdgCol.headerText = cArr[1];
-						dgColArr.push(jdgCol);
+						dgColArr.addItem(jdgCol);
 					}else{
-						dgCol= new DataGridColumn(cArr[0]);
+						dgCol= new GridColumn(cArr[0]);
 						dgCol.labelFunction = getLabel;
 						if (cArr[2] != "NA"){
 							dgCol.labelFunction = getDateLbl;
@@ -379,21 +390,24 @@
 						if (cArr[6] != "NA"){
 							rsortDetails = cArr[6];
 							args = rsortDetails.split("|");
-							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
-							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
-							rsortAC.addItem({data: sortFld,index: parseInt(args[1])});
+							dgCol.sortDescending = (args[0] == "asc")?false:true;
+							if(args[2] == "date"){
+								dgCol.sortCompareFunction = date_sortCompareFunc;
+							}
+							rsortAC.addItem({data: dgCol, index: parseInt(args[1])});
 						}
 						if (_rdgFieldAliases)
 							dgCol.headerText = _rdgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
 							dgCol.headerText = cArr[1];
-						dgColArr.push(dgCol);
+						dgColArr.addItem(dgCol);
 					}
 				}
-				dgCol= new DataGridColumn("oid");
+				dgCol= new GridColumn("oid");
 				dgCol.visible = false;
-				dgColArr.push(dgCol);
+				dgColArr.addItem(dgCol);
 				relatesGrid.columns = dgColArr;
+				(relatesGrid.columns.getItemAt(relatesGrid.columnsLength - 1) as GridColumn).width = NaN;
 			}
 		
 			private function exportTo(event:Event):void
@@ -410,7 +424,7 @@
 					}
 					
 					var fileReference:FileReference = new FileReference();
-					fileReference.save(data,defaultFileName);
+					fileReference.save(data, defaultFileName);
 				}
 				catch(error:Error){
 					Alert.show(error.message);
@@ -452,7 +466,7 @@
 				
 				if (dateFormat)
 				{
-					dateFormatter.formatString = dateFormat;
+					dateFormatter.dateTimePattern = dateFormat;
 					var result:String = dateFormatter.format(date);
 					if (result)
 					{
@@ -460,7 +474,7 @@
 					}
 					else
 					{
-						return dateFormatter.error;
+						return dateFormatter.errorText;
 					}
 				}
 				else
@@ -473,12 +487,12 @@
 			{
 				try{
 					var data:String = "";
-					var columnArray:Array = dataGrid.columns;
+					var columnArray:ArrayList = dataGrid.columns as ArrayList;
 					var columnCount:int = columnArray.length;
-					var dataGridColumn:DataGridColumn;
+					var dataGridColumn:GridColumn;
 					var header:String = "";
 					var headerGenerated:Boolean = false;
-					var dataProvider:Object = ObjectUtil.copy(dataGrid.dataProvider);
+					var dataProvider:ArrayCollection = ObjectUtil.copy(dataGrid.dataProvider) as ArrayCollection;
 					
 					//trace(ObjectUtil.toString(dataProvider));
 					var rowCount:int = dataProvider.length;
@@ -487,20 +501,19 @@
 					var j:int = 0;
 					
 					//loop through rows
-					while (!cursor.afterLast)
-					{
+					while (!cursor.afterLast){
 						var object:Object = null;
 						object = cursor.current;
 						//loop through all columns for the row
 						for(var i:int = 0; i < columnCount; i++)
 						{
-							dataGridColumn = columnArray[i];
+							dataGridColumn = columnArray.getItemAt(i) as GridColumn;
 							//Exclude column data which is invisible (hidden)
 							if(!dataGridColumn.visible)
 								continue;
 							if(dataGridColumn.dataField == "icon")
 								continue;
-							if(dataGridColumn.itemRenderer){
+							if((dataGridColumn.itemRenderer == HyperLinkColumn)||(dataGridColumn.itemRenderer == HyperLinkIconColumn)){
 								if(object[dataGridColumn.dataField] != null)
 									data += "\"" + object[dataGridColumn.dataField] + "\"";
 								else
@@ -542,12 +555,12 @@
 			{
 				try{
 					var data:String = "";
-					var columnArray:Array = dataGrid.columns;
+					var columnArray:ArrayList = dataGrid.columns as ArrayList;
 					var columnCount:int = columnArray.length;
-					var dataGridColumn:DataGridColumn;
+					var dataGridColumn:GridColumn;
 					var header:String = "";
 					var headerGenerated:Boolean = false;
-					var dataProvider:Object = ObjectUtil.copy(dataGrid.dataProvider);
+					var dataProvider:ArrayCollection = ObjectUtil.copy(dataGrid.dataProvider) as ArrayCollection;
 					
 					var rowCount:int = dataProvider.length;
 					var dp:Object = null;
@@ -560,13 +573,13 @@
 						object = cursor.current;
 						//loop through all columns for the row
 						for(var i:int = 0; i < columnCount; i++){
-							dataGridColumn = columnArray[i];
+							dataGridColumn = columnArray.getItemAt(i) as GridColumn;
 							//Exclude column data which is invisible (hidden)
 							if(!dataGridColumn.visible)
 								continue;
 							if(dataGridColumn.dataField == "icon")
 								continue;
-							if(dataGridColumn.itemRenderer){
+							if((dataGridColumn.itemRenderer == HyperLinkColumn)||(dataGridColumn.itemRenderer == HyperLinkIconColumn)){
 								if(object[dataGridColumn.dataField] != null)
 									data += "\"" + object[dataGridColumn.dataField] + "\"";
 								else
@@ -607,7 +620,7 @@
 			
 			// this is going to be executed when ever the data provider changes:
 			[Bindable("dataChange")]
-			private function calcMaxLengths(input:Object):Object {
+			private function calcMaxLengths(input:Array):Array {
 				// if there are items in the DP:
 				if ( input.length > 0 ) {
 					// and no SPECIAL child exists:
@@ -667,29 +680,29 @@
 				
 				// apply column sizes:
 				for ( key in maxLengths ) {
-					for ( i=0; i<resultsGrid.columnCount; i++ ) {
+					for ( i=0; i<resultsGrid.columnsLength; i++ ) {
 						// if the column actually exists:
-						if ( DataGridColumn(resultsGrid.columns[i]).dataField.toUpperCase() == key.toUpperCase() ) {
-							var cellMetrics2:TextLineMetrics = renderer.measureText(DataGridColumn(resultsGrid.columns[i]).headerText+"");
+						if ( GridColumn(resultsGrid.columns.getItemAt(i)).dataField.toUpperCase() == key.toUpperCase() ) {
+							var cellMetrics2:TextLineMetrics = renderer.measureText(GridColumn(resultsGrid.columns.getItemAt(i)).headerText+"");
 							if ( cellMetrics2.width + 18 > Number(maxLengths[key]) + 12 ) {
-								DataGridColumn(resultsGrid.columns[i]).width = cellMetrics2.width + 18;
+								GridColumn(resultsGrid.columns.getItemAt(i)).width = cellMetrics2.width + 18;
 							} else {
-								DataGridColumn(resultsGrid.columns[i]).width = Number(maxLengths[key]) + 12;
+								GridColumn(resultsGrid.columns.getItemAt(i)).width = Number(maxLengths[key]) + 12;
 							}							
 						}
 					}
 				}
 				//Now check if a hyperlink field has an alias and set the field width based on that alias or the header text
 				for each (var obj:Object in hypercols){
-					for ( i=0; i<resultsGrid.columnCount; i++ ) {
-						if ( DataGridColumn(resultsGrid.columns[i]).dataField.toUpperCase() == obj.field.toUpperCase()) {
+					for ( i=0; i<resultsGrid.columnsLength; i++ ) {
+						if ( GridColumn(resultsGrid.columns.getItemAt(i)).dataField.toUpperCase() == obj.field.toUpperCase()) {
 							if(obj.alias != "NA"){
-								cellMetrics2 = renderer.measureText(DataGridColumn(resultsGrid.columns[i]).headerText+"");
+								cellMetrics2 = renderer.measureText(GridColumn(resultsGrid.columns.getItemAt(i)).headerText+"");
 								var cellMetrics3:TextLineMetrics = renderer.measureText(obj.alias + "");
 								if(cellMetrics3.width + 18 < cellMetrics2.width + 18){
-									DataGridColumn(resultsGrid.columns[i]).width = cellMetrics2.width + 18;
+									GridColumn(resultsGrid.columns.getItemAt(i)).width = cellMetrics2.width + 18;
 								}else{
-									DataGridColumn(resultsGrid.columns[i]).width = cellMetrics3.width + 18;
+									GridColumn(resultsGrid.columns.getItemAt(i)).width = cellMetrics3.width + 18;
 								}
 							}
 						}
@@ -704,7 +717,7 @@
 			
 			// this is going to be executed when ever the data provider changes:
 			[Bindable("dataChange")]
-			private function rcalcMaxLengths(input:Object):Object {
+			private function rcalcMaxLengths(input:Array):Array {
 				// if there are items in the DP:
 				if ( input.length > 0 ) {
 					// and no SPECIAL child exists:
@@ -764,29 +777,29 @@
 				
 				// apply column sizes:
 				for ( key in maxLengths ) {
-					for ( i=0; i<relatesGrid.columnCount; i++ ) {
+					for ( i=0; i<relatesGrid.columnsLength; i++ ) {
 						// if the column actually exists:
-						if ( DataGridColumn(relatesGrid.columns[i]).dataField.toUpperCase() == key.toUpperCase() ) {
-							var cellMetrics2:TextLineMetrics = renderer.measureText(DataGridColumn(relatesGrid.columns[i]).headerText+"");
+						if ( GridColumn(relatesGrid.columns.getItemAt(i)).dataField.toUpperCase() == key.toUpperCase() ) {
+							var cellMetrics2:TextLineMetrics = renderer.measureText(GridColumn(relatesGrid.columns.getItemAt(i)).headerText+"");
 							if ( cellMetrics2.width + 18 > Number(maxLengths[key]) + 12 ) {
-								DataGridColumn(relatesGrid.columns[i]).width = cellMetrics2.width + 18;
+								GridColumn(relatesGrid.columns.getItemAt(i)).width = cellMetrics2.width + 18;
 							} else {
-								DataGridColumn(relatesGrid.columns[i]).width = Number(maxLengths[key]) + 12;
+								GridColumn(relatesGrid.columns.getItemAt(i)).width = Number(maxLengths[key]) + 12;
 							}							
 						}
 					}
 				}
 				//Now check if a hyperlink field has an alias and set the field width based on that alias or the header text
 				for each (var obj:Object in rhypercols){
-					for ( i=0; i<relatesGrid.columnCount; i++ ) {
-						if ( DataGridColumn(relatesGrid.columns[i]).dataField.toUpperCase() == obj.field.toUpperCase()) {
+					for ( i=0; i<relatesGrid.columnsLength; i++ ) {
+						if ( GridColumn(relatesGrid.columns.getItemAt(i)).dataField.toUpperCase() == obj.field.toUpperCase()) {
 							if(obj.alias != "NA"){
-								cellMetrics2 = renderer.measureText(DataGridColumn(relatesGrid.columns[i]).headerText+"");
+								cellMetrics2 = renderer.measureText(GridColumn(relatesGrid.columns.getItemAt(i)).headerText+"");
 								var cellMetrics3:TextLineMetrics = renderer.measureText(obj.alias + "");
 								if(cellMetrics3.width + 18 < cellMetrics2.width + 18){
-									DataGridColumn(relatesGrid.columns[i]).width = cellMetrics2.width + 18;
+									GridColumn(relatesGrid.columns.getItemAt(i)).width = cellMetrics2.width + 18;
 								}else{
-									DataGridColumn(relatesGrid.columns[i]).width = cellMetrics3.width + 18;
+									GridColumn(relatesGrid.columns.getItemAt(i)).width = cellMetrics3.width + 18;
 								}
 							}
 						}
@@ -796,12 +809,12 @@
 				removeElement(uic);
 			}
 			
-			private function getLabel(item:Object,column:DataGridColumn):String
+			private function getLabel(item:Object,column:GridColumn):String
 			{
 				return item[column.dataField];
 			}
 			
-			private function getDateLbl(item:Object,column:DataGridColumn):String
+			private function getDateLbl(item:Object,column:GridColumn):String
 			{
 				var dateMS:Number = Number(item[column.dataField]);
 				var retVal:String = "";
@@ -815,50 +828,48 @@
 				return retVal;
 			}
 			
-			private function getNumLbl(item:Object,column:DataGridColumn):String
+			private function getNumLbl(item:Object,column:GridColumn):String
 			{
 				var args:Array = _numFormat.split("|");
 				if(args[0])
-					numFormatter.precision = args[0];
+					numFormatter.fractionalDigits = args[0];
 				if(args[1]){
-					numFormatter.thousandsSeparatorFrom = args[1];
-					numFormatter.thousandsSeparatorTo = args[1];
+					numFormatter.groupingSeparator = args[1];
+					numFormatter.useGrouping = true;
 				}else{
-					numFormatter.useThousandsSeparator = false;
+					numFormatter.useGrouping = false;
 				}
 				if(args[2]){
-					numFormatter.decimalSeparatorFrom = args[2];
-					numFormatter.decimalSeparatorTo = args[2];
+					numFormatter.decimalSeparator = args[2];
 				}
 				return numFormatter.format(item[column.dataField]);
 			}
 			
-			private function getCurrLbl(item:Object,column:DataGridColumn):String
+			private function getCurrLbl(item:Object,column:GridColumn):String
 			{
 				var args:Array = _currFormat.split("|");
 				if(args[0])
 					currFormatter.currencySymbol = args[0];
 				if(args[1])
-					currFormatter.precision = args[1];
+					currFormatter.fractionalDigits = args[1];
 				if(args[2]){
-					currFormatter.thousandsSeparatorFrom = args[2];
-					currFormatter.thousandsSeparatorTo = args[2];
+					currFormatter.groupingSeparator = args[2];
+					currFormatter.useGrouping = true;
 				}else{
-					currFormatter.useThousandsSeparator = false;
+					currFormatter.useGrouping = false;
 				}
 				if(args[3]){
-					currFormatter.decimalSeparatorFrom = args[3];
-					currFormatter.decimalSeparatorTo = args[3];
+					currFormatter.decimalSeparator = args[3];
 				}
 				return currFormatter.format(item[column.dataField]);
 			}
 			
-			private function labelFunc2(item:Object, column:DataGridColumn):String
+			private function labelFunc2(item:Object, column:GridColumn):String
 			{
 				return item[column.dataField];
 			}
 			
-			private function labelFunc(item:Object, column:DataGridColumn):String
+			private function labelFunc(item:Object, column:GridColumn):String
 			{
 				var retVal:String = "Get Hyperlink";
 				for each (var obj:Object in hypercols){
@@ -876,13 +887,13 @@
 			private function dgHyperColumns(value:Array):void
 			{
 				_dgHyperColumns = value;
-				var dgCol:DataGridColumn;
-				var dgColArr:Array = resultsGrid.columns;
+				var dgCol:GridColumn;
+				var dgColArr:ArrayList = resultsGrid.columns as ArrayList;
 				hypercols = new ArrayCollection();
 				for(var i:int=0; i < _dgHyperColumns.length; i++){
 					var cArr:Array = _dgHyperColumns[i].split("~");
-					hypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4]});
-					dgCol= new DataGridColumn(cArr[0]);
+					hypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4], icon: cArr[5]});
+					dgCol= new GridColumn(cArr[0]);
 					dgCol.labelFunction = labelFunc2;
 					if (cArr[2] != "NA")
 						dgCol.labelFunction = labelFunc;
@@ -890,8 +901,14 @@
 						dgCol.headerText = _dgFieldAliases[cArr[0]];
 					if (cArr[1] != "NA")
 						dgCol.headerText = cArr[1];
-					dgCol.itemRenderer = new ClassFactory(HyperLinkColumn);						
-					dgColArr.push(dgCol);
+					if (cArr[5] != "NA"){
+						dgCol.dataTipField = cArr[5];
+						dgCol.showDataTips = false;
+						dgCol.itemRenderer = new ClassFactory(widgets.eSearch.HyperLinkIconColumn);
+					}else{
+						dgCol.itemRenderer = new ClassFactory(widgets.eSearch.HyperLinkColumn);
+					}
+					dgColArr.addItem(dgCol);
 				}
 				resultsGrid.columns = dgColArr;
 			}
@@ -899,13 +916,13 @@
 			private function rdgHyperColumns(value:Array):void
 			{
 				_rdgHyperColumns = value;
-				var dgCol:DataGridColumn;
-				var dgColArr:Array = relatesGrid.columns;
+				var dgCol:GridColumn;
+				var dgColArr:ArrayList = relatesGrid.columns as ArrayList;
 				rhypercols = new ArrayCollection();
 				for(var i:int=0; i < _rdgHyperColumns.length; i++){
 					var cArr:Array = _rdgHyperColumns[i].split("~");
-					rhypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4]});
-					dgCol= new DataGridColumn(cArr[0]);
+					rhypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4], icon: cArr[5]});
+					dgCol= new GridColumn(cArr[0]);
 					dgCol.labelFunction = labelFunc2;
 					if (cArr[2] != "NA")
 						dgCol.labelFunction = labelFunc;
@@ -913,15 +930,21 @@
 						dgCol.headerText = _rdgFieldAliases[cArr[0]];
 					if (cArr[1] != "NA")
 						dgCol.headerText = cArr[1];
-					dgCol.itemRenderer = new ClassFactory(HyperLinkColumn);						
-					dgColArr.push(dgCol);
+					if (cArr[5] != "NA"){
+						dgCol.dataTipField = cArr[5];
+						dgCol.showDataTips = false;
+						dgCol.itemRenderer = new ClassFactory(widgets.eSearch.HyperLinkIconColumn);
+					}else{
+						dgCol.itemRenderer = new ClassFactory(widgets.eSearch.HyperLinkColumn);
+					}
+					dgColArr.addItem(dgCol);
 				}
 				relatesGrid.columns = dgColArr;
 			}
 
 			private function dProvider(value:Object):void
 			{
-				_data = ObjectUtil.copy(value);
+				_data = ObjectUtil.copy(value) as Array;
 				for each(var attributes:Object in _data){
 					for(var i:int=0; i<hypercols.length; i++){
 						//concatenate if
@@ -970,7 +993,10 @@
 						}
 					} 
 				}
-				resultsGrid.dataProvider = calcMaxLengths(_data);
+				resultsGrid.dataProvider = new ArrayCollection(calcMaxLengths(_data));
+				var reset:Vector.<int> = Vector.<int>([]);
+				resultsGrid.columnHeaderGroup.visibleSortIndicatorIndices = reset;
+				
 				if(_sumField){
 					try{
 						var total:Number = 0;
@@ -980,33 +1006,31 @@
 						if(sumFormat == "num"){
 							var args:Array = _numFormat.split("|");
 							if(args[0])
-								numFormatter.precision = args[0];
+								numFormatter.fractionalDigits = args[0];
 							if(args[1]){
-								numFormatter.thousandsSeparatorFrom = args[1];
-								numFormatter.thousandsSeparatorTo = args[1];
+								numFormatter.groupingSeparator = args[1];
+								numFormatter.useGrouping = true;
 							}else{
-								numFormatter.useThousandsSeparator = false;
+								numFormatter.useGrouping = false;
 							}
 							if(args[2]){
-								numFormatter.decimalSeparatorFrom = args[2];
-								numFormatter.decimalSeparatorTo = args[2];
+								numFormatter.decimalSeparator = args[2];
 							}
 							taSum.text = numFormatter.format(total);
 						}else if(sumFormat == "cur"){
 							var args2:Array = _currFormat.split("|");
-							if(args2[0])
-								currFormatter.currencySymbol = args2[0];
-							if(args2[1])
-								currFormatter.precision = args2[1];
-							if(args2[2]){
-								currFormatter.thousandsSeparatorFrom = args2[2];
-								currFormatter.thousandsSeparatorTo = args2[2];
+							if(args[0])
+								currFormatter.currencySymbol = args[0];
+							if(args[1])
+								currFormatter.fractionalDigits = args[1];
+							if(args[2]){
+								currFormatter.groupingSeparator = args[2];
+								currFormatter.useGrouping = true;
 							}else{
-								currFormatter.useThousandsSeparator = false;
+								currFormatter.useGrouping = false;
 							}
-							if(args2[3]){
-								currFormatter.decimalSeparatorFrom = args2[3];
-								currFormatter.decimalSeparatorTo = args2[3];
+							if(args[3]){
+								currFormatter.decimalSeparator = args[3];
 							}
 							taSum.text = currFormatter.format(total);
 						}else{
@@ -1017,18 +1041,17 @@
 						sumVisible = false;
 					}
 				}
-				
-				var dgAc:ArrayCollection = resultsGrid.dataProvider as ArrayCollection;
 				var isrt:Sort = new Sort();
 				isrt.fields = [new SortField("index",false,true)];
 				sortAC.sort = isrt;
 				sortAC.refresh();
+				var sortArr:Array = [];
 				for(var s:int = 0; s < sortAC.length; s++){
-					sortArr.push(sortAC[s].data);
+					sortArr.push(resultsGrid.columns.getItemIndex(sortAC[s].data));
 				}
-				dgSort.fields = sortArr;
-				dgAc.sort = dgSort;
-				dgAc.refresh();
+				
+				var columnIndexes:Vector.<int> = Vector.<int>(sortArr);
+				resultsGrid.sortByColumns(columnIndexes, true);
 			}
 			
 			private function getFeatureType(typeID:String, lDtls:LayerDetails):FeatureType
@@ -1047,7 +1070,7 @@
 			
 			private function rdProvider(value:Object):void
 			{
-				_rdata = ObjectUtil.copy(value);
+				_rdata = ObjectUtil.copy(value)  as Array;
 				for each(var attributes:Object in _rdata){
 					for(var i:int=0; i<rhypercols.length; i++){
 						//concatenate if
@@ -1091,7 +1114,10 @@
 						}
 					} 
 				} 
-				relatesGrid.dataProvider = rcalcMaxLengths(_rdata);
+				relatesGrid.dataProvider = new ArrayCollection(rcalcMaxLengths(_rdata));
+				var reset:Vector.<int> = Vector.<int>([]);
+				relatesGrid.columnHeaderGroup.visibleSortIndicatorIndices = reset;
+				
 				if(_rsumField){
 					try{
 						var total:Number = 0;
@@ -1101,33 +1127,31 @@
 						if(rsumFormat == "num"){
 							var args:Array = _numFormat.split("|");
 							if(args[0])
-								numFormatter.precision = args[0];
+								numFormatter.fractionalDigits = args[0];
 							if(args[1]){
-								numFormatter.thousandsSeparatorFrom = args[1];
-								numFormatter.thousandsSeparatorTo = args[1];
+								numFormatter.groupingSeparator = args[1];
+								numFormatter.useGrouping = true;
 							}else{
-								numFormatter.useThousandsSeparator = false;
+								numFormatter.useGrouping = false;
 							}
 							if(args[2]){
-								numFormatter.decimalSeparatorFrom = args[2];
-								numFormatter.decimalSeparatorTo = args[2];
+								numFormatter.decimalSeparator = args[2];
 							}
 							rtaSum.text = numFormatter.format(total);
 						}else if(rsumFormat == "cur"){
 							var args2:Array = _currFormat.split("|");
-							if(args2[0])
-								currFormatter.currencySymbol = args2[0];
-							if(args2[1])
-								currFormatter.precision = args2[1];
-							if(args2[2]){
-								currFormatter.thousandsSeparatorFrom = args2[2];
-								currFormatter.thousandsSeparatorTo = args2[2];
+							if(args[0])
+								currFormatter.currencySymbol = args[0];
+							if(args[1])
+								currFormatter.fractionalDigits = args[1];
+							if(args[2]){
+								currFormatter.groupingSeparator = args[2];
+								currFormatter.useGrouping = true;
 							}else{
-								currFormatter.useThousandsSeparator = false;
+								currFormatter.useGrouping = false;
 							}
-							if(args2[3]){
-								currFormatter.decimalSeparatorFrom = args2[3];
-								currFormatter.decimalSeparatorTo = args2[3];
+							if(args[3]){
+								currFormatter.decimalSeparator = args[3];
 							}
 							rtaSum.text = currFormatter.format(total);
 						}else{
@@ -1139,17 +1163,17 @@
 					}
 				}
 				
-				var dgAc:ArrayCollection = relatesGrid.dataProvider as ArrayCollection;
 				var isrt:Sort = new Sort();
 				isrt.fields = [new SortField("index",false,true)];
 				rsortAC.sort = isrt;
 				rsortAC.refresh();
+				var rsortArr:Array = [];
 				for(var s:int = 0; s < rsortAC.length; s++){
-					rsortArr.push(rsortAC[s].data);
+					rsortArr.push(relatesGrid.columns.getItemIndex(rsortAC[s].data));
 				}
-				rdgSort.fields = rsortArr;
-				dgAc.sort = rdgSort;
-				dgAc.refresh();
+				
+				var columnIndexes:Vector.<int> = Vector.<int>(rsortArr);
+				relatesGrid.sortByColumns(columnIndexes, true);
 			}
 			
 			private function panel_rollOutHandler(event:MouseEvent):void
@@ -1192,6 +1216,8 @@
 						_enableExport = theObj.enableExport;
 						_widgetInteract = theObj.widgetInteract;
 						_disableRelateTab = (theObj.disableRelateTab)?false:true;
+						_relateIcon = theObj.relateIcon;
+						_relateTooltip = theObj.relateToolTip;
 						tabs.selectedIndex = 0;
 					}
 				}
@@ -1207,6 +1233,8 @@
 						rdgHyperColumns(therObj.dgHyperColumns);
 						rdProvider(therObj.dProvider);
 						_renableExport = therObj.enableExport;
+						_relateIcon = therObj.relateIcon;
+						_relateTooltip = therObj.relateToolTip;
 						if(!_disableRelateTab)
 							_disableRelateTab == true;
 					}
@@ -1216,6 +1244,10 @@
 					}else{
 						relatesGrid.dataProvider.removeAll();
 						rsumVisible = false;
+						_rlabelSum = "";
+						//Reset the datagrids sort indicators
+						var rreset:Vector.<int> = Vector.<int>([]);
+						relatesGrid.columnHeaderGroup.visibleSortIndicatorIndices = rreset;
 						_renableExport = false;
 					}
 				}
@@ -1223,7 +1255,11 @@
 					if(resultsGrid.dataProvider == null || resultsGrid.dataProvider.length == 0){
 					}else{
 						resultsGrid.dataProvider.removeAll();
+						//Reset the datagrids sort indicators
+						var reset:Vector.<int> = Vector.<int>([]);
+						resultsGrid.columnHeaderGroup.visibleSortIndicatorIndices = reset;
 						sumVisible = false;
+						_labelSum = "";
 						_enableExport = false;
 					}
 				}
@@ -1233,7 +1269,7 @@
 						Hits.length = 0;
 						for each(var attributes:Object in resultsGrid.dataProvider){
 							if (attributes.oid === theObj2.searchResultoid){
-								var myCursor:IViewCursor = resultsGrid.dataProvider.createCursor();
+								var myCursor:IViewCursor = (resultsGrid.dataProvider as ArrayCollection).createCursor();
 								while(!myCursor.afterLast){
 									if(myCursor.current.oid == attributes.oid)
 										Hits.push(myCursor.current);
@@ -1243,7 +1279,7 @@
 							}
 						}
 						if(resultsGrid.selectedIndex > -1)
-							resultsGrid.scrollToIndex(resultsGrid.selectedIndex);
+							resultsGrid.ensureCellIsVisible(resultsGrid.selectedIndex);
 					}
 				}
 				if (data.key == "switch2RelateTabFixedDataGrid"){
@@ -1255,9 +1291,11 @@
 				}
 			}
 	
-			private function onItemRollOver(event:ListEvent):void
+			private function onItemRollOver(event:GridEvent):void
 			{
-				if(_widgetInteract){
+				if(_widgetInteract  && _bWidget){
+					if(!event.itemRenderer || !event.itemRenderer.data)
+						return;
 					_bWidget.highlightDataGroupItemByOID(event.itemRenderer.data.oid);
 					var searchResult:* = findSearchResultByOID(event.itemRenderer.data.oid);
 					if(searchResult.graphic){
@@ -1335,7 +1373,7 @@
 				}
 			}
 			
-			private function onItemRollOut(event:ListEvent):void
+			private function onItemRollOut(event:GridEvent):void
 			{
 				if(_widgetInteract){
 					_bWidget.unhighlightDataGroupItems();
@@ -1355,15 +1393,17 @@
 				return retSR;
 			}
 			
-			private function clickRow(event:ListEvent):void
+			private function clickRow(event:GridEvent):void
 			{
+				if(!event.itemRenderer || !event.itemRenderer.data)
+					return;
 				var searchResult:* = findSearchResultByOID(event.itemRenderer.data.oid);
 				if(!searchResult.graphic){
-					if(event.itemRenderer is CenteredEmbededImage)
+					if(event.itemRenderer is HyperLinkIconColumn)
 						_bWidget.standaloneRelate(event.itemRenderer.data.oid);
 					return;
 				}
-				if(event.itemRenderer is CenteredEmbededImage){
+				if(event.itemRenderer is HyperLinkIconColumn){
 					_bWidget.clickSearchRelateResult(searchResult);
 					return;
 				}
@@ -1394,10 +1434,17 @@
 				callLater(showInfoWindow2, [searchResult]);
 			}
 			
-			private function getFileName(o:Object, c:DataGridColumn):String
+			private function getFileName(o:Object, c:GridColumn):String
 			{
-				return "relateClass";
-			}			
+				return _relateTooltip;
+			}
+			
+			protected function dataGridResizeHandler(event:Event):void
+			{
+				if(event.target.columnsLength > 0){
+					(event.target.columns.getItemAt(event.target.columnsLength - 1) as GridColumn).width = NaN;
+				}
+			}
 		]]>
 	</fx:Script>
 	<fx:Declarations>
@@ -1413,17 +1460,18 @@
 			<s:NavigatorContent label="Search Results" width="100%"  height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}">
 				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}">
 					<s:VGroup gap="0" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" >
-						<mx:DataGrid id="resultsGrid" height="100%" width="100%"
-									 itemRollOver="onItemRollOver(event)"
-									 itemRollOut="onItemRollOut(event)" 
-									 itemClick="clickRow(event)"
+						<s:DataGrid id="resultsGrid" height="100%" width="100%"
+									 resize="dataGridResizeHandler(event)"
+									 updateComplete="dataGridResizeHandler(event)"
+									 gridClick="clickRow(event)"
+									 gridRollOut="onItemRollOut(event)"
+									 gridRollOver="onItemRollOver(event)"
 									 rollOut="highLightSel(event)" 
 									 rollOver="unhighLightSel(event)"
-									 wordWrap="false"
 									 horizontalScrollPolicy="auto"
 									 contentBackgroundAlpha="{getStyle('styleAlpha')}"
 									 contentBackgroundColor="{getStyle('chromeColor')}"
-									 alternatingItemColors="{[getStyle('chromeColor'),getStyle('chromeColor')]}"/>
+									 alternatingRowColors="{[getStyle('chromeColor'),getStyle('chromeColor')]}"/>
 						<s:HGroup verticalAlign="middle" paddingLeft="4" paddingTop="3" paddingBottom="3" paddingRight="30" horizontalAlign="right" height="34" width="100%" visible="{_enableExport || sumVisible}" includeInLayout="{_enableExport || sumVisible}">
 							<s:Label id="lblSum" text="{_labelSum}" visible="{sumVisible}" includeInLayout="{sumVisible}"/>
 							<s:TextArea id="taSum" heightInLines="1" editable="false" borderVisible="false" visible="{sumVisible}" includeInLayout="{sumVisible}"/>
@@ -1438,12 +1486,15 @@
 								enabled="{_disableRelateTab}" >
 				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}" maxWidth="{appWidth}">
 					<s:VGroup gap="0" height="100%" width="100%" horizontalAlign="center" verticalAlign="middle" maxWidth="{appWidth}">
-						<mx:DataGrid id="relatesGrid" height="100%" width="100%"
-									 wordWrap="false"
-									 horizontalScrollPolicy="auto"
-									 contentBackgroundAlpha="{getStyle('styleAlpha')}"
-									 contentBackgroundColor="{getStyle('chromeColor')}"
-									 alternatingItemColors="{[getStyle('chromeColor'),getStyle('chromeColor')]}"/>
+						<s:DataGrid id="relatesGrid" height="100%" width="100%"
+									horizontalScrollPolicy="auto"
+									rollOut="highLightSel(event)"
+									rollOver="unhighLightSel(event)"
+									contentBackgroundAlpha="{getStyle('styleAlpha')}"
+									contentBackgroundColor="{getStyle('chromeColor')}"
+									alternatingRowColors="{[getStyle('chromeColor'),getStyle('chromeColor')]}"
+									updateComplete="dataGridResizeHandler(event)"
+									resize="dataGridResizeHandler(event)"/>
 						<s:HGroup verticalAlign="middle" paddingLeft="4" paddingTop="3" paddingBottom="3" paddingRight="30" horizontalAlign="right" height="34" width="100%"
 								  visible="{_renableExport || rsumVisible}" includeInLayout="{_renableExport || rsumVisible}">
 							<s:Label id="rlblSum" text="{_rlabelSum}" visible="{rsumVisible}" includeInLayout="{rsumVisible}"/>

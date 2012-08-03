@@ -10,7 +10,7 @@
 			<expressions>
 				<expression alias="Zoning Code" textsearchlabel="Search Zoning Code:">
 					<values>
-						<value prompt="Example: OR1" userlist="OR1,C2,OTF">upper(ZONING_CODE) = upper('[value]')</value>
+						<value prompt="Example: OR1" userlist="OR1,C2,OTF,all">ZONING_CODE = '[value]'</value>
 					</values>
 				</expression>
 				<expression alias="Zoning Type" textsearchlabel="Search Zoning Type:">
@@ -94,11 +94,11 @@
 			<relates></relates>
 			<queryattachments>true</queryattachments>
 		</layer>
-		<layer>
+		<!--<layer>
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Road Centerlines</name>
-			<url>http://gis.calhouncounty.org/ArcGIS/rest/services/Highway/MapServer/5</url>
+			<url>http://gislap134/ArcGIS/rest/services/Highway/MapServer/5</url>
 			<expressions>
 				<expression alias="Road Name and Zip" textsearchlabel="Search by Road Name and Left Zipcode and Right Zip:">
 					<values>
@@ -109,7 +109,7 @@
 				</expression>
 				<expression alias="Road Surface" textsearchlabel="Search by Surface Type:">
 					<values>
-						<value prompt="Example: Asphalt" field="Surf_Type" usedomain="true">Surf_Type = '[value]'</value>
+						<value prompt="Example: Asphalt" field="Surf_Type" usedomain="true">Surf_Type = [value]</value>
 					</values>
 				</expression>
 				<expression alias="Open SQL" textsearchlabel="Search by Typing Full SQL:">
@@ -122,7 +122,7 @@
 			<spatialsearchlayer>true</spatialsearchlayer>
 			<titlefield>Name</titlefield>
 			<fields all="false">
-				<field name="Name" gridfield="true" />
+				<field name="Name" gridfield="true" sort="asc|1|string"/>
 				<field name="Classification" gridfield="true" />
 				<field name="Length_" numberformat="2|,|." />
 				<field name="Width" gridfield="true" />
@@ -140,7 +140,7 @@
 			</fields>
 			<links>
 				<link alias="View Mon. Ref Sheet">
-					<![CDATA[http://surveyor.slco.org/gis/map/map_search/mrs_test.cfm?mrspoint={Name}&lat={ZIP_L}&long={ZIP_R}]]>
+					<![CDATA[http://somesite/gis/map/map_search/mrs_test.cfm?mrspoint={Name}&lat={ZIP_L}&long={ZIP_R}]]>
 					<icon><![CDATA[assets/images/w_link.png]]></icon>
 				</link> 
 			</links>
@@ -156,7 +156,7 @@
 						<field name="Road_Name" />
 						<field name="Road_ID" />
 						<field name="Location" />
-						<field name="ADT" sum="true" sumlabel="ADT Total Count: " />
+						<field name="ADT" sum="true" sumlabel="ADT Total Count: " sort="asc|2|numeric"/>
 						<field name="Percent_Tr" />
 					</fields>
 				</relate>
@@ -176,7 +176,7 @@
 						<field name="Road_ID" />
 						<field name="Condition" />
 						<field name="P_Hyper" />
-						<field name="Image_" hyperlinkgridfield="true"
+						<field name="Image_" hyperlinkgridfield="true" hyperlinkgridicon="assets/images/i_lego.png"
 							hyperlinkaliastext="Get Sign Image" linkprefix="" linksuffix="" />
 						<field name="post" />
 					</fields>
@@ -194,12 +194,12 @@
 				</relate>
 			</relates>
 			<queryattachments>false</queryattachments>
-		</layer>
-		<layer>
+		</layer>-->
+		<!--<layer>
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Graphical Calhoun Parcels</name>
-			<url>http://gis.calhouncounty.org/ArcGIS2/rest/services/ParcelViewer/MapServer/67</url>
+			<url>http://gislap134/ArcGIS2/rest/services/ParcelViewer/MapServer/67</url>
 			<expressions />
 			<graphicalsearchlabel>Use one of the graphical search tools to select a Parcel</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
@@ -210,12 +210,40 @@
 			<autoopendatagrid>true</autoopendatagrid>
 			<relates />
 			<queryattachments>false</queryattachments>
-		</layer>
-		<layer>
+		</layer>-->
+		<!--<layer>
+			<definitionexpression></definitionexpression>
+			<enableexport>true</enableexport>
+			<name>Calhoun Soils</name>
+			<url>http://gislap183/webgis/rest/services/Soils_join/MapServer/0</url>
+			<expressions>
+				<expression alias="soil type" textsearchlabel="Search by soil type:">
+					<values>
+						<value prompt="Exmaple: AaA">Calhoun_Soils.MUSYM = '[value]'</value>
+					</values>
+				</expression>
+			</expressions>
+			<graphicalsearchlabel>Use one of the graphical search tools to select a Parcel</graphicalsearchlabel>
+			<spatialsearchlayer>true</spatialsearchlayer>
+			<titlefield>Calhoun_Soils.MUSYM</titlefield>
+			<fields all="false">
+				<field name="Calhoun_Soils.MUSYM" />
+				<field name="mapunit.muname" gridfield="true"/>
+				<field name="mapunit.mukind" gridfield="true"/>
+				<field name="mapunit.mustatus" gridfield="true"/>
+				<field name="mapunit.muacres" gridfield="true" numberformat="0|,|."/>
+			</fields>
+			<links />
+			<zoomscale usegeometry="true" zoompercent="1.6" />
+			<autoopendatagrid>true</autoopendatagrid>
+			<relates />
+			<queryattachments>false</queryattachments>
+		</layer>-->
+		<!--<layer>
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Calhoun Parcels</name>
-			<url>http://gis.calhouncounty.org/ArcGIS2/rest/services/ParcelViewer/MapServer/67</url>
+			<url>http://gislap183/ArcGIS2/rest/services/ParcelViewer/MapServer/67</url>
 			<expressions>
 				<expression alias="PPIN" textsearchlabel="Search by Parcel Id Number:">
 					<values>
@@ -233,7 +261,7 @@
 			<titlefield>Name</titlefield>
 			<fields all="false">
 				<field name="PPIN" gridfield="true" />
-				<field name="NAME" gridfield="true" sort="asc|2|string"/>
+				<field name="NAME" gridfield="true" sort="asc|1|string"/>
 				<field name="STREET_ADDRESS" gridfield="true" />
 				<field name="USE_CODE" gridfield="true" />
 				<field name="CALC_ACRES" gridfield="true" /> 
@@ -248,7 +276,7 @@
 				<field name="NEIGHBORHOOD" gridfield="true" gridfieldonly="true"/>
 				<field name="SUBDIVISION" gridfield="true"/>
 				<field name="SALE_PRICE" gridfield="true" currencyformat="$|2|,|." sum="true" sumlabel="Sales Price: "/>
-				<field name="TOTAL_TRUE" gridfield="true" currencyformat="$|2|,|." sort="asc|1|numeric"/>
+				<field name="TOTAL_TRUE" gridfield="true" currencyformat="$|2|,|." sort="dsc|2|numeric"/>
 				<field name="LAND_PRICE" gridfield="true" currencyformat="$|2|,|." />
 				<field name="IMPR_PRICE" gridfield="true" currencyformat="$|2|,|." />
 				<field name="ADJ_PRICE" gridfield="true" currencyformat="$|2|,|." />
@@ -260,7 +288,7 @@
 			<autoopendatagrid>true</autoopendatagrid>
 			<relates />
 			<queryattachments>false</queryattachments>
-		</layer>
+		</layer>-->
 	</layers>
 	<tables><!-- This section is ONLY for tables (i.e. data that has no geometry)! -->
 		<table>
@@ -301,11 +329,6 @@
 				<expression alias="Agree with incident 1" textsearchlabel="Search Incidents that are agreed to:">
 					<values>
 						<value prompt="Example: True" field="agree_with_incident" usedomain="true">agree_with_incident = [value]</value>
-					</values>
-				</expression>
-				<expression alias="Agree with incident 2" textsearchlabel="Search Incidents that are agreed to:">
-					<values>
-						<value prompt="Example: RSAG" userlist="BTSAG,ISAG,RSAG,UPSAG">agree_with_incident = [value]</value>
 					</values>
 				</expression>
 				<expression alias="Incident date" textsearchlabel="Search Incidents on or after date:">
@@ -390,10 +413,13 @@
 	<enablebuffergraphicbutton>true</enablebuffergraphicbutton>
 	<selectedgraphicaltool></selectedgraphicaltool><!-- possible values are extent or polygon or mappoint or polyline or nothing -->
 	<multipartgraphicsearch>true</multipartgraphicsearch>
-	<floatorfixed>fixed</floatorfixed><!-- possible values are fixed and float -->
+	<floatorfixed>float</floatorfixed><!-- possible values are fixed and float -->
 	<relatetooltip>Show Relates</relatetooltip>
 	<relateicon>widgets/eSearch/assets/images/i_relate.png</relateicon>
 	<labels>
+		<includetextquery>include text query in selection criteria</includetextquery>
+		<includetextquerywarn>Must be the same search layer in both&#10;graphical and text search pages.</includetextquerywarn>
+		<buffergrapicprops>Buffer graphic properties</buffergrapicprops>
 		<bufferusergraphics>Buffer Graphic</bufferusergraphics>
 		<norelatesfound>No related features found for: </norelatesfound>
 		<norelatesfoundalerttitle>No Results</norelatesfoundalerttitle>
@@ -427,8 +453,13 @@
 		<enablemultipartsearch>enable multi-part graphics</enablemultipartsearch>
 		<zoomalllabel>Zoom</zoomalllabel>
 		<zoomalltip>Zoom to all results</zoomalltip>
-		<bufferalpha>Adjust buffer alpha</bufferalpha>
-		<buffercolor>Select buffer color</buffercolor>
+		<bufferalpha>Fill opacity</bufferalpha>
+		<buffercolor>Fill color</buffercolor>
+		<nobuffercolor>No fill color</nobuffercolor>
+		<bufferoutlinecolor>Outline color</bufferoutlinecolor>
+		<nobufferoutlinecolor>No outline color</nobufferoutlinecolor>
+		<bufferoutlinewidth>Outline Width</bufferoutlinewidth>
+		<configbuffergra>Configure buffer graphic properties...</configbuffergra>
 	</labels>
 	<symbols>
 		<simplefillsymbol color="0xff0000" alpha="0.5">

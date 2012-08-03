@@ -20,44 +20,45 @@
 	</Search:layout>
 	<fx:Script>
 		<![CDATA[
-			import spark.collections.Sort;
-			import spark.collections.SortField;
-			import com.esri.ags.layers.supportClasses.FeatureType;
 			import com.esri.ags.Map;
 			import com.esri.ags.layers.supportClasses.CodedValue;
 			import com.esri.ags.layers.supportClasses.CodedValueDomain;
+			import com.esri.ags.layers.supportClasses.FeatureType;
 			import com.esri.ags.layers.supportClasses.LayerDetails;
 			import com.esri.viewer.AppEvent;
-
 			import com.esri.viewer.ViewerContainer;
 			
 			import mx.collections.ArrayCollection;
+			import mx.collections.ArrayList;
 			import mx.collections.IViewCursor;
 			import mx.controls.Alert;
-			import mx.controls.DataGrid;
 			import mx.controls.Menu;
-			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Repeater;
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
 			import mx.events.MenuEvent;
-			import mx.formatters.CurrencyFormatter;
-			import mx.formatters.DateFormatter;
-			import mx.formatters.NumberFormatter;
+			import mx.events.ResizeEvent;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
+			import spark.collections.Sort;
+			import spark.collections.SortField;
 			import spark.components.Button;
+			import spark.components.gridClasses.GridColumn;
+			import spark.formatters.CurrencyFormatter;
+			import spark.formatters.DateTimeFormatter;
+			import spark.formatters.NumberFormatter;
+			import spark.skins.spark.DefaultGridItemRenderer;
 		
-			private var _data:Object;
+			private var _data:Array;
 			private var _resultsGrid:DataGrid;
 			private var _dgColumns:Array=[];
 			private var _dgFieldAliases:Object;
 			private var _dgHyperColumns:Array=[];
 			private var hypercols:ArrayCollection;
 			private var _csvName:String;
-			private var dateFormatter:DateFormatter = new DateFormatter();
+			private var dateFormatter:DateTimeFormatter = new DateTimeFormatter();
 			private var numFormatter:NumberFormatter = new NumberFormatter();
 			private var currFormatter:CurrencyFormatter = new CurrencyFormatter();
 			private var _dateFormat:String = "";
@@ -83,7 +84,6 @@
 			[Bindable]
 			private var _title:String;
 			
-			private var sortArr:Array = [];
 			private var sortAC:ArrayCollection;
 			private var dgSort:Sort = new Sort();
 			private var sortDetails:String = "";
@@ -107,10 +107,12 @@
 			public function set sumField(value:String):void
 			{
 				_sumField = value;
-				if(value != "")
+				if(value != ""){
 					sumVisible = true;
-				else
+				}else{
+					_labelSum = "";
 					sumVisible = false;
+				}
 			}
 			
 			public function set enableExport(value:Boolean):void
@@ -150,21 +152,18 @@
 			
 			public function set dgColumns(value:Array):void
 			{
-				resultsGrid.columns = [];
-				sortArr = [];
+				resultsGrid.columns = null;
 				sortAC = new ArrayCollection();
 				sumFormat = "";
 				sortDetails = "";
 				_dgColumns = value;
 				var args:Array;
-				var sortFld:SortField;
-				var dgCol:DataGridColumn;
+				var dgCol:GridColumn;
 				var jdgCol:joinDataGridColumn;
-				var dgColArr:Array = [];
-				for(var i:int=0; i < _dgColumns.length; i++)
-				{
+				var dgColArr:ArrayList = new ArrayList();
+				for(var i:int=0; i < _dgColumns.length; i++){
 					var cArr:Array = _dgColumns[i].split("~");						
-					dgCol= new DataGridColumn(cArr[0]);
+					dgCol= new GridColumn(cArr[0]);
 					if(cArr[0].indexOf( "." ) != -1){
 						jdgCol= new joinDataGridColumn(cArr[0]);
 						jdgCol.labelFunction = getLabel;
@@ -193,17 +192,19 @@
 						if (cArr[6] != "NA"){
 							sortDetails = cArr[6];
 							args = sortDetails.split("|");
-							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
-							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
-							sortAC.addItem({data: sortFld,index: parseInt(args[1])});
+							jdgCol.sortDescending = (args[0] == "asc")?false:true;
+							if(args[2] == "date"){
+								jdgCol.sortCompareFunction = date_sortCompareFunc;
+							}
+							sortAC.addItem({data: jdgCol, index: parseInt(args[1])});
 						}
 						if (_dgFieldAliases)
 							jdgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
 							jdgCol.headerText = cArr[1];
-						dgColArr.push(jdgCol);
+						dgColArr.addItem(jdgCol);
 					}else{
-						dgCol= new DataGridColumn(cArr[0]);
+						dgCol= new GridColumn(cArr[0]);
 						dgCol.labelFunction = getLabel;
 						if (cArr[2] != "NA"){
 							dgCol.labelFunction = getDateLbl;
@@ -227,29 +228,32 @@
 							else
 								useUTC = false;
 						}
-						if (cArr[6] != "NA"){
+						if (cArr[6] != "NA" && cArr[6] != null){
 							sortDetails = cArr[6];
 							args = sortDetails.split("|");
-							sortFld = new SortField(dgCol.dataField,(args[0] == "asc")?false:true,(args[2] && args[2] == "numeric")?false:true);
-							if(args[2] == "date"){sortFld.compareFunction = date_sortCompareFunc};
-							sortAC.addItem({data: sortFld,index: parseInt(args[1])});
+							dgCol.sortDescending = (args[0] == "asc")?false:true;
+							if(args[2] == "date"){
+								dgCol.sortCompareFunction = date_sortCompareFunc;
+							}
+							sortAC.addItem({data: dgCol,index: parseInt(args[1])});
 						}
 						if (_dgFieldAliases)
 							dgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
 							dgCol.headerText = cArr[1];
-						dgColArr.push(dgCol);
+						dgColArr.addItem(dgCol);
 					}
 				}
-				dgCol= new DataGridColumn("oid");
+				dgCol= new GridColumn("oid");
 				dgCol.visible = false;
-				dgColArr.push(dgCol);
+				dgColArr.addItem(dgCol);
 				resultsGrid.columns = dgColArr;
 			}
 			
-			private function date_sortCompareFunc(itemA:Object, itemB:Object, fields:Array = null):int {
-				var dateA:Date = new Date(Date.parse(itemA.COMPLETION));
-				var dateB:Date = new Date(Date.parse(itemB.COMPLETION));
+			private function date_sortCompareFunc(itemA:Object, itemB:Object, column:GridColumn = null):int
+			{
+				var dateA:Date = new Date(itemA[column.dataField]);
+				var dateB:Date = new Date(itemB[column.dataField]);
 				return ObjectUtil.dateCompare(dateA, dateB);
 			}
 			
@@ -283,50 +287,60 @@
 			private function msToDate(ms:Number, dateFormat:String, useUTC:Boolean):String
 			{
 				var date:Date = new Date(ms);
-				if (date.milliseconds == 999) // workaround for REST bug
-				{
+				if (date.milliseconds == 999){ // workaround for REST bug
 					date.milliseconds++;
 				}
-				if (useUTC)
-				{
+				if (useUTC){
 					date.minutes += date.timezoneOffset;
 				}
 				
-				if (dateFormat)
-				{
-					dateFormatter.formatString = dateFormat;
+				if (dateFormat){
+					dateFormatter.dateTimePattern = dateFormat;
 					var result:String = dateFormatter.format(date);
-					if (result)
-					{
+					if (result){
 						return result;
+					}else{
+						return dateFormatter.errorText;
 					}
-					else
-					{
-						return dateFormatter.error;
-					}
-				}
-				else
-				{
+				}else{
 					return date.toLocaleString();
 				}
+			}
+			
+			private function getDateLbl(item:Object,column:GridColumn):String
+			{
+				var dateMS:Number = Number(item[column.dataField]);
+				var retVal:String = "";
+				var rVal:String = item[column.dataField];
+				if(rVal == null){
+					//do nothing
+				}else{
+					if (!isNaN(dateMS)){
+						//Fix the date format to use the Spark format
+						_dateFormat = _dateFormat.replace("D","d").replace("Y","y");
+						retVal = msToDate(dateMS, _dateFormat, useUTC);
+					}
+				}
+				return retVal;
 			}
 			
 			private function exportCSV(dataGrid:DataGrid, csvSeparator:String=",", lineSeparator:String="\n"):String
 			{
 				try{
 					var data:String = "";
-					var columnArray:Array = dataGrid.columns;
+					var columnArray:ArrayList = dataGrid.columns as ArrayList;
 					var columnCount:int = columnArray.length;
-					var dataGridColumn:DataGridColumn;
+					var dataGridColumn:GridColumn;
 					var header:String = "";
 					var headerGenerated:Boolean = false;
-					var dataProvider:Object = ObjectUtil.copy(dataGrid.dataProvider);
+					var dataProvider:ArrayCollection = ObjectUtil.copy(dataGrid.dataProvider) as ArrayCollection;
 					
 					//trace(ObjectUtil.toString(dataProvider));
 					var rowCount:int = dataProvider.length;
 					var dp:Object = null;
 					var cursor:IViewCursor = dataProvider.createCursor();
 					var j:int = 0;
+					var gc:GridColumn = new GridColumn();
 					
 					//loop through rows
 					while (!cursor.afterLast)
@@ -336,14 +350,12 @@
 						//loop through all columns for the row
 						for(var i:int = 0; i < columnCount; i++)
 						{
-							dataGridColumn = columnArray[i];
+							dataGridColumn = columnArray.getItemAt(i) as GridColumn;
 							//Exclude column data which is invisible (hidden)
-							if(!dataGridColumn.visible)
-							{
+							if(!dataGridColumn.visible){
 								continue;
 							}
-							if(dataGridColumn.itemRenderer)
-							{
+							if((dataGridColumn.itemRenderer == HyperLinkColumn)||(dataGridColumn.itemRenderer == HyperLinkIconColumn)){
 								if(object[dataGridColumn.dataField] != null)
 									data += "\"" + object[dataGridColumn.dataField] + "\"";
 								else
@@ -354,23 +366,19 @@
 								else
 									data += '\"\"';
 							}
-							if(i < (columnCount -1))
-							{
+							if(i < (columnCount -1)){
 								data += csvSeparator;
 							}
 							//generate header of CSV, only if it's not genereted yet
-							if (!headerGenerated)
-							{
+							if (!headerGenerated){
 								header += "\"" + dataGridColumn.headerText + "\"";
-								if (i < columnCount - 1)
-								{
+								if (i < columnCount - 1){
 									header += csvSeparator;
 								}
 							}
 						}
 						headerGenerated = true;
-						if (j < (rowCount - 1))
-						{
+						if (j < (rowCount - 1)){
 							data += lineSeparator;
 						}
 						j++;
@@ -381,11 +389,10 @@
 					columnArray = null;
 					dataGridColumn = null;		
 				}
-				catch(error:Error)
-				{
+				catch(error:Error){
 					return null;
 					Alert.show(error.message);
-				}
+				} 
 				return (header + lineSeparator + data);
 			}
 			
@@ -393,12 +400,12 @@
 			{
 				try{
 					var data:String = "";
-					var columnArray:Array = dataGrid.columns;
+					var columnArray:ArrayList = dataGrid.columns as ArrayList;
 					var columnCount:int = columnArray.length;
-					var dataGridColumn:DataGridColumn;
+					var dataGridColumn:GridColumn;
 					var header:String = "";
 					var headerGenerated:Boolean = false;
-					var dataProvider:Object = ObjectUtil.copy(dataGrid.dataProvider);
+					var dataProvider:ArrayCollection = ObjectUtil.copy(dataGrid.dataProvider) as ArrayCollection;
 					
 					var rowCount:int = dataProvider.length;
 					var dp:Object = null;
@@ -411,41 +418,38 @@
 						object = cursor.current;
 						//loop through all columns for the row
 						for(var i:int = 0; i < columnCount; i++){
-							dataGridColumn = columnArray[i];
+							dataGridColumn = columnArray.getItemAt(i) as GridColumn;
 							//Exclude column data which is invisible (hidden)
-							if(!dataGridColumn.visible)
-							{
+							if(!dataGridColumn.visible){
 								continue;
 							}
-							if(dataGridColumn.itemRenderer)
-							{
-								if(object[dataGridColumn.dataField] != null)
+							if((dataGridColumn.itemRenderer == HyperLinkColumn)||(dataGridColumn.itemRenderer == HyperLinkIconColumn)){
+								if(object[dataGridColumn.dataField] != null){
 									data += "\"" + object[dataGridColumn.dataField] + "\"";
-								else
+								}else{
 									data += '\"\"';
+								}
 							}else{
-								if(dataGridColumn.itemToLabel(object) != null)
+								if(dataGridColumn.itemToLabel(object) != null){
 									data += "\""+ dataGridColumn.itemToLabel(object)+ "\"";
-								else
+								}else{
 									data += '\"\"';
+								}
 							}
 							if(i < (columnCount -1))
 							{
 								data += "\t";
 							}
 							//generate header of CSV, only if it's not genereted yet
-							if (!headerGenerated)
-							{
+							if (!headerGenerated){
 								header += "\"" + dataGridColumn.headerText + "\"";
-								if (i < columnCount - 1)
-								{
+								if (i < columnCount - 1){
 									header += "\t";
 								}
 							}
 						}
 						headerGenerated = true;
-						if (j < (rowCount - 1))
-						{
+						if (j < (rowCount - 1)){
 							data += lineSeparator;
 						}
 						j++;
@@ -457,8 +461,7 @@
 					dataGridColumn = null;		
 				}
 				
-				catch(error:Error)
-				{
+				catch(error:Error){
 					return null;
 					Alert.show(error.message);
 				}
@@ -467,7 +470,7 @@
 			
 			// this is going to be executed whenever the data provider changes:
 			[Bindable("dataChange")]
-			private function calcMaxLengths(input:Object):Object {
+			private function calcMaxLengths(input:Array):Array {
 				// if there are items in the DP:
 				if ( input.length > 0 ) {
 					// and no SPECIAL child exists:
@@ -527,29 +530,29 @@
 	
 				// apply column sizes:
 				for ( key in maxLengths ) {
-					for ( i=0; i<resultsGrid.columnCount; i++ ) {
+					for ( i=0; i<resultsGrid.columnsLength; i++ ) {
 						// if the column actually exists:
-						if ( DataGridColumn(resultsGrid.columns[i]).dataField == key ) {
-							var cellMetrics2:TextLineMetrics = renderer.measureText(DataGridColumn(resultsGrid.columns[i]).headerText+"");
+						if ((resultsGrid.columns.getItemAt(i) as GridColumn).dataField == key ) {
+							var cellMetrics2:TextLineMetrics = renderer.measureText((resultsGrid.columns.getItemAt(i) as GridColumn).headerText+"");
 							if ( cellMetrics2.width + 18 > Number(maxLengths[key]) + 12 ) {
-								DataGridColumn(resultsGrid.columns[i]).width = cellMetrics2.width + 18;
+								(resultsGrid.columns.getItemAt(i) as GridColumn).width = cellMetrics2.width + 18;
 							} else {
-								DataGridColumn(resultsGrid.columns[i]).width = Number(maxLengths[key]) + 12;
+								(resultsGrid.columns.getItemAt(i) as GridColumn).width = Number(maxLengths[key]) + 12;
 							}							
 						}
 					}
 				}
 				//Now check if a hyperlink field has an alias and set the field width based on that alias or the header text
 				for each (var obj:Object in hypercols){
-					for ( i=0; i<resultsGrid.columnCount; i++ ) {
-						if ( DataGridColumn(resultsGrid.columns[i]).dataField.toUpperCase() == obj.field.toUpperCase()) {
+					for ( i=0; i<resultsGrid.columnsLength; i++ ) {
+						if ( (resultsGrid.columns.getItemAt(i) as GridColumn).dataField.toUpperCase() == obj.field.toUpperCase()) {
 							if(obj.alias != "NA"){
-								cellMetrics2 = renderer.measureText(DataGridColumn(resultsGrid.columns[i]).headerText + "");
+								cellMetrics2 = renderer.measureText((resultsGrid.columns.getItemAt(i) as GridColumn).headerText + "");
 								var cellMetrics3:TextLineMetrics = renderer.measureText(obj.alias + "");
 								if(cellMetrics3.width + 18 < cellMetrics2.width + 18){
-									DataGridColumn(resultsGrid.columns[i]).width = cellMetrics2.width + 18;
+									(resultsGrid.columns.getItemAt(i) as GridColumn).width = cellMetrics2.width + 18;
 								}else{
-									DataGridColumn(resultsGrid.columns[i]).width = cellMetrics3.width + 18;
+									(resultsGrid.columns.getItemAt(i) as GridColumn).width = cellMetrics3.width + 18;
 								}
 							}
 						}
@@ -562,71 +565,53 @@
 				catch(error:Error){};
 			}
 			
-			private function getLabel(item:Object,column:DataGridColumn):String
+			private function getLabel(item:Object,column:GridColumn):String
 			{
 				return item[column.dataField];
 			}
 			
-			private function getDateLbl(item:Object,column:DataGridColumn):String
-			{
-				var dateMS:Number = Number(item[column.dataField]);
-				var retVal:String = "";
-				var rVal:String = item[column.dataField];
-				if(rVal == null){
-					//do nothing
-				}else{
-					if (!isNaN(dateMS))
-					{
-						retVal = msToDate(dateMS, _dateFormat, useUTC);
-					}
-				}
-				return retVal;
-			}
-			
-			private function getNumLbl(item:Object,column:DataGridColumn):String
+			private function getNumLbl(item:Object,column:GridColumn):String
 			{
 				var args:Array = _numFormat.split("|");
 				if(args[0])
-					numFormatter.precision = args[0];
+					numFormatter.fractionalDigits = args[0];
 				if(args[1]){
-					numFormatter.thousandsSeparatorFrom = args[1];
-					numFormatter.thousandsSeparatorTo = args[1];
+					numFormatter.groupingSeparator = args[1];
+					numFormatter.useGrouping = true;
 				}else{
-					numFormatter.useThousandsSeparator = false;
+					numFormatter.useGrouping = false;
 				}
 				if(args[2]){
-					numFormatter.decimalSeparatorFrom = args[2];
-					numFormatter.decimalSeparatorTo = args[2];
+					numFormatter.decimalSeparator = args[2];
 				}
 				return numFormatter.format(item[column.dataField]);
 			}
 			
-			private function getCurrLbl(item:Object,column:DataGridColumn):String
+			private function getCurrLbl(item:Object,column:GridColumn):String
 			{
 				var args:Array = _currFormat.split("|");
 				if(args[0])
 					currFormatter.currencySymbol = args[0];
 				if(args[1])
-					currFormatter.precision = args[1];
+					currFormatter.fractionalDigits = args[1];
 				if(args[2]){
-					currFormatter.thousandsSeparatorFrom = args[2];
-					currFormatter.thousandsSeparatorTo = args[2];
+					currFormatter.groupingSeparator = args[2];
+					currFormatter.useGrouping = true;
 				}else{
-					currFormatter.useThousandsSeparator = false;
+					currFormatter.useGrouping = false;
 				}
 				if(args[3]){
-					currFormatter.decimalSeparatorFrom = args[3];
-					currFormatter.decimalSeparatorTo = args[3];
+					currFormatter.decimalSeparator = args[3];
 				}
 				return currFormatter.format(item[column.dataField]);
-			}
+			} 
 			
-			private function labelFunc2(item:Object, column:DataGridColumn):String
+			private function labelFunc2(item:Object, column:GridColumn):String
 			{
 				return item[column.dataField];
 			}
 			
-			private function labelFunc(item:Object, column:DataGridColumn):String
+			private function labelFunc(item:Object, column:GridColumn):String
 			{
 				var retVal:String = "Get Hyperlink";
 				for each (var obj:Object in hypercols)
@@ -644,30 +629,37 @@
 			public function set dgHyperColumns(value:Array):void
 			{
 				_dgHyperColumns = value;
-				var dgCol:DataGridColumn;
-				var dgColArr:Array = resultsGrid.columns;
+				var dgCol:GridColumn;
+				
+				var dgColArr:ArrayList = resultsGrid.columns as ArrayList;
 				hypercols = new ArrayCollection();
 				for(var i:int=0; i < _dgHyperColumns.length; i++)
 				{
 					var cArr:Array = _dgHyperColumns[i].split("~");
-					hypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4]});
-					dgCol= new DataGridColumn(cArr[0]);
+					hypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4], icon: cArr[5]});
+					dgCol= new GridColumn(cArr[0]);
 					dgCol.labelFunction = labelFunc2;
 					if (cArr[2] != "NA")
-						dgCol.labelFunction = labelFunc;
+						dgCol.labelFunction = labelFunc; 
 					if (_dgFieldAliases)
 						dgCol.headerText = _dgFieldAliases[cArr[0]];
 					if (cArr[1] != "NA")
 						dgCol.headerText = cArr[1];
-					dgCol.itemRenderer = new ClassFactory(HyperLinkColumn);						
-					dgColArr.push(dgCol);
+					if (cArr[5] != "NA"){
+						dgCol.dataTipField = cArr[5];
+						dgCol.showDataTips = false;
+						dgCol.itemRenderer = new ClassFactory(widgets.eSearch.HyperLinkIconColumn);
+					}else{
+						dgCol.itemRenderer = new ClassFactory(widgets.eSearch.HyperLinkColumn);
+					}
+					dgColArr.addItem(dgCol);
 				}
 				resultsGrid.columns = dgColArr;
 			}
 			
 			public function set dProvider(value:Object):void
 			{
-				_data = ObjectUtil.copy(value);
+				_data = ObjectUtil.copy(value) as Array;
 				for each(var attributes:Object in _data)
 				{
 					for(var i:int=0; i<hypercols.length; i++){
@@ -715,7 +707,9 @@
 						}
 					} 
 				}
-				resultsGrid.dataProvider = calcMaxLengths(_data);
+				resultsGrid.dataProvider = new ArrayCollection(calcMaxLengths(_data));
+				var reset:Vector.<int> = Vector.<int>([]);
+				resultsGrid.columnHeaderGroup.visibleSortIndicatorIndices = reset;
 				
 				if(_sumField){
 					try
@@ -727,16 +721,15 @@
 						if(sumFormat == "num"){
 							var args:Array = _numFormat.split("|");
 							if(args[0])
-								numFormatter.precision = args[0];
+								numFormatter.fractionalDigits = args[0];
 							if(args[1]){
-								numFormatter.thousandsSeparatorFrom = args[1];
-								numFormatter.thousandsSeparatorTo = args[1];
+								numFormatter.groupingSeparator = args[1];
+								numFormatter.useGrouping = true;
 							}else{
-								numFormatter.useThousandsSeparator = false;
+								numFormatter.useGrouping = false;
 							}
 							if(args[2]){
-								numFormatter.decimalSeparatorFrom = args[2];
-								numFormatter.decimalSeparatorTo = args[2];
+								numFormatter.decimalSeparator = args[2];
 							}
 							taSum.text = numFormatter.format(total);
 						}else if(sumFormat == "cur"){
@@ -744,16 +737,15 @@
 							if(args2[0])
 								currFormatter.currencySymbol = args2[0];
 							if(args2[1])
-								currFormatter.precision = args2[1];
+								currFormatter.fractionalDigits = args2[1];
 							if(args2[2]){
-								currFormatter.thousandsSeparatorFrom = args2[2];
-								currFormatter.thousandsSeparatorTo = args2[2];
+								currFormatter.groupingSeparator = args2[2];
+								currFormatter.useGrouping = true;
 							}else{
-								currFormatter.useThousandsSeparator = false;
+								currFormatter.useGrouping = false;
 							}
 							if(args2[3]){
-								currFormatter.decimalSeparatorFrom = args2[3];
-								currFormatter.decimalSeparatorTo = args2[3];
+								currFormatter.decimalSeparator = args2[3];
 							}
 							taSum.text = currFormatter.format(total);
 						}else{
@@ -766,17 +758,17 @@
 					}
 				}
 				
-				var dgAc:ArrayCollection = resultsGrid.dataProvider as ArrayCollection;
-				var isrt:Sort = new Sort();
+				 var isrt:Sort = new Sort();
 				isrt.fields = [new SortField("index",false,true)];
 				sortAC.sort = isrt;
-				sortAC.refresh();
+				sortAC.refresh(); 
+				var sortArr:Array = [];
 				for(var s:int = 0; s < sortAC.length; s++){
-					sortArr.push(sortAC[s].data);
-				}
-				dgSort.fields = sortArr;
-				dgAc.sort = dgSort;
-				dgAc.refresh();
+					sortArr.push(resultsGrid.columns.getItemIndex(sortAC[s].data));
+				} 
+				
+				var columnIndexes:Vector.<int> = Vector.<int>(sortArr);
+				resultsGrid.sortByColumns(columnIndexes, true);
 			}
 			
 			private function getFeatureType(typeID:String, lDtls:LayerDetails):FeatureType
@@ -795,6 +787,7 @@
 			private function init():void
 			{
 				_resultsGrid = resultsGrid;
+				resultsGrid.moduleFactory = null;
 			}
 			
 			public function get datagrid():DataGrid
@@ -807,18 +800,21 @@
 				PopUpManager.removePopUp(this);
 			}
 			
-			private function clickRow(event:ListEvent):void
+			protected function dataGridResizeHandler(event:Event):void
 			{
-				
+				if(resultsGrid.columnsLength > 0){
+					(resultsGrid.columns.getItemAt(resultsGrid.columnsLength - 1) as GridColumn).width = NaN;
+				}
 			}
+			
 		]]>
 	</fx:Script>
 	<fx:Declarations>
 		<s:RadioButtonGroup id="optiongroup"/>
 	</fx:Declarations>
-	<mx:DataGrid id="resultsGrid" height="100%" width="100%"
-				 wordWrap="false"
-				 horizontalScrollPolicy="auto"/>
+	<s:DataGrid id="resultsGrid" height="100%" width="100%" contentBackgroundAlpha="1"
+				horizontalScrollPolicy="auto" resize="dataGridResizeHandler(event)"
+				updateComplete="dataGridResizeHandler(event)"/>
 	<Search:controlBarContent>
 		<s:HGroup verticalAlign="middle" paddingLeft="4" >
 			<s:Label id="lblSum" text="{_labelSum}" visible="{sumVisible}" includeInLayout="{sumVisible}"/>
