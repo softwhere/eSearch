@@ -10,8 +10,10 @@
 			private var u:URLRequest;
 			
 			override public function prepare(hasBeenRecycled:Boolean):void {
-				hyperIcon.source = column.dataTipField;
-				hyperIcon.toolTip = column.labelFunction( data, column );
+				if(data){
+					hyperIcon.source = column.dataTipField;
+					hyperIcon.toolTip = column.labelFunction( data, column );
+				}
 			}
 			
 			protected function hyperIcon_clickHandler(event:MouseEvent):void

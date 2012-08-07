@@ -12,10 +12,12 @@
 			private var u:URLRequest;
 			
 			override public function prepare(hasBeenRecycled:Boolean):void {
-				if( column.labelFunction != null ) {
-					lblData.text = column.labelFunction( data, column );
-				} else {
-					lblData.text = data[column.dataField];
+				if(data){
+					if( column.labelFunction != null ) {
+						lblData.text = column.labelFunction( data, column );
+					} else {
+						lblData.text = data[column.dataField];
+					}
 				}
 			}
 			

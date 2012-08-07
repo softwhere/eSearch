@@ -140,7 +140,7 @@
 			</fields>
 			<links>
 				<link alias="View Mon. Ref Sheet">
-					<![CDATA[http://somesite/gis/map/map_search/mrs_test.cfm?mrspoint={Name}&lat={ZIP_L}&long={ZIP_R}]]>
+					<![CDATA[http://surveyor.slco.org/gis/map/map_search/mrs_test.cfm?mrspoint={Name}&lat={ZIP_L}&long={ZIP_R}]]>
 					<icon><![CDATA[assets/images/w_link.png]]></icon>
 				</link> 
 			</links>
@@ -194,12 +194,12 @@
 				</relate>
 			</relates>
 			<queryattachments>false</queryattachments>
-		</layer>-->
-		<!--<layer>
+		</layer>
+		<layer>
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Graphical Calhoun Parcels</name>
-			<url>http://gislap134/ArcGIS2/rest/services/ParcelViewer/MapServer/67</url>
+			<url>http://gislap134/ArcGIS/rest/services/ParcelViewer/MapServer/67</url>
 			<expressions />
 			<graphicalsearchlabel>Use one of the graphical search tools to select a Parcel</graphicalsearchlabel>
 			<spatialsearchlayer>true</spatialsearchlayer>
@@ -210,8 +210,8 @@
 			<autoopendatagrid>true</autoopendatagrid>
 			<relates />
 			<queryattachments>false</queryattachments>
-		</layer>-->
-		<!--<layer>
+		</layer>
+		<layer>
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Calhoun Soils</name>
@@ -238,12 +238,12 @@
 			<autoopendatagrid>true</autoopendatagrid>
 			<relates />
 			<queryattachments>false</queryattachments>
-		</layer>-->
-		<!--<layer>
+		</layer>
+		<layer>
 			<definitionexpression></definitionexpression>
 			<enableexport>true</enableexport>
 			<name>Calhoun Parcels</name>
-			<url>http://gislap183/ArcGIS2/rest/services/ParcelViewer/MapServer/67</url>
+			<url>http://gislap134/ArcGIS/rest/services/ParcelViewer/MapServer/67</url>
 			<expressions>
 				<expression alias="PPIN" textsearchlabel="Search by Parcel Id Number:">
 					<values>
@@ -460,6 +460,7 @@
 		<nobufferoutlinecolor>No outline color</nobufferoutlinecolor>
 		<bufferoutlinewidth>Outline Width</bufferoutlinewidth>
 		<configbuffergra>Configure buffer graphic properties...</configbuffergra>
+		
 	</labels>
 	<symbols>
 		<simplefillsymbol color="0xff0000" alpha="0.5">

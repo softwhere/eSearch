@@ -1,4 +1,7 @@
-﻿Version 3.0.2 - 8/3/2012
+﻿Version 3.0.3 - 8/7/2012
+* Fixed a few bugs with datagrid and no results from a search.
+
+Version 3.0.2 - 8/3/2012
 
 * Added the ability to have a grid hyperlink icon instead of only hyper link text. This is achieved through
   the new hyperlinkgridicon attribute of a field element.
