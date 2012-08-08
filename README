@@ -1,4 +1,7 @@
-﻿Version 3.0.3 - 8/7/2012
+﻿Version 3.0.4 - 8/8/2012
+* Fixed a few more bugs with datagrid hovering and datagrid field formatting.
+
+Version 3.0.3 - 8/7/2012
 * Fixed a few bugs with datagrid and no results from a search.
 
 Version 3.0.2 - 8/3/2012

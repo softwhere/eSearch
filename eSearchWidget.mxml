@@ -323,8 +323,8 @@
 			private var overFillSymbol:Symbol;
 			
 			//Build Constants
-			protected const VERSION:String = "3.0.3";
-			protected const BUILDDATE:String = "8/7/2012";
+			protected const VERSION:String = "3.0.4";
+			protected const BUILDDATE:String = "8/8/2012";
 			
 			//Resources
 			[Embed(source="assets/images/i_about.png")]
@@ -448,8 +448,9 @@
 						{
 							if(layer.name.toLowerCase() == "draw features"){
 								drawGraphicsLayer = layer as GraphicsLayer;
-								if(drawGraphicsLayer.numGraphics > 0)
+								if(drawGraphicsLayer.numGraphics > 0){
 									checkeDrawNumGras(null);
+								}
 								drawGraphicsLayer.addEventListener(GraphicEvent.GRAPHIC_ADD, checkeDrawNumGras);
 								drawGraphicsLayer.addEventListener(GraphicEvent.GRAPHIC_REMOVE, checkeDrawNumGras);
 								drawGraphicsLayer.addEventListener(GraphicsLayerEvent.GRAPHICS_CLEAR, checkeDrawNumGras);
@@ -465,8 +466,9 @@
 						{
 							if(layer.name.toLowerCase() == "buffer results"){
 								bufferGraphicsLayer = layer as GraphicsLayer;
-								if(bufferGraphicsLayer.numGraphics > 0)
+								if(bufferGraphicsLayer.numGraphics > 0){
 									checkBufferNumGras(null);
+								}
 								bufferGraphicsLayer.addEventListener(GraphicEvent.GRAPHIC_ADD, checkBufferNumGras);
 								bufferGraphicsLayer.addEventListener(GraphicEvent.GRAPHIC_REMOVE, checkBufferNumGras);
 								bufferGraphicsLayer.addEventListener(GraphicsLayerEvent.GRAPHICS_CLEAR, checkBufferNumGras);
@@ -584,8 +586,9 @@
 								zoomPercent = 1.2
 							}
 						}else{
-							if (Number(lyrList[i].zoomscale) > 0)
+							if (Number(lyrList[i].zoomscale) > 0){
 								zoomScale = Number(lyrList[i].zoomscale);
+							}
 						}
 						
 						var lyrSpatialLabel:String = lyrList[i].spatialquerylabel;
@@ -593,18 +596,21 @@
 						
 						const layer:FeatureLayer = new FeatureLayer(lyrURL);
 						layer.name = layer.id = lyrLabel;
-						if (useProxy && configData.proxyUrl)
+						if (useProxy && configData.proxyUrl){
 							layer.proxyURL = configData.proxyUrl;
-						if (useAMF)
+						}
+						if (useAMF){
 							layer.useAMF = useAMF == "true";
+						}
 						if (lyrFields && lyrFields[0].@all[0] == "true"){
 							layer.outFields = ["*"];
 						}else if (lyrFields){
 							var fields:XMLList = lyrFields.field;
 							layer.outFields = [];
 							for each (var fieldXML:XML in fields){
-								if (fieldXML.@name[0])
+								if (fieldXML.@name[0]){
 									layer.outFields.push(fieldXML.@name[0]);
+								}
 							}
 						}
 						
@@ -629,14 +635,14 @@
 						}
 						configSearchGraphical.push(searchLayer);
 						
-						if (searchLayer.spatialsearchlayer == "true")
+						if (searchLayer.spatialsearchlayer == "true"){
 							configSpatialSearchLayers.push(searchLayer);
-						
+						}
 						if (configLayerExprs && configLayerExprs.length > 0){
 							configSearchText.push(searchLayer);
 						}
 					}
-//------------------------------------------------------------------------------------------------------
+
 					var tblList:XMLList = configXML..table;
 					for (i = 0; i < tblList.length(); i++){
 						configTableExprs = [];
@@ -712,18 +718,21 @@
 						var tblQueryAttach:Boolean = tblList[i].@queryattachments && tblList[i].@queryattachments == "true";
 	
 						var table:FeatureLayer = new FeatureLayer(tblURL);
-						if (useProxy && configData.proxyUrl)
+						if (useProxy && configData.proxyUrl){
 							table.proxyURL = configData.proxyUrl;
-						if (useAMF)
+						}
+						if (useAMF){
 							table.useAMF = useAMF == "true";
+						}
 						if (tblFields && tblFields[0].@all[0] == "true"){
 							table.outFields = ["*"];
 						}else if (tblFields){
 							var tblfields:XMLList = tblFields.field;
 							table.outFields = [];
 							for each (var tblfieldXML:XML in tblfields){
-								if (tblfieldXML.@name[0])
+								if (tblfieldXML.@name[0]){
 									table.outFields.push(tblfieldXML.@name[0]);
+								}
 							}
 						}
 						
@@ -746,14 +755,15 @@
 							configSearchText.push(searchTable);
 							if(i==0){
 								qLayer = new FeatureLayer(tblURL);
-								if(configTableExprs[0].values[0].usedomain)
+								if(configTableExprs[0].values[0].usedomain){
 									popCBwithDomain(configTableExprs[0].values[0].field, sItemVal);
-								else if(configTableExprs[0].values[0].userlist != "")
+								}else if(configTableExprs[0].values[0].userlist != ""){
 									popCBwithUserList(configTableExprs[0].values[0].userlist, sItemVal);
+								}
 							}
 						}
 					}
-//-----------------------------------------------------------------------------------------------------					
+					
 					//marker symbol
 					if(configXML.symbols.picturemarkersymbol.@url[0] != null){
 						const resultMarkerSymbolURL:String = configXML.symbols.picturemarkersymbol.@url || widgetIcon;
@@ -810,15 +820,17 @@
 					map.addLayer(graGraphicsLayer);
 					
 					var userTolerance:Number = Number(configXML.toleranceforpointgraphicalselection);
-					if (userTolerance > 0)
+					if (userTolerance > 0){
 						pointSearchTolerance = userTolerance;
-					if (selectedGraphicalTool != "" && defaultSelectionOption == "graphicalInput")
+					}
+					if (selectedGraphicalTool != "" && defaultSelectionOption == "graphicalInput"){
 						activateSearchTool(null, selectedGraphicalTool);
+					}
 				}
 				
-				if(disableButtons != "")
+				if(disableButtons != ""){
 					var dbArr:Array = disableButtons.split(",");
-				
+				}
 				var disText:Boolean = false;
 				var disGra:Boolean = false;
 				var disSpat:Boolean = false;
@@ -850,20 +862,23 @@
 						}
 					}
 				}
-				if(floatorfixed != "fixed" && !disDataGrid)
+				if(floatorfixed != "fixed" && !disDataGrid){
 					wTemplate.addTitlebarButton(WIDGET_URL + "i_table2.png", gridresultsLabel,showGridResults,false);
-				if(!disGra)
+				}
+				if(!disGra){
 					wTemplate.addTitlebarButton(ICON_URL + "i_searchgraphical.png", graphicalsearchLabel, showStateGraphicalSearch);
-				if (configSearchText.length && disText != true)
+				}
+				if (configSearchText.length && disText != true){
 					wTemplate.addTitlebarButton(ICON_URL + "i_searchtext.png", textsearchLabel, showStateTextSearch);
-				if (configSpatialSearchLayers.length && disSpat != true)
+				}
+				if (configSpatialSearchLayers.length && disSpat != true){
 					wTemplate.addTitlebarButton(WIDGET_URL + "i_searchspatial.png", spatialsearchLabel, showStateSpatialSearch);
-				if(!disGrid)
+				}
+				if(!disGrid){
 					wTemplate.addTitlebarButton(ICON_URL + "i_table.png", resultsLabel, showStateResults);
-				
+				}
 				//Setup Text Search
 				if (configSearchText.length){
-					
 					cboLayerText.dataProvider = new ArrayCollection(configSearchText);
 					cboLayerText.width = determineDropDownWidth(configSearchText);
 					if((cboLayerText.width + lblLayerText.measureText(layerLabel).width + 57) > wTemplate.width){
@@ -889,10 +904,11 @@
 							sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
 							searchGroup.addElement(sItemVal);
 						}
-						if(configSearchText[0].expr[0].values[v].usedomain)
+						if(configSearchText[0].expr[0].values[v].usedomain){
 							popCBwithDomain(configSearchText[0].expr[0].values[v].field, sItemVal);
-						else if(configSearchText[0].expr[0].values[v].userlist != "")
+						}else if(configSearchText[0].expr[0].values[v].userlist != ""){
 							popCBwithUserList(configSearchText[0].expr[0].values[v].userlist, sItemVal);
+						}
 					}
 					
 					if (configSearchText.length == 1){
@@ -950,12 +966,15 @@
 				//Determine which button to select based on the default selection option
 				for(var tb:int=0; tb < wTemplate.headerToolGroup.numElements; tb++){
 					var tbb:TitlebarButton = wTemplate.headerToolGroup.getElementAt(tb) as TitlebarButton;
-					if(tbb.toolTip == graphicalsearchLabel && defaultSelectionOption == "graphicalInput")
+					if(tbb.toolTip == graphicalsearchLabel && defaultSelectionOption == "graphicalInput"){
 						wTemplate.selectedTitlebarButtonIndex = tb;
-					if(tbb.toolTip == textsearchLabel && defaultSelectionOption == "textInput")
+					}
+					if(tbb.toolTip == textsearchLabel && defaultSelectionOption == "textInput"){
 						wTemplate.selectedTitlebarButtonIndex = tb;
-					if(tbb.toolTip == spatialsearchLabel && defaultSelectionOption == "spatialInput")
+					}
+					if(tbb.toolTip == spatialsearchLabel && defaultSelectionOption == "spatialInput"){
 						wTemplate.selectedTitlebarButtonIndex = tb;
+					}
 				}
 				
 				AppEvent.addListener(AppEvent.DATA_PUBLISH, sharedDataUpdated);
@@ -1023,17 +1042,17 @@
 						sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
 						searchGroup.addElement(sItemVal);
 					}
-					if(configSearchText[slayerId].expr[exprNum].values[v].usedomain)
+					if(configSearchText[slayerId].expr[exprNum].values[v].usedomain){
 						popCBwithDomain(configSearchText[slayerId].expr[exprNum].values[v].field, sItemVal);
-					else if(configSearchText[slayerId].expr[exprNum].values[v].userlist != "")
+					}else if(configSearchText[slayerId].expr[exprNum].values[v].userlist != ""){
 						popCBwithUserList(configSearchText[slayerId].expr[exprNum].values[v].userlist, sItemVal);
+					}
 				}
 				searchBtn.addEventListener(MouseEvent.CLICK, equeryFeaturesText);
 
 				txtLabelText.text = configSearchText[slayerId].expr[exprNum].textlabel;
 				cboLayerExpr.dataProvider = new ArrayCollection(configSearchText[slayerId].expr);
-				if (configSearchText[slayerId].expr.length == 1)
-				{
+				if (configSearchText[slayerId].expr.length == 1){
 					boxTextexpr.visible = false;
 					boxTextexpr.includeInLayout = false;
 				}else{
@@ -1058,7 +1077,7 @@
 						zoomPercent = configSearchText[slayerId].zoompercent;
 					}else{ 
 						zoomPercent = 1.2;
-					 }
+					}
 				} 
 
 				queryExpr = configSearchText[slayerId].expr[exprNum].values[0].expression;
@@ -1077,8 +1096,9 @@
 						if (fieldXML.@gridfield[0]){
 							if(fieldXML.@gridfield[0]=="true"){
 								if(fieldXML.@sum[0] && fieldXML.@sum[0] == "true"){
-									if(fieldXML.@sumlabel[0])
+									if(fieldXML.@sumlabel[0]){
 										lblSum = fieldXML.@sumlabel[0];
+									}
 									sumField = fieldXML.@name[0];
 								}
 								var str:String = fieldXML.@name[0] + "~";
@@ -1212,15 +1232,17 @@
 					var myPattern:RegExp = /\[value\]/g;
 					var expr:String;
 					var eVal:String;
-					if(queryExpr != "[value]")//meaning an open SQL expression
+					if(queryExpr != "[value]"){//meaning an open SQL expression
 						eVal = value.replace("'","''");
-					else
+					}else{
 						eVal = value;
+					}
 					expr = queryExpr.replace(myPattern, eVal);
 					query.where = expr;
 					query.outSpatialReference = map.spatialReference;
-					if(queryDefExpr != "")
+					if(queryDefExpr != ""){
 						queryLayer.definitionExpression = queryDefExpr;
+					}
 					queryLayer.queryFeatures(query, new AsyncResponder(onResult, onFault, queryFields)); 
 					showMessage(loadingLabel, true); 
 					showStateResults();     
@@ -1250,11 +1272,11 @@
 							}
 							gridDataProvider = featureSet.attributes;
 							resultsFeatureSet = featureSet;
-							if(queryLayerRels && queryLayerRels.length > 0)
+							if(queryLayerRels && queryLayerRels.length > 0){
 								searchResultAC = createSearchResults(featureSet, token, queryLayerRels);
-							else
+							}else{
 								searchResultAC = createSearchResults(featureSet, token);
-							
+							}
 							// share data
 							addSharedData(widgetTitle, searchResultAC);
 							showMessage(selectionLabel + " " + featureSet.features.length, false);
@@ -1264,14 +1286,17 @@
 								if(isNaN(zoomScale)){
 									zoomAll();
 								}else{
-									if (map.scale > zoomScale)
+									if (map.scale > zoomScale){
 										map.scale = zoomScale;
+									}
 									map.centerAt(searchResultAC[0].point);
 								}
 							}
-							if(ViewerContainer.urlConfigParams.showdatagrid != null)
-								if(ViewerContainer.urlConfigParams.showdatagrid == "true" && floatorfixed == "float")
+							if(ViewerContainer.urlConfigParams.showdatagrid != null){
+								if(ViewerContainer.urlConfigParams.showdatagrid == "true" && floatorfixed == "float"){
 									showGridResults();
+								}
+							}
 							
 							if(floatorfixed == "fixed"){
 								var dgConfig:Object = {
@@ -1323,45 +1348,36 @@
 			private function getSopImg(value:String):String
 			{
 				var retVal:String = ""
-				switch(value)
-				{
-					case "esriSpatialRelIntersects":
-					{
+				switch(value){
+					case "esriSpatialRelIntersects":{
 						retVal = WIDGET_URL + "i_intersect.png";
 						break;
 					}
-					case "esriSpatialRelContains":
-					{
+					case "esriSpatialRelContains":{
 						retVal = WIDGET_URL + "i_contain.png";
 						break;
 					}
-					case "esriSpatialRelCrosses":
-					{
+					case "esriSpatialRelCrosses":{
 						retVal = WIDGET_URL + "i_crosses.png";
 						break;
 					}
-					case "esriSpatialRelEnvelopeIntersects":
-					{
+					case "esriSpatialRelEnvelopeIntersects":{
 						retVal = WIDGET_URL + "i_envintersects.png";
 						break;
 					}
-					case "esriSpatialRelIndexIntersects":
-					{
+					case "esriSpatialRelIndexIntersects":{
 						retVal = WIDGET_URL + "i_index.png";
 						break;
 					}
-					case "esriSpatialRelOverlaps":
-					{
+					case "esriSpatialRelOverlaps":{
 						retVal = WIDGET_URL + "i_overlaps.png";
 						break;
 					}
-					case "esriSpatialRelTouches":
-					{
+					case "esriSpatialRelTouches":{
 						retVal = WIDGET_URL + "i_touches.png";
 						break;
 					}
-					case "esriSpatialRelWithin":
-					{
+					case "esriSpatialRelWithin":{
 						retVal = WIDGET_URL + "i_within.png";
 						break;
 					}
@@ -1393,18 +1409,20 @@
 						sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
 						searchGroup.addElement(sItemVal);
 					}
-					if(configSearchText[i].expr[0].values[v].usedomain)
+					if(configSearchText[i].expr[0].values[v].usedomain){
 						popCBwithDomain(configSearchText[i].expr[0].values[v].field, sItemVal);
-					else if(configSearchText[i].expr[0].values[v].userlist != "")
+					}else if(configSearchText[i].expr[0].values[v].userlist != ""){
 						popCBwithUserList(configSearchText[i].expr[0].values[v].userlist, sItemVal); 
+					}
 				}
 				searchBtn.addEventListener(MouseEvent.CLICK, equeryFeaturesText);
 				
 				for(v=0; v<configSearchText[i].expr[0].values.length; v++){
-					if(configSearchText[i].expr[0].values[v].usedomain)
+					if(configSearchText[i].expr[0].values[v].usedomain){
 						popCBwithDomain(configSearchText[i].expr[0].values[v].field, sItemVal);
-					else if(configSearchText[i].expr[0].values[v].userlist != "")
+					}else if(configSearchText[i].expr[0].values[v].userlist != ""){
 						popCBwithUserList(configSearchText[i].expr[0].values[v].userlist, sItemVal);
+					}
 				}
 				txtLabelText.text = configSearchText[i].expr[0].textlabel;
 				cboLayerExpr.dataProvider = new ArrayCollection(configSearchText[i].expr);
@@ -1446,10 +1464,11 @@
 						sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
 						searchGroup.addElement(sItemVal);
 					}
-					if(configSearchText[i].expr[j].values[v].usedomain)
+					if(configSearchText[i].expr[j].values[v].usedomain){
 						popCBwithDomain(configSearchText[i].expr[j].values[v].field, sItemVal);
-					else if(configSearchText[i].expr[j].values[v].userlist != "")
+					}else if(configSearchText[i].expr[j].values[v].userlist != ""){
 						popCBwithUserList(configSearchText[i].expr[j].values[v].userlist, sItemVal);
+					}
 				}
 				searchBtn.addEventListener(MouseEvent.CLICK, equeryFeaturesText);
 				txtLabelText.text = configSearchText[i].expr[j].textlabel;
@@ -1470,28 +1489,23 @@
 					selectedDrawingIcon = Image(event.currentTarget);
 				}else{
 					switch(lTool){
-						case DrawTool.EXTENT :
-						{
+						case DrawTool.EXTENT :{
 							selectedDrawingIcon = iSearchExt;
 							break;
 						}
-						case DrawTool.POLYGON :
-						{
+						case DrawTool.POLYGON :{
 							selectedDrawingIcon = iSearchPoly;
 							break;
 						}
-						case DrawTool.MAPPOINT :
-						{
+						case DrawTool.MAPPOINT :{
 							selectedDrawingIcon = iSearchPnt;
 							break;
 						}
-						case DrawTool.POLYLINE :
-						{
+						case DrawTool.POLYLINE :{
 							selectedDrawingIcon = iSearchLine;
 							break;
 						}
-						default:
-						{
+						default:{
 							selectedDrawingIcon = iSearchPnt;
 						}
 					}
@@ -1501,28 +1515,23 @@
 				
 				var status:String;
 				var value:String = lastTool = selectedDrawingIcon.name;
-				switch (value)
-				{
-					case DrawTool.MAPPOINT:
-					{
+				switch (value){
+					case DrawTool.MAPPOINT:{
 						status = pointLabel;
 						drawSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE, 15, 0x3FAFDC, 1);
 						break;
 					}
-					case DrawTool.POLYLINE:
-					{
+					case DrawTool.POLYLINE:{
 						status = lineLabel;
 						drawSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, 0x3FAFDC, 1, 1);
 						break;
 					}
-					case DrawTool.EXTENT:
-					{
+					case DrawTool.EXTENT:{
 						status = rectangleLabel;
 						drawSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, 0x3FAFDC, 0.5, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, 0x3FAFDC, 1, 1));
 						break;
 					}
-					case DrawTool.POLYGON:
-					{
+					case DrawTool.POLYGON:{
 						status = polygonLabel;
 						drawSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, 0x3FAFDC, 0.5, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, 0x3FAFDC, 1, 1));
 						break;
@@ -1557,10 +1566,8 @@
 				var mPolyL:Polyline = new Polyline(null);
 				mPolyL.spatialReference = map.spatialReference;
 				var rType:String;
-				for each (var graphic:Graphic in gl.graphicProvider)
-				{
-					if(graphic.geometry.type == "esriGeometryPoint" && !addTolerance.selected)
-					{
+				for each (var graphic:Graphic in gl.graphicProvider){
+					if(graphic.geometry.type == "esriGeometryPoint" && !addTolerance.selected){
 						mPoint.addPoint(graphic.geometry as MapPoint);
 						rType = "point";
 					}else if (graphic.geometry.type == "esriGeometryPoint" && addTolerance.selected){
@@ -1576,25 +1583,20 @@
 						mPoly.spatialReference = ext2.spatialReference;
 					}
 					
-					if(graphic.geometry.type == "esriGeometryMultipoint")
-					{
+					if(graphic.geometry.type == "esriGeometryMultipoint"){
 						var mp:Multipoint = graphic.geometry as Multipoint
 						var pnts:MapPoint;
-						for (var p:int=0;p < mp.points.length; p++)
-						{
+						for (var p:int=0;p < mp.points.length; p++){
 							mPoint.addPoint(mp.points[p]);
 						}
 						rType = "point";
 					}
 					
-					if(graphic.geometry.type == "esriGeometryPolygon")
-					{
+					if(graphic.geometry.type == "esriGeometryPolygon"){
 						var poly:Polygon = graphic.geometry as Polygon;
-						for (var i2:int = poly.rings.length - 1; i2 >= 0; i2--)
-						{
+						for (var i2:int = poly.rings.length - 1; i2 >= 0; i2--){
 							var ringArray:Array = [];
-							for (var j1:int = 0; j1 < poly.rings[i2].length; j1++)
-							{
+							for (var j1:int = 0; j1 < poly.rings[i2].length; j1++){
 								var mp2:MapPoint = poly.getPoint(i2,j1) as MapPoint;
 								mp2.spatialReference = poly.spatialReference;
 								ringArray.push(mp2);
@@ -1605,14 +1607,11 @@
 						mPoly.spatialReference = poly.spatialReference;
 					}
 					
-					if(graphic.geometry.type == "esriGeometryPolyline")
-					{
+					if(graphic.geometry.type == "esriGeometryPolyline"){
 						var polyl:Polyline = graphic.geometry as Polyline;
-						for(var l:int=polyl.paths.length-1; l >= 0; l--)
-						{
+						for(var l:int=polyl.paths.length-1; l >= 0; l--){
 							var pathArray:Array = [];
-							for (var j2:int = 0; j2 < polyl.paths[l].length; j2++)
-							{
+							for (var j2:int = 0; j2 < polyl.paths[l].length; j2++){
 								var mp3:MapPoint = polyl.getPoint(l,j2) as MapPoint;
 								mp3.spatialReference = polyl.spatialReference;
 								pathArray.push(mp3);
@@ -1622,8 +1621,7 @@
 						rType = "line";
 					}
 					
-					if(graphic.geometry.type == "esriGeometryEnvelope")
-					{
+					if(graphic.geometry.type == "esriGeometryEnvelope"){
 						var ext:Extent = graphic.geometry as Extent;
 						var pA:Array = [];
 						pA.push(new MapPoint(ext.xmin,ext.ymin,ext.spatialReference));
@@ -1637,18 +1635,15 @@
 				}
 				
 				switch(rType){
-					case "point":
-					{
+					case "point":{
 						retGeom = mPoint;
 						break;
 					}
-					case "poly":
-					{
+					case "poly":{
 						retGeom = mPoly;
 						break;
 					}
-					case "line":
-					{
+					case "line":{
 						retGeom = mPolyL;
 						break;
 					}
@@ -1663,34 +1658,31 @@
 				}
 				var geom:Geometry
 				var graLayAC:ArrayCollection = graGraphicsLayer.graphicProvider as ArrayCollection;
-				if (graLayAC.length > 1)
+				if (graLayAC.length > 1){
 					 geom = unionGeoms2(graGraphicsLayer);
-				else if (graLayAC.length == 1)
+				}else if (graLayAC.length == 1){
 					geom = (graLayAC[0] as Graphic).geometry;
-				else
+				}else{
 					return;
-				
+				}
 				if(keepGraSearchEnabled == false){
 					selectedDrawingIcon = null;
 					clearSelectionFilter();
 				}
 				clearBuffer();
-				if (geom is Polygon && GeometryUtil.polygonSelfIntersecting(geom as Polygon))
-				{
+				if (geom is Polygon && GeometryUtil.polygonSelfIntersecting(geom as Polygon)){
 					geometryService.simplify([geom], new AsyncResponder(simpResult, null));
 					function simpResult(item:Object ,spatialRelat:String):void{
 						var simpGeoms:Array = item as Array;
 						if(bufferUserGraphic.selected){
 							applyBuffer(true);
 						}else{
-							
 							queryFeaturesGraphical(simpGeoms[0] as Polygon, "esriSpatialRelIntersects", configSearchGraphical[(cboLayerGraphical.selectedIndex < 0)?0:cboLayerGraphical.selectedIndex]);
 						}
 					}
 				}else{
 					//create extent around map point to improve search results
-					if (geom.type == Geometry.MAPPOINT && addTolerance.selected)
-					{
+					if (geom.type == Geometry.MAPPOINT && addTolerance.selected){
 						geom = createExtentAroundMapPoint(geom as MapPoint, pointSearchTolerance);
 					}
 					if(bufferUserGraphic.selected){
@@ -1739,11 +1731,11 @@
 				}
 				
 				var oidFld:String;
-				if(queryLayer.layerDetails)
+				if(queryLayer.layerDetails){
 					oidFld = queryLayer.layerDetails.objectIdField;
-				else
+				}else{
 					oidFld = queryLayer.tableDetails.objectIdField;
-				
+				}
 				var qFields:Array;
 				zoomScale = configSearchText[i].zoomscale;
 				zoomPercent = configSearchText[i].zoompercent;
@@ -1762,8 +1754,9 @@
 						if (fieldXML.@gridfield[0]){
 							if(fieldXML.@gridfield[0]=="true"){
 								if(fieldXML.@sum[0] && fieldXML.@sum[0] == "true"){
-									if(fieldXML.@sumlabel[0])
+									if(fieldXML.@sumlabel[0]){
 										lblSum = fieldXML.@sumlabel[0];
+									}
 									sumField = fieldXML.@name[0];
 								}
 								var str:String = fieldXML.@name[0] + "~";
@@ -1912,17 +1905,20 @@
 						sItemVal = searchGroup.getElementAt(sg) as SearchExpValueItem;
 						queryExpr = configSearchText[i].expr[j].values[sg].expression;
 						
-						if(queryExpr != "[value]")//meaning an open SQL expression
+						if(queryExpr != "[value]"){//meaning an open SQL expression
 							eVal = sItemVal.textValue.replace("'","''");
-						else
+						}else{
 							eVal = sItemVal.textValue;
+						}
 						if(sItemVal.textValue.toLowerCase() == "all" && !sItemVal.isTextBox()){
 							var mExpr:String = queryExpr.replace("=", "IN(") + ")";
 							var uList:String = configSearchText[i].expr[j].values[sg].userlist;
 							uList = uList.replace(",all", "");
 							uList = uList.replace(",ALL", "");
+							var uaList:Array = uList.split(",");
+							
 							if(mExpr.indexOf("'[value]'") > -1){
-								uList = uList.replace(",", "','");
+								uList = uaList.join("','");
 							}
 							expr += mExpr.replace(myPattern, uList);
 						}else{
@@ -1932,8 +1928,9 @@
 					
 					query.where = expr;
 					query.outSpatialReference = map.spatialReference;
-					if(queryDefExpr != "")
+					if(queryDefExpr != ""){
 						queryLayer.definitionExpression = queryDefExpr; 
+					}
 					queryLayer.queryFeatures(query, new AsyncResponder(onResult, onFault, queryFields));
 
 					showMessage(loadingLabel, true); 
@@ -1963,17 +1960,19 @@
 							}
 							gridDataProvider = featureSet.attributes;
 							resultsFeatureSet = featureSet;
-							if(queryLayerRels && queryLayerRels.length > 0)
+							if(queryLayerRels && queryLayerRels.length > 0){
 								searchResultAC = createSearchResults(featureSet, token, queryLayerRels);
-							else
+							}else{
 								searchResultAC = createSearchResults(featureSet, token);
+							}
 							// share data
 							addSharedData(widgetTitle, searchResultAC);
 							showMessage(selectionLabel + " " + featureSet.features.length, false);
 							if(floatorfixed == "float"){
 								if (myfloatdg){
-									if(myfloatdg.datagrid.dataProvider)
+									if(myfloatdg.datagrid.dataProvider){
 										myfloatdg.datagrid.dataProvider.removeAll();
+									}
 									myfloatdg.csvExportOptionLbl = exp2csvOptLbl;
 									myfloatdg.txtExportOptionLbl = exp2txtOptLbl;
 									myfloatdg.ExportButtonLbl = expBtnLbl;
@@ -1998,8 +1997,9 @@
 									myfloatdg.widgetInteract = widgetAndGridIteract;
 								}
 							}else if(floatorfixed == "fixed"){
-								if(!gridFields)
+								if(!gridFields){
 									gridFields = configSearchText[i].gridfields;
+								}
 								var dgConfig:Object = {
 									widgetTitle: widgetTitle,
 									csvExportOptionLbl: exp2csvOptLbl,
@@ -2031,14 +2031,15 @@
 								addSharedData("configFixedDatagrid", dgconfigArr);
 							}
 							
-							if (openDataGrid && floatorfixed != "fixed")
+							if (openDataGrid && floatorfixed != "fixed"){
 								showGridResults(); 
-							
+							}
 							if(autoZoom && searchResultAC.length > 0){
 								if(typeQ == "layer"){
 									if(searchResultAC.length == 1){
-										if (map.scale > zoomScale)
+										if (map.scale > zoomScale){
 											map.scale = zoomScale;
+										}
 										map.centerAt(searchResultAC[0].point);
 									}else{
 										zoomAll();
@@ -2069,9 +2070,9 @@
 				queryLayer = layerConfig.layer;
 				
 				var oidFld:String;
-				if(queryLayer.layerDetails)
+				if(queryLayer.layerDetails){
 					oidFld = queryLayer.layerDetails.objectIdField;
-				
+				}
 				queryGeom = geom;
 				zoomScale = layerConfig.zoomscale;
 				zoomPercent = layerConfig.zoompercent;
@@ -2087,8 +2088,9 @@
 						if (fieldXML.@gridfield[0]){
 							if(fieldXML.@gridfield[0]=="true"){
 								if(fieldXML.@sum[0] && fieldXML.@sum[0] == "true"){
-									if(fieldXML.@sumlabel[0])
+									if(fieldXML.@sumlabel[0]){
 										lblSum = fieldXML.@sumlabel[0];
+									}
 									sumField = fieldXML.@name[0];
 								}
 								var str:String = fieldXML.@name[0] + "~";
@@ -2244,10 +2246,11 @@
 							sItemVal = searchGroup.getElementAt(sg) as SearchExpValueItem;
 							queryExpr = configSearchText[i].expr[j].values[sg].expression;
 							
-							if(queryExpr != "[value]")//meaning an open SQL expression
+							if(queryExpr != "[value]"){//meaning an open SQL expression
 								eVal = sItemVal.textValue.replace("'","''");
-							else
+							}else{
 								eVal = sItemVal.textValue;
+							}
 							if(sItemVal.textValue.toLowerCase() == "all" && !sItemVal.isTextBox()){
 								var mExpr:String = queryExpr.replace("=", "IN(") + ")";
 								var uList:String = configSearchText[i].expr[j].values[sg].userlist;
@@ -2261,14 +2264,14 @@
 								expr += queryExpr.replace(myPattern, eVal);
 							}
 						}
-						
 						query.where = expr;
 					}
 					query.returnGeometry = true;
 					query.spatialRelationship = querySpatialRel;
 					query.outSpatialReference = map.spatialReference;
-					if(queryDefExpr != "")
+					if(queryDefExpr != ""){
 						queryLayer.definitionExpression = queryDefExpr;
+					}
 					queryLayer.queryFeatures(query, new AsyncResponder(onResult, onFault, queryFields));
 					showMessage(loadingLabel, true); 
 					showStateResults();   
@@ -2288,15 +2291,17 @@
 							}
 							gridDataProvider = featureSet.attributes;
 							resultsFeatureSet = featureSet;
-							if(queryLayerRels && queryLayerRels.length > 0)
+							if(queryLayerRels && queryLayerRels.length > 0){
 								searchResultAC = createSearchResults(featureSet, token, queryLayerRels);
-							else
+							}else{
 								searchResultAC = createSearchResults(featureSet, token);
+							}
 							showMessage(selectionLabel + " " + featureSet.features.length, false);
 							if(floatorfixed == "float"){
 								if (myfloatdg){
-									if(myfloatdg.datagrid.dataProvider)
+									if(myfloatdg.datagrid.dataProvider){
 										myfloatdg.datagrid.dataProvider.removeAll();
+									}
 									myfloatdg.RelateIcon = relateIcon;
 									myfloatdg.RelateToolTip = relateToolTip;
 									myfloatdg.csvExportOptionLbl = exp2csvOptLbl;
@@ -2320,13 +2325,14 @@
 									myfloatdg.enableExport = queryEnableExport;
 									myfloatdg.widgetInteract = widgetAndGridIteract;
 								}
-								if (openDataGrid && floatorfixed != "fixed" )
+								if (openDataGrid && floatorfixed != "fixed"){
 									showGridResults();
-								
+								}
 								if(autoZoom && searchResultAC.length > 0){
 									if(searchResultAC.length == 1){
-										if (map.scale > zoomScale)
+										if (map.scale > zoomScale){
 											map.scale = zoomScale;
+										}
 										map.centerAt(searchResultAC[0].point);
 									}else{
 										zoomAll();
@@ -2364,8 +2370,9 @@
 								addSharedData("configFixedDatagrid", dgconfigArr);
 								if(autoZoom && searchResultAC.length > 0){
 									if(searchResultAC.length == 1){
-										if (map.scale > zoomScale)
+										if (map.scale > zoomScale){
 											map.scale = zoomScale;
+										}
 										map.centerAt(searchResultAC[0].point);
 									}else{
 										zoomAll();
@@ -2394,33 +2401,26 @@
 				var mPoly:Polygon = new Polygon(null);
 				var mPolyL:Polyline = new Polyline(null);
 				var rType:String;
-				for each (graphic in featureSet.features)
-				{
-					if(graphic.geometry.type == "esriGeometryPoint")
-					{
+				for each (graphic in featureSet.features){
+					if(graphic.geometry.type == "esriGeometryPoint"){
 						mPoint.addPoint(graphic.geometry as MapPoint);
 						rType = "point";
 					}
 					
-					if(graphic.geometry.type == "esriGeometryMultipoint")
-					{
+					if(graphic.geometry.type == "esriGeometryMultipoint"){
 						var mp:Multipoint = graphic.geometry as Multipoint
 						var pnts:MapPoint;
-						for (var p:int=0;p < mp.points.length; p++)
-						{
+						for (var p:int=0;p < mp.points.length; p++){
 							mPoint.addPoint(mp.points[p]);
 						}
 						rType = "point";
 					}
 					
-					if(graphic.geometry.type == "esriGeometryPolygon")
-					{
+					if(graphic.geometry.type == "esriGeometryPolygon"){
 						var poly:Polygon = graphic.geometry as Polygon;
-						for (var i2:int = poly.rings.length - 1; i2 >= 0; i2--)
-						{
+						for (var i2:int = poly.rings.length - 1; i2 >= 0; i2--){
 							var ringArray:Array = [];
-							for (var j1:int = 0; j1 < poly.rings[i2].length; j1++)
-							{
+							for (var j1:int = 0; j1 < poly.rings[i2].length; j1++){
 								var mp2:MapPoint = poly.getPoint(i2,j1) as MapPoint;
 								mp2.spatialReference = poly.spatialReference;
 								ringArray.push(mp2);
@@ -2431,14 +2431,11 @@
 						mPoly.spatialReference = poly.spatialReference;
 					}
 					
-					if(graphic.geometry.type == "esriGeometryPolyline")
-					{
+					if(graphic.geometry.type == "esriGeometryPolyline"){
 						var polyl:Polyline = graphic.geometry as Polyline;
-						for(var l:int=polyl.paths.length-1; l >= 0; l--)
-						{
+						for(var l:int=polyl.paths.length-1; l >= 0; l--){
 							var pathArray:Array = [];
-							for (var j2:int = 0; j2 < polyl.paths[l].length; j2++)
-							{
+							for (var j2:int = 0; j2 < polyl.paths[l].length; j2++){
 								var mp3:MapPoint = polyl.getPoint(l,j2) as MapPoint;
 								mp3.spatialReference = polyl.spatialReference;
 								pathArray.push(mp3);
@@ -2448,8 +2445,7 @@
 						rType = "line";
 					}
 					
-					if(graphic.geometry.type == "esriGeometryEnvelope")
-					{
+					if(graphic.geometry.type == "esriGeometryEnvelope"){
 						var ext:Extent = graphic.geometry as Extent;
 						var pA:Array = [];
 						pA.push(new MapPoint(ext.xmin,ext.ymin,ext.spatialReference));
@@ -2477,8 +2473,7 @@
 				sls.alpha = 0.4;
 				
 				switch(rType){
-					case "point":
-					{
+					case "point":{
 						graphic2.geometry = mPoint;
 						graphic2.symbol = sms;
 						graphicsLayerBuffer.clear();
@@ -2486,8 +2481,7 @@
 						retGeom = mPoint;
 						break;
 					}
-					case "poly":
-					{
+					case "poly":{
 						graphic2.geometry = mPoly;
 						graphic2.symbol = sfs;
 						graphicsLayerBuffer.clear();
@@ -2495,8 +2489,7 @@
 						retGeom = mPoly;
 						break;
 					}
-					case "line":
-					{
+					case "line":{
 						graphic2.geometry = mPolyL;
 						graphic2.symbol = sls;
 						graphicsLayerBuffer.clear();
@@ -2511,31 +2504,29 @@
 			private function applyBuffer(isGraphicalBufferOp:Boolean=false):void
 			{
 				var graLayAC:ArrayCollection;
-				if(isGraphicalBufferOp)
+				if(isGraphicalBufferOp){
 					graLayAC = graGraphicsLayer.graphicProvider as ArrayCollection;
-				else
+				}else{
 					graLayAC = graphicsLayer.graphicProvider as ArrayCollection;
-				
+				}
 				if (graLayAC.length > 0){
 					geomArr = [];
 					var buffUnit:Number;
 					
 					if(isGraphicalBufferOp){
-						for each (var graphic:Graphic in graGraphicsLayer.graphicProvider)
-						{
+						for each (var graphic:Graphic in graGraphicsLayer.graphicProvider){
 							geomArr.push(graphic.geometry);
 						}
 						buffUnit = GeometryService[configBufferUnits[(cboGraBufferUnit.selectedIndex < 0)?0:cboGraBufferUnit.selectedIndex].name];
 						bufferGeometries(geomArr,sReff,[textGraInputBuffer.text],buffUnit,isGraphicalBufferOp);
 					}else{
-						for each (var graphic2:Graphic in graphicsLayer.graphicProvider)
-						{
+						for each (var graphic2:Graphic in graphicsLayer.graphicProvider){
 							geomArr.push(graphic2.geometry);
 						}
 						buffUnit = GeometryService[configBufferUnits[(cboBufferUnit.selectedIndex < 0)?0:cboBufferUnit.selectedIndex].name];
 						bufferGeometries(geomArr,sReff,[textInputBuffer.text],buffUnit,isGraphicalBufferOp);
 					}
-				} else {
+				}else{
 					showStateResults();
 					showMessage("There is no result to buffer, please make a graphical or text search first.",false);
 				}
@@ -2543,8 +2534,7 @@
 			
 			private function bufferGeometries(geomArr:Array, sr:SpatialReference, dist:Array, unit:Number, isGraphicalBufferOp:Boolean=false):void
 			{
-				if (geomArr)
-				{
+				if (geomArr){
 					var bufferParameters:BufferParameters = new BufferParameters();
 					var resultEvent:Polygon = new Polygon;
 					bufferParameters.geometries = geomArr;
@@ -2559,8 +2549,7 @@
 					{
 						geometryService.removeEventListener(GeometryServiceEvent.BUFFER_COMPLETE, bufferCompleteHandler);
 						resultEvent = event.result[0];
-						try
-						{
+						try{
 							var graphic:Graphic = new Graphic();
 							var sfs:SimpleFillSymbol = new SimpleFillSymbol();
 							var sls:SimpleLineSymbol = new SimpleLineSymbol();
@@ -2587,11 +2576,11 @@
 							
 							graphicsLayerBuffer.clear();
 							graphicsLayerBuffer.add(graphic);
-							if(isGraphicalBufferOp)
+							if(isGraphicalBufferOp){
 								queryFeaturesGraphical(resultEvent, "esriSpatialRelIntersects", configSearchGraphical[(cboLayerGraphical.selectedIndex < 0)?0:cboLayerGraphical.selectedIndex]);
+							}
 						}
-						catch (error:Error)
-						{
+						catch (error:Error){
 							showMessage(error.message, false);
 						}
 					}					
@@ -2619,7 +2608,7 @@
 					}else{
 						queryFeaturesGraphical(intersectGeom, spatialRelat,configSpatialSearchLayers[(cboSearchLayerSpatial.selectedIndex < 0)?0:cboSearchLayerSpatial.selectedIndex]);
 					}					
-				} else {
+				}else{
 					showStateResults();
 					showMessage("There is no result to intersect, please make a graphical or text search first.",false);
 				}
@@ -2630,16 +2619,17 @@
 			{
 				var a:int;
 				graphicsLayer.clear();
-				if(queryLayer.layerDetails)
+				if(queryLayer.layerDetails){
 					layerDetails = queryLayer.layerDetails;
-				else
+				}else{
 					layerDetails = queryLayer.tableDetails;
+				}
 				var fields:XMLList = queryFields ? queryFields.field : null;
 				
 				var result:ArrayCollection = new ArrayCollection();
-				if (!queryTitleField)
+				if (!queryTitleField){
 					queryTitleField = featureSet.displayFieldName;
-
+				}
 				for each (var graphic:Graphic in featureSet.features){
 					var value:String = "";
 					var title:String = "";
@@ -2668,8 +2658,9 @@
 					if (queryFields && queryFields[0].@all[0] == "true"){
 						if (layerDetails.fields){
 							for each (var field2:Field in layerDetails.fields){
-								if (field2.name in graphic.attributes)
+								if (field2.name in graphic.attributes){
 									displayFields(field2.name, getFieldXML(field2.name, fields), field2);
+								}
 							}
 						}else{
 							for (var fieldName2:String in graphic.attributes){
@@ -2678,8 +2669,9 @@
 						}
 					}else{
 						for each (var fieldXML2:XML in fields){ // display the fields in the same order as specified
-							if (fieldXML2.@name[0] in graphic.attributes)
+							if (fieldXML2.@name[0] in graphic.attributes){
 								displayFields(fieldXML2.@name[0], fieldXML2, getField(fieldXML2.@name[0]));
+							}
 						}
 					}
 					
@@ -2700,18 +2692,21 @@
 								if (dateFormat)
 									isDateField = true;
 							}
-							if (!isDateField && field)
+							if (!isDateField && field){
 								isDateField = field.type == Field.TYPE_DATE;
+							}
 							if (isDateField){
 								var dateMS:Number = Number(value);
-								if (!isNaN(dateMS))
+								if (!isNaN(dateMS)){
 									value = msToDate(dateMS, dateFormat, useUTC);
+								}
 							}
 							
 							if(numFormat){
 								var args:Array = numFormat.split("|");
-								if(args[0])
+								if(args[0]){
 									numFormatter.fractionalDigits = args[0];
+								}
 								if(args[1]){
 									numFormatter.useGrouping = true;
 									numFormatter.groupingSeparator = args[1];
@@ -2726,8 +2721,9 @@
 							
 							if(curFormat){
 								var args2:Array = curFormat.split("|");
-								if(args2[0])
+								if(args2[0]){
 									currFormatter.currencySymbol = args2[0];
+								}
 								if(args2[1])
 									currFormatter.fractionalDigits = args2[1];
 								if(args2[2]){
@@ -2746,23 +2742,27 @@
 								if (layerDetails.typeIdField && fieldName.toUpperCase() == layerDetails.typeIdField.toUpperCase()){
 									// replace value with feature type name
 									var featureType:FeatureType = getFeatureType(typeID);
-									if (featureType && featureType.name)
+									if (featureType && featureType.name){
 										value = featureType.name;
+									}
 								}else{
 									// replace value with coded value name if one exists
 									var codedValue:CodedValue = getCodedValue(fieldName, value, typeID);
-									if (codedValue)
+									if (codedValue){
 										value = codedValue.name;
+									}
 								}
 							}
 						}						
 						if (fieldName.toUpperCase() == queryTitleField.toUpperCase()){
 							title = value;
-							if (!title)
+							if (!title){
 								title = widgetTitle;
+							}
 						}
-						if (fieldName.toUpperCase() == queryMultiImgField.toUpperCase())
+						if (fieldName.toUpperCase() == queryMultiImgField.toUpperCase()){
 							multi = value;
+						}
 						if (fieldName.toUpperCase() != "SHAPE_LENGTH" 
 							&& fieldName.toUpperCase() != "SHAPE_AREA"
 							&& fieldName.toUpperCase() != queryMultiImgField.toUpperCase() 
@@ -2773,10 +2773,11 @@
 									//ignore
 								}else{
 									if(!fieldXML.@visible[0] || (fieldXML.@visible[0] && fieldXML.@visible[0] != "false")){
-										if (fieldXML && fieldXML.@alias[0])
+										if (fieldXML && fieldXML.@alias[0]){
 											content += "<b>" + fieldXML.@alias[0];
-										else
+										}else{
 											content += "<b>" + featureSet.fieldAliases[fieldName];
+										}
 										content += ": </b><i>" + value + "</i><br>";
 									}
 								}
@@ -2793,8 +2794,9 @@
 					var searchResult:SearchResult = new SearchResult();
 					searchResult.title = title;
 					searchResult.content = content.substr(0,content.length - 4);
-					if(graphic.geometry)
+					if(graphic.geometry){
 						searchResult.point = getGeomCenter(graphic);
+					}
 					searchResult.links = lyrQLinks;
 					searchResult.relateicon = relateIcon ? relateIcon : null;
 					searchResult.multi = multi ? multi :null;
@@ -2818,8 +2820,9 @@
 					}
 					searchResult.graphic = graphic;
 					searchResult.relates = queryRelates;
-					if(queryRelates && queryRelates.length == 1)
+					if(queryRelates && queryRelates.length == 1){
 						searchResult.relateicon = queryRelates[0].icon;
+					}
 					searchResult.relatetooltip = relateToolTip;
 					
 					if(graphic.geometry){
@@ -2925,18 +2928,20 @@
 			private function msToDate(ms:Number, dateFormat:String, useUTC:Boolean):String
 			{
 				var date:Date = new Date(ms);
-				if (date.milliseconds == 999) // workaround for REST bug
+				if (date.milliseconds == 999){ // workaround for REST bug
 					date.milliseconds++;
-				if (useUTC)
+				}
+				if (useUTC){
 					date.minutes += date.timezoneOffset;
-				
+				}
 				if (dateFormat){
 					dateFormatter.dateTimePattern = dateFormat;
 					var result:String = dateFormatter.format(date);
-					if (result)
+					if (result){
 						return result;
-					else
+					}else{
 						return dateFormatter.errorText;
+					}
 				}else{
 					return date.toLocaleString();
 				}
@@ -2962,12 +2967,14 @@
 				}else{
 					if (typeID){
 						var featureType:FeatureType = getFeatureType(typeID);
-						if (featureType)
+						if (featureType){
 							codedValueDomain = featureType.domains[fieldName] as CodedValueDomain;
+						}
 					}else{
 						var field:Field = getField(fieldName);
-						if (field)
+						if (field){
 							codedValueDomain = field.domain as CodedValueDomain;
+						}
 					}
 					domainsCache[domainsKey] = codedValueDomain;
 				}
@@ -2992,8 +2999,7 @@
 				for each (var val:String in uArray){
 					var uval:String = val;
 					var ulbl:String = val;
-					var uVal:Object = 
-					{
+					var uVal:Object = {
 						value: uval,
 						label: ulbl
 					}
@@ -3010,15 +3016,17 @@
 				
 				var i:int = (cboLayerText.selectedIndex < 0) ? 0 : cboLayerText.selectedIndex;
 				if (i == -1){
-					if(configSearchText[0].layer)
+					if(configSearchText[0].layer){
 						queryLayer = configSearchText[0].layer;
-					else
+					}else{
 						queryLayer = configSearchText[0].table;
+					}
 				}else{
-					if(configSearchText[i].layer)
+					if(configSearchText[i].layer){
 						queryLayer = configSearchText[i].layer;
-					else
+					}else{
 						queryLayer = configSearchText[i].table;
+					}
 				}
 				
 				if (queryLayer && !queryLayer.loaded){
@@ -3041,10 +3049,11 @@
 				var rangeDomain:RangeDomain;
 				
 				if (domainsKey in domainsCache){
-					if(domainsCache[domainsKey].hasOwnProperty("codedValues"))
+					if(domainsCache[domainsKey].hasOwnProperty("codedValues")){
 						codedValueDomain = domainsCache[domainsKey];
-					else if (domainsCache[domainsKey].hasOwnProperty("minValue"))
+					}else if (domainsCache[domainsKey].hasOwnProperty("minValue")){
 						rangeDomain = domainsCache[domainsKey];
+					}
 				}else{
 					var field:Field = getField(fieldName);
 					if (field && field.domain && field.domain is CodedValueDomain){
@@ -3071,8 +3080,7 @@
 								if(stype.domains[fieldName].hasOwnProperty("codedValues")){
 									codedValueDomain = stype.domains[fieldName];
 									domainsCache[domainsKey] = codedValueDomain;
-								}
-								else if (stype.domains[fieldName].hasOwnProperty("minValue")){
+								}else if (stype.domains[fieldName].hasOwnProperty("minValue")){
 									rangeDomain = stype.domains[fieldName];
 									domainsCache[domainsKey] = rangeDomain;
 								}
@@ -3188,8 +3196,9 @@
 			
 			private function checkeDrawNumGras(event:Event):void
 			{
-				if (!executingURLquery)
+				if (!executingURLquery){
 					clearMessage();
+				}
 				if(drawGraphicsLayer){
 					eDrawBtn.filters = (drawGraphicsLayer.numGraphics > 0)?[]:[cOver];
 					eDrawBtn.buttonMode = eDrawBtn.useHandCursor = eDrawBtn.enabled = (drawGraphicsLayer.numGraphics > 0);
@@ -3211,8 +3220,9 @@
 			
 			private function checkBufferNumGras(event:Event):void
 			{
-				if (!executingURLquery)
+				if (!executingURLquery){
 					clearMessage();
+				}
 				if(bufferGraphicsLayer){
 					pBufferBtn.filters = (bufferGraphicsLayer.numGraphics > 0)?[]:[cOver];
 					pBufferBtn.buttonMode = pBufferBtn.useHandCursor = pBufferBtn.enabled = (bufferGraphicsLayer.numGraphics > 0);
@@ -3266,10 +3276,12 @@
 					relfloatdg.datagrid.columnHeaderGroup.visibleSortIndicatorIndices = rreset;
 					PopUpManager.removePopUp(relfloatdg);
 				}
-				if(floatorfixed == "fixed")
+				if(floatorfixed == "fixed"){
 					addSharedData("clearFixedDatagrid", null);
-				if(floatorfixed == "fixed")
+				}
+				if(floatorfixed == "fixed"){
 					addSharedData("clearRelateFixedDatagrid", null);
+				}
 			}
 			
 			private function clearBuffer():void
@@ -3324,10 +3336,11 @@
 				var selRelateURL:String;
 				
 				var relArr:Array;
-				if(queryLayer.layerDetails)
+				if(queryLayer.layerDetails){
 					relArr = queryLayer.layerDetails.relationships;
-				else
+				}else{
 					relArr = queryLayer.tableDetails.relationships;
+				}
 				
 				if(searchResult.relates.length == 1){
 					var relation:Relationship;
@@ -3363,8 +3376,9 @@
 						rFields = relFields.field;
 						for each (var fieldXML:XML in rFields){
 							if(fieldXML.@sum[0] && fieldXML.@sum[0] == "true"){
-								if(fieldXML.@sumlabel[0])
+								if(fieldXML.@sumlabel[0]){
 									lblSum = fieldXML.@sumlabel[0];
+								}
 								sumField = fieldXML.@name[0];
 							}
 							qrelateFields.push(fieldXML.@name[0]);
@@ -3511,8 +3525,9 @@
 								break;
 							}
 						}
-						if(exists == false)
+						if(exists == false){
 							PopUpManager.addPopUp(rWindow,map,true,PopUpManagerChildList.POPUP); 
+						}
 						PopUpManager.centerPopUp(rWindow);
 						PopUpManager.bringToFront(rWindow);
 					}
@@ -3521,11 +3536,11 @@
 				
 				function relateChoosen(evt:Event):void{
 					var relArr:Array;
-					if(queryLayer.layerDetails)
+					if(queryLayer.layerDetails){
 						relArr = queryLayer.layerDetails.relationships;
-					else
+					}else{
 						relArr = queryLayer.tableDetails.relationships;
-					
+					}
 					var relation:Relationship;
 					for (var ri:int=0; ri < relArr.length; ri++){
 						if(relArr[ri].id == rWindow.selectedRelateId){
@@ -3541,9 +3556,9 @@
 					PopUpManager.removePopUp(rWindow);
 					 
 					selRelateURL = queryLayer.url.substring(0,queryLayer.url.lastIndexOf("/")) + "/" + (relation.relatedTableId);
-					if(!relqueryLayer)
+					if(!relqueryLayer){
 						relqueryLayer = new FeatureLayer(selRelateURL);
-					
+					}
 					if (relqueryLayer && !relqueryLayer.loaded){
 						relqueryLayer.addEventListener(LayerEvent.LOAD, queryLayer_loadHandler);
 						function queryLayer_loadHandler(levent:LayerEvent):void
@@ -3562,8 +3577,9 @@
 						rFields = relFields.field;
 						for each (var fieldXML:XML in rFields){
 							if(fieldXML.@sum[0] && fieldXML.@sum[0] == "true"){
-								if(fieldXML.@sumlabel[0])
+								if(fieldXML.@sumlabel[0]){
 									lblSum = fieldXML.@sumlabel[0];
+								}
 								sumField = fieldXML.@name[0];
 							}
 							qrelateFields.push(fieldXML.@name[0]);
@@ -3622,8 +3638,9 @@
 							}else{
 								str += "NA";
 							}
-							if(!fieldXML.@hyperlinkgridfield[0])
+							if(!fieldXML.@hyperlinkgridfield[0]){
 								relateFields.push(str);
+							}
 							if (fieldXML.@hyperlinkgridfield[0]){
 								if (fieldXML.@hyperlinkgridfield[0]=="true"){
 									var str2:String = fieldXML.@name[0] + "~";
@@ -3724,8 +3741,9 @@
 								}
 							}
 							
-							if(relfloatdg.datagrid.dataProvider)
+							if(relfloatdg.datagrid.dataProvider){
 								relfloatdg.datagrid.dataProvider.removeAll();
+							}
 							relfloatdg.csvExportOptionLbl = exp2csvOptLbl;
 							relfloatdg.txtExportOptionLbl = exp2txtOptLbl;
 							relfloatdg.ExportButtonLbl = expBtnLbl;
@@ -3791,18 +3809,21 @@
 							map.zoom(1 / 16, searchResult.point);
 							map.centerAt(searchResult.point);
 						}else{
-							if (map.scale > zoomScale)
+							if (map.scale > zoomScale){
 								map.scale = zoomScale;
+							}
 							map.centerAt(searchResult.point);
 						}
 					}else{
 						if(isNaN(zoomScale)){
 							map.extent = searchResult.graphic.geometry.extent.expand(zoomPercent);
-							if (!map.extent.contains(searchResult.graphic.geometry))
+							if (!map.extent.contains(searchResult.graphic.geometry)){
 								map.level--;
+							}
 						}else{
-							if (map.scale > zoomScale)
+							if (map.scale > zoomScale){
 								map.scale = zoomScale;
+							}
 							map.centerAt(searchResult.point);
 						}
 					}
@@ -3816,8 +3837,9 @@
 							if (attributes.oid === searchResult.oid){
 								var myCursor:IViewCursor = (myfloatdg.datagrid.dataProvider as ArrayCollection).createCursor();
 								while(!myCursor.afterLast){
-									if(myCursor.current.oid == attributes.oid)
+									if(myCursor.current.oid == attributes.oid){
 										Hits.push(myCursor.current);
+									}
 									myCursor.moveNext();
 								}
 								myfloatdg.datagrid.selectedIndex = myfloatdg.datagrid.dataProvider.getItemIndex(Hits[0])                        
@@ -3841,10 +3863,11 @@
 				clearTimeout(hitimer);
 				var searchResult:SearchResult = ItemRenderer(event.target).data as SearchResult;
 				if(searchResult.point){
-					if (map.extent.containsXY(searchResult.point.x, searchResult.point.y)) // only show infowindow if search result in contained within map extent
+					if (map.extent.containsXY(searchResult.point.x, searchResult.point.y)){ // only show infowindow if search result in contained within map extent
 						hitimer = setTimeout(showHighlight, 300, [ searchResult ]);
-					else
+					}else{
 						hideInfoWindow();
+					}
 				}
 				
 				Hits.length = 0;
@@ -3855,8 +3878,9 @@
 							if (attributes.oid === searchResult.oid){
 								var myCursor:IViewCursor = (myfloatdg.datagrid.dataProvider as ArrayCollection).createCursor();
 								while(!myCursor.afterLast){
-									if(myCursor.current.oid == attributes.oid)
+									if(myCursor.current.oid == attributes.oid){
 										Hits.push(myCursor.current);
+									}
 									myCursor.moveNext();
 								}
 								myfloatdg.datagrid.selectedIndex = myfloatdg.datagrid.dataProvider.getItemIndex(Hits[0])                        
@@ -3882,12 +3906,15 @@
 			
 			private function widgetOpenedHandler(event:Event):void
 			{				
-				if(graphicsLayer)
+				if(graphicsLayer){
 					graphicsLayer.visible = true;
-				if (graphicsLayerBuffer)
+				}
+				if (graphicsLayerBuffer){
 					graphicsLayerBuffer.visible = true;
-				if (graGraphicsLayer)
+				}
+				if (graGraphicsLayer){
 					graGraphicsLayer.visible = true;
+				}
 			}
 			
 			private function showGridResults():void
@@ -3911,12 +3938,14 @@
 									break;
 								}
 							}
-							if(exists == false)
+							if(exists == false){
 								PopUpManager.addPopUp(myfloatdg,map,false,PopUpManagerChildList.POPUP); 
+							}
 							PopUpManager.centerPopUp(myfloatdg);
 						}
-						if(!gridFields)
+						if(!gridFields){
 							gridFields = configSearchText[0].gridfields;
+						}
 						myfloatdg.RelateIcon = relateIcon;
 						myfloatdg.RelateToolTip = relateToolTip;
 						myfloatdg.enableExport = configSearchText[0].enableexport;
@@ -3966,8 +3995,9 @@
 						if(sr.oid == oid){
 							sr.selected = true;
 							var spDelta:Point = searchResultDG.layout.getScrollPositionDeltaToElement(i);
-							if (spDelta)
+							if (spDelta){
 								searchResultDG.verticalScrollPosition += spDelta.y;
+							}
 							break;
 						}
 					}
@@ -3985,8 +4015,9 @@
 							if(sr1.oid === sr.oid){
 								sr1.selected = true;
 								var spDelta:Point = searchResultDG.layout.getScrollPositionDeltaToElement(i);
-								if (spDelta)
+								if (spDelta){
 									searchResultDG.verticalScrollPosition += spDelta.y;
+								}
 								break;
 							}
 						}
@@ -4012,8 +4043,9 @@
 					if(!recAC){return;}
 					for (var i:Number = 0; i < recAC.length; i++){
 						var sr:SearchResult = searchResultAC[i];
-						if(sr.oid == sr.oid)
+						if(sr.oid == sr.oid){
 							sr.selected = false;
+						}
 					}
 				}
 			}
@@ -4036,8 +4068,9 @@
 				var popUpInfo:EnhancedPopUpInfo = new EnhancedPopUpInfo;
 				popUpInfo.title = "{title}";
 				popUpInfo.description = "{content}";
-				if(queryAttachments)
+				if(queryAttachments){
 					popUpInfo.showAttachments = true;
+				}
 				popUpInfo.featLayer = queryLayer;
 				var pminfos:Array = [];
 				
@@ -4080,15 +4113,17 @@
 				lState = currentState;
 				currentState = "resultsList";
 				if(configSearchText.length){
-					if(configSpatialSearchLayers.length)
+					if(configSpatialSearchLayers.length){
 						wTemplate.selectedTitlebarButtonIndex = 4;
-					else
+					}else{
 						wTemplate.selectedTitlebarButtonIndex = 3;
+					}
 				}else{
-					if(configSpatialSearchLayers.length)
+					if(configSpatialSearchLayers.length){
 						wTemplate.selectedTitlebarButtonIndex = 3;
-					else
+					}else{
 						wTemplate.selectedTitlebarButtonIndex = 2;
+					}
 				}
 			}
 			
@@ -4102,13 +4137,15 @@
 			{
 				setMapAction(null, null, null, null);
 				graphicsLayer.visible = false;
-				if(graGraphicsLayer)
+				if(graGraphicsLayer){
 					graGraphicsLayer.visible = false;
+				}
 				hideInfoWindow();
 				setMapNavigation(null, null);
 				
-				if (selectedDrawingIcon)
+				if (selectedDrawingIcon){
 					selectedDrawingIcon = null;
+				}
 			}
 			
 			private function graphicsLayer_hideHandler(event:FlexEvent):void
@@ -4133,8 +4170,9 @@
 						var graphicsExtent:Extent = GraphicUtil.getGraphicsExtent(resultsFeatureSet.features);
 						map.extent = graphicsExtent.expand(zoomPercent);
 						// make sure the whole extent is visible
-						if (!map.extent.contains(graphicsExtent.expand(zoomPercent)))
+						if (!map.extent.contains(graphicsExtent.expand(zoomPercent))){
 							map.level--;
+						}
 					}
 				}
 			}
@@ -4160,8 +4198,9 @@
 				for (var i:int = 0; i < imageGroup.numChildren; i++){
 					if (imageGroup.getChildAt(i).filters && imageGroup.getChildAt(i).filters.length > 0){
 						if (!(selectedDrawingIcon && imageGroup.getChildAt(i) === selectedDrawingIcon)){
-							if(imageGroup.getChildAt(i)!== eDrawBtn && imageGroup.getChildAt(i)!== pBufferBtn)
+							if(imageGroup.getChildAt(i)!== eDrawBtn && imageGroup.getChildAt(i)!== pBufferBtn){
 								imageGroup.getChildAt(i).filters = [];
+							}
 						}
 					}
 				}
@@ -4183,15 +4222,17 @@
 			private function hideInfoWindow():void
 			{
 				if (map.infoWindow.contentOwner &&
-					((map.infoWindow.contentOwner is Graphic && Graphic(map.infoWindow.contentOwner).graphicsLayer === graphicsLayer) || map.infoWindow.contentOwner is Map))
+					((map.infoWindow.contentOwner is Graphic && Graphic(map.infoWindow.contentOwner).graphicsLayer === graphicsLayer) || map.infoWindow.contentOwner is Map)){
 					map.infoWindow.hide();
+				}
 			}
 			
 			private function DisplayVersion(evt:MouseEvent):void
 			{
-				if(evt.altKey)
+				if(evt.altKey){
 					Alert.show("Enhanched Search Widget Version: " + VERSION + "\nBuild Date: " + BUILDDATE, 
 						wTemplate.widgetTitle, 4, null, null, iconClass);
+				}
 			}
 			
 			protected function searchGroupItem_focusInHandler(evt:FocusEvent):void {

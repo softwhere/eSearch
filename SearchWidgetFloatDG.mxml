@@ -58,10 +58,11 @@
 			import spark.collections.SortField;
 			import spark.components.Button;
 			import spark.components.gridClasses.GridColumn;
+			import spark.events.GridEvent;
 			import spark.formatters.CurrencyFormatter;
 			import spark.formatters.DateTimeFormatter;
 			import spark.formatters.NumberFormatter;
-			import spark.events.GridEvent;
+			import spark.utils.DataItem;
 			
 			import widgets.eSearch.eSearchWidget;
 			import widgets.eSearch.skins.PopUpRendererSkin;
@@ -104,6 +105,8 @@
 			[Bindable] private var _title:String;
 			private var sortAC:ArrayCollection;
 			private var dgSort:Sort = new Sort();
+			
+			private var HeaderText:Object = {};
 			
 			private var uic:UIComponent;
 			
@@ -266,6 +269,7 @@
 							jdgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA" && cArr[6] != null)
 							jdgCol.headerText = cArr[1];
+						HeaderText[cArr[0]] = jdgCol.headerText;
 						dgColArr.addItem(jdgCol);
 					}else{
 						dgCol= new GridColumn(cArr[0]);
@@ -303,6 +307,7 @@
 							dgCol.headerText = _dgFieldAliases[cArr[0]];
 						if (cArr[1] != "NA")
 							dgCol.headerText = cArr[1];
+						HeaderText[cArr[0]] = dgCol.headerText;
 						dgColArr.addItem(dgCol);
 					}
 				}
@@ -545,52 +550,65 @@
 						// check if it's simple object (may cause unexpected issues for Boolean):
 						if ( ObjectUtil.isSimple(o[key]) ) {
 							// measure the text:
-							var cellMetrics:TextLineMetrics = renderer.measureText(o[key]+"");
+							var cellMetrics:TextLineMetrics = renderer.measureText(o[key] + "W");
 							// and if the width is greater than longest found up to now:
 							if ( cellMetrics.width > maxLengths[key] ) {
-							// set it as the longest one:
+								// set it as the longest one:
 								maxLengths[key] = cellMetrics.width;
 							}
 						}
 					}
 				}
-	
+				
 				// apply column sizes:
 				for ( key in maxLengths ) {
 					for ( i=0; i<resultsGrid.columnsLength; i++ ) {
 						// if the column actually exists:
-						if ( GridColumn(resultsGrid.columns.getItemAt(i)).dataField == key ) {
-							var cellMetrics2:TextLineMetrics = renderer.measureText(GridColumn(resultsGrid.columns.getItemAt(i)).headerText+"");
+						if ((resultsGrid.columns.getItemAt(i) as GridColumn).dataField == key ) {
+							var cellMetrics2:TextLineMetrics = renderer.measureText((resultsGrid.columns.getItemAt(i) as GridColumn).headerText + "W");
 							if ( cellMetrics2.width + 18 > Number(maxLengths[key]) + 12 ) {
-								GridColumn(resultsGrid.columns.getItemAt(i)).width = cellMetrics2.width + 18;
+								(resultsGrid.columns.getItemAt(i) as GridColumn).width = cellMetrics2.width + 18;
 							} else {
-								GridColumn(resultsGrid.columns.getItemAt(i)).width = Number(maxLengths[key]) + 12;
-							}
+								(resultsGrid.columns.getItemAt(i) as GridColumn).width = Number(maxLengths[key]) + 12;
+							}							
 						}
 					}
 				}
 				//Now check if a hyperlink field has an alias and set the field width based on that alias or the header text
 				for each (var obj:Object in hypercols){
 					for ( i=0; i<resultsGrid.columnsLength; i++ ) {
-						if ( GridColumn(resultsGrid.columns.getItemAt(i)).dataField.toUpperCase() == obj.field.toUpperCase()) {
+						if ( (resultsGrid.columns.getItemAt(i) as GridColumn).dataField.toUpperCase() == obj.field.toUpperCase()) {
 							if(obj.alias != "NA"){
-								cellMetrics2 = renderer.measureText(GridColumn(resultsGrid.columns.getItemAt(i)).headerText + "");
-								var cellMetrics3:TextLineMetrics = renderer.measureText(obj.alias + "");
+								cellMetrics2 = renderer.measureText((resultsGrid.columns.getItemAt(i) as GridColumn).headerText + "W");
+								var cellMetrics3:TextLineMetrics = renderer.measureText(obj.alias + "W");
 								if(cellMetrics3.width + 18 < cellMetrics2.width + 18){
-									GridColumn(resultsGrid.columns.getItemAt(i)).width = cellMetrics2.width + 18;
+									(resultsGrid.columns.getItemAt(i) as GridColumn).width = cellMetrics2.width + 18;
 								}else{
-									GridColumn(resultsGrid.columns.getItemAt(i)).width = cellMetrics3.width + 18;
+									(resultsGrid.columns.getItemAt(i) as GridColumn).width = cellMetrics3.width + 18;
 								}
 							}
 						}
 					}
-				}
-				
+				} 
 				// cleanup:
 				try{
 					removeElement(uic);
 				}
 				catch(error:Error){};
+			}
+			
+			private function getGridColumn(key:String):GridColumn
+			{
+				var i:int;
+				var retCol:GridColumn;
+				for ( i=0; i<resultsGrid.columnsLength; i++ ) {
+					// if the column actually exists:
+					if ( GridColumn(resultsGrid.columns.getItemAt(i)).dataField == key ) {
+						retCol = GridColumn(resultsGrid.columns.getItemAt(i));
+						break;
+					}
+				}
+				return retCol;
 			}
 			
 			private function getLabel(item:Object,column:GridColumn):String
@@ -606,8 +624,11 @@
 				if(rVal == null){
 					//do nothing
 				}else{
-					if (!isNaN(dateMS))
+					if (!isNaN(dateMS)){
+						//Fix the date format to use the Spark format
+						_dateFormat = _dateFormat.replace("D","d").replace("Y","y");
 						retVal = msToDate(dateMS, _dateFormat, useUTC);
+					}
 				}
 				return retVal;
 			}
@@ -615,8 +636,9 @@
 			private function getNumLbl(item:Object,column:GridColumn):String
 			{
 				var args:Array = _numFormat.split("|");
-				if(args[0])
+				if(args[0]){
 					numFormatter.fractionalDigits = args[0];
+				}
 				if(args[1]){
 					numFormatter.groupingSeparator = args[1];
 					numFormatter.useGrouping = true;
@@ -632,10 +654,13 @@
 			private function getCurrLbl(item:Object,column:GridColumn):String
 			{
 				var args:Array = _currFormat.split("|");
-				if(args[0])
+				if(args[0]){
 					currFormatter.currencySymbol = args[0];
-				if(args[1])
+					currFormatter.useCurrencySymbol = true;
+				}
+				if(args[1]){
 					currFormatter.fractionalDigits = args[1];
+				}
 				if(args[2]){
 					currFormatter.groupingSeparator = args[2];
 					currFormatter.useGrouping = true;
@@ -785,10 +810,13 @@
 							taSum.text = numFormatter.format(total);
 						}else if(sumFormat == "cur"){
 							var args2:Array = _currFormat.split("|");
-							if(args[0])
+							if(args[0]){
 								currFormatter.currencySymbol = args[0];
-							if(args[1])
+								currFormatter.useCurrencySymbol = true;
+							}
+							if(args[1]){
 								currFormatter.fractionalDigits = args[1];
+							}
 							if(args[2]){
 								currFormatter.groupingSeparator = args[2];
 								currFormatter.useGrouping = true;
@@ -866,7 +894,7 @@
 						return;
 					_bWidget.highlightDataGroupItemByOID(event.itemRenderer.data.oid);
 					var searchResult:SearchResult = findSearchResultByOID(event.itemRenderer.data.oid);
-					if(!searchResult.graphic){
+					if(!searchResult.graphic && searchResult.point){
 						if (map.extent.containsXY(searchResult.point.x, searchResult.point.y)){
 							showInfoWindow(searchResult);
 						}else{
