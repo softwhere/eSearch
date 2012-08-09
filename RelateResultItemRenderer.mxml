@@ -41,12 +41,12 @@
             {
 				relateResult = data as RelateResult;
 
-                if (relateResult)
-                {
-					if(relateResult.icon != "")
+                if (relateResult){
+					if(relateResult.icon != ""){
 						relateicon = relateResult.icon;
-					else
+					}else{
 						relateicon = "widgets/eSearch/assets/images/i_relate.png";
+					}
                 }
             }
 

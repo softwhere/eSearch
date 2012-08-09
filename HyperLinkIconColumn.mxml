@@ -18,8 +18,9 @@
 			
 			protected function hyperIcon_clickHandler(event:MouseEvent):void
 			{
-				if(data[column.dataField] == "defined")
+				if(data[column.dataField] == "defined"){
 					return;
+				}
 				u = new URLRequest(data[column.dataField]);
 				navigateToURL(u);
 			}

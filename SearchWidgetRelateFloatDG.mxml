@@ -66,23 +66,16 @@
 			private var _numFormat:String = "";
 			private var _csvSep:String = ",";
 			private var _layerDetails:* = null;
-			[Bindable]
-			private var _exp2csvBtnLbl:String;
-			[Bindable]
-			private var _exp2txtBtnLbl:String;
-			[Bindable]
-			private var _exportButtonLbl:String;
-			[Bindable]
-			private var _enableExport:Boolean;
-			[Bindable]
-			private var sumVisible:Boolean;
-			[Bindable]
-			private var _labelSum:String;
+			[Bindable] private var _exp2csvBtnLbl:String;
+			[Bindable] private var _exp2txtBtnLbl:String;
+			[Bindable] private var _exportButtonLbl:String;
+			[Bindable] private var _enableExport:Boolean;
+			[Bindable] private var sumVisible:Boolean;
+			[Bindable] private var _labelSum:String;
 			private var _sumField:String = "";
 			private var sumFormat:String;
 			private var useUTC:Boolean;
-			[Bindable]
-			private var _title:String;
+			[Bindable] private var _title:String;
 			
 			private var sortAC:ArrayCollection;
 			private var dgSort:Sort = new Sort();
@@ -727,8 +720,7 @@
 				resultsGrid.columnHeaderGroup.visibleSortIndicatorIndices = reset;
 				
 				if(_sumField){
-					try
-					{
+					try{
 						var total:Number = 0;
 						for each (var row:Object in resultsGrid.dataProvider) {
 							total += Number(row[_sumField]);
@@ -771,8 +763,7 @@
 							taSum.text = total.toString();
 						}
 					}
-					catch (error:Error)
-					{
+					catch (error:Error){
 						sumVisible = false;
 					}
 				}

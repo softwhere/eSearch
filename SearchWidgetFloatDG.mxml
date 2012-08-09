@@ -243,20 +243,23 @@
 						if (cArr[3] != "NA"){
 							jdgCol.labelFunction = getCurrLbl;
 							_currFormat = cArr[3];
-							if(cArr[0] == _sumField)
+							if(cArr[0] == _sumField){
 								sumFormat = "cur";
+							}
 						}
 						if (cArr[4] != "NA"){
 							jdgCol.labelFunction = getNumLbl;
 							_numFormat = cArr[4];
-							if(cArr[0] == _sumField)
+							if(cArr[0] == _sumField){
 								sumFormat = "num";
+							}
 						}
 						if (cArr[5] != "NA"){
-							if(cArr[5] =="true")
+							if(cArr[5] =="true"){
 								useUTC = true;
-							else
+							}else{
 								useUTC = false;
+							}
 						}
 						if (cArr[6] != "NA"){
 							sortDetails = cArr[6];
@@ -265,10 +268,12 @@
 							if(args[2] == "date"){jdgCol.sortCompareFunction = date_sortCompareFunc};
 							sortAC.addItem({data: jdgCol,index: parseInt(args[1])});
 						}
-						if (_dgFieldAliases)
+						if (_dgFieldAliases){
 							jdgCol.headerText = _dgFieldAliases[cArr[0]];
-						if (cArr[1] != "NA" && cArr[6] != null)
+						}
+						if (cArr[1] != "NA" && cArr[6] != null){
 							jdgCol.headerText = cArr[1];
+						}
 						HeaderText[cArr[0]] = jdgCol.headerText;
 						dgColArr.addItem(jdgCol);
 					}else{
@@ -281,20 +286,23 @@
 						if (cArr[3] != "NA"){
 							dgCol.labelFunction = getCurrLbl;
 							_currFormat = cArr[3];
-							if(cArr[0] == _sumField)
+							if(cArr[0] == _sumField){
 								sumFormat = "cur";
+							}
 						}
 						if (cArr[4] != "NA"){
 							dgCol.labelFunction = getNumLbl;
 							_numFormat = cArr[4];
-							if(cArr[0] == _sumField)
+							if(cArr[0] == _sumField){
 								sumFormat = "num";
+							}
 						}
 						if (cArr[5] != "NA"){
-							if(cArr[5] =="true")
+							if(cArr[5] =="true"){
 								useUTC = true;
-							else
+							}else{
 								useUTC = false;
+							}
 						}
 						if (cArr[6] != "NA" && cArr[6] != null){
 							sortDetails = cArr[6];
@@ -303,10 +311,12 @@
 							if(args[2] == "date"){dgCol.sortCompareFunction = date_sortCompareFunc};
 							sortAC.addItem({data: dgCol,index: parseInt(args[1])});
 						}
-						if (_dgFieldAliases)
+						if (_dgFieldAliases){
 							dgCol.headerText = _dgFieldAliases[cArr[0]];
-						if (cArr[1] != "NA")
+						}
+						if (cArr[1] != "NA"){
 							dgCol.headerText = cArr[1];
+						}
 						HeaderText[cArr[0]] = dgCol.headerText;
 						dgColArr.addItem(dgCol);
 					}
@@ -347,18 +357,20 @@
 			private function msToDate(ms:Number, dateFormat:String, useUTC:Boolean):String
 			{
 				var date:Date = new Date(ms);
-				if (date.milliseconds == 999) // workaround for REST bug
+				if (date.milliseconds == 999){ // workaround for REST bug
 					date.milliseconds++;
-				if (useUTC)
+				}
+				if (useUTC){
 					date.minutes += date.timezoneOffset;
-				
+				}
 				if (dateFormat){
 					dateFormatter.dateTimePattern = dateFormat;
 					var result:String = dateFormatter.format(date);
-					if (result)
+					if (result){
 						return result;
-					else
+					}else{
 						return dateFormatter.errorText;
+					}
 				}else{
 					return date.toLocaleString();
 				}
@@ -389,34 +401,41 @@
 						for(var i:int = 0; i < columnCount; i++){
 							dataGridColumn = columnArray.getItemAt(i) as GridColumn;
 							//Exclude column data which is invisible (hidden)
-							if(!dataGridColumn.visible)
+							if(!dataGridColumn.visible){
 								continue;
-							if(dataGridColumn.dataField == "icon")
-								continue;
-							if((dataGridColumn.itemRenderer == HyperLinkColumn)||(dataGridColumn.itemRenderer == HyperLinkIconColumn)){
-								if(object[dataGridColumn.dataField] != null)
-									data += "\"" + object[dataGridColumn.dataField] + "\"";
-								else
-									data += '\"\"';
-							}else{
-								if(dataGridColumn.itemToLabel(object) != null)
-									data += "\""+ dataGridColumn.itemToLabel(object)+ "\"";
-								else
-									data += '\"\"';
 							}
-							if(i < (columnCount -1))
+							if(dataGridColumn.dataField == "icon"){
+								continue;
+							}
+							if((dataGridColumn.itemRenderer == HyperLinkColumn)||(dataGridColumn.itemRenderer == HyperLinkIconColumn)){
+								if(object[dataGridColumn.dataField] != null){
+									data += "\"" + object[dataGridColumn.dataField] + "\"";
+								}else{
+									data += '\"\"';
+								}
+							}else{
+								if(dataGridColumn.itemToLabel(object) != null){
+									data += "\""+ dataGridColumn.itemToLabel(object)+ "\"";
+								}else{
+									data += '\"\"';
+								}
+							}
+							if(i < (columnCount -1)){
 								data += csvSeparator;
+							}
 							
 							//generate header of CSV, only if it's not genereted yet
 							if (!headerGenerated){
 								header += "\"" + dataGridColumn.headerText + "\"";
-								if (i < columnCount - 1)
+								if (i < columnCount - 1){
 									header += csvSeparator;
+								}
 							}
 						}
 						headerGenerated = true;
-						if (j < (rowCount - 1))
+						if (j < (rowCount - 1)){
 							data += lineSeparator;
+						}
 						j++;
 						cursor.moveNext ();
 					}
@@ -456,33 +475,40 @@
 						for(var i:int = 0; i < columnCount; i++){
 							dataGridColumn = columnArray.getItemAt(i) as GridColumn;
 							//Exclude column data which is invisible (hidden)
-							if(!dataGridColumn.visible)
+							if(!dataGridColumn.visible){
 								continue;
-							if(dataGridColumn.dataField == "icon")
-								continue;
-							if((dataGridColumn.itemRenderer == HyperLinkColumn)||(dataGridColumn.itemRenderer == HyperLinkIconColumn)){
-								if(object[dataGridColumn.dataField] != null)
-									data += "\"" + object[dataGridColumn.dataField] + "\"";
-								else
-									data += '\"\"';
-							}else{
-								if(dataGridColumn.itemToLabel(object) != null)
-									data += "\""+ dataGridColumn.itemToLabel(object)+ "\"";
-								else
-									data += '\"\"';
 							}
-							if(i < (columnCount -1))
+							if(dataGridColumn.dataField == "icon"){
+								continue;
+							}
+							if((dataGridColumn.itemRenderer == HyperLinkColumn)||(dataGridColumn.itemRenderer == HyperLinkIconColumn)){
+								if(object[dataGridColumn.dataField] != null){
+									data += "\"" + object[dataGridColumn.dataField] + "\"";
+								}else{
+									data += '\"\"';
+								}
+							}else{
+								if(dataGridColumn.itemToLabel(object) != null){
+									data += "\""+ dataGridColumn.itemToLabel(object)+ "\"";
+								}else{
+									data += '\"\"';
+								}
+							}
+							if(i < (columnCount -1)){
 								data += "\t";
+							}
 							//generate header of CSV, only if it's not genereted yet
 							if (!headerGenerated){
 								header += "\"" + dataGridColumn.headerText + "\"";
-								if (i < columnCount - 1)
+								if (i < columnCount - 1){
 									header += "\t";
+								}
 							}
 						}
 						headerGenerated = true;
-						if (j < (rowCount - 1))
+						if (j < (rowCount - 1)){
 							data += lineSeparator;
+						}
 						j++;
 						cursor.moveNext ();
 					}
@@ -682,9 +708,11 @@
 			{
 				var retVal:String = "Get Hyperlink";
 				for each (var obj:Object in hypercols){
-					if(obj.field.toUpperCase() == column.dataField.toUpperCase())
-						if(obj.alias != "NA")
+					if(obj.field.toUpperCase() == column.dataField.toUpperCase()){
+						if(obj.alias != "NA"){
 							retVal = obj.alias;
+						}
+					}
 				}
 				if (item[column.dataField] == "" || item[column.dataField] == " " || 
 					item[column.dataField] == "null" || item[column.dataField] == "unavailable"){
@@ -704,12 +732,15 @@
 					hypercols.addItem({field: cArr[0], name: cArr[1], alias: cArr[2], pre: cArr[3], suf: cArr[4], icon: cArr[5]});
 					dgCol= new GridColumn(cArr[0]);
 					dgCol.labelFunction = labelFunc2;
-					if (cArr[2] != "NA")
+					if (cArr[2] != "NA"){
 						dgCol.labelFunction = labelFunc;
-					if (_dgFieldAliases)
+					}
+					if (_dgFieldAliases){
 						dgCol.headerText = _dgFieldAliases[cArr[0]];
-					if (cArr[1] != "NA")
+					}
+					if (cArr[1] != "NA"){
 						dgCol.headerText = cArr[1];
+					}
 					if (cArr[5] != "NA"){
 						dgCol.dataTipField = cArr[5];
 						dgCol.showDataTips = false;
@@ -747,8 +778,9 @@
 							attributes[hypercols[i].field] = String(pre + String(attributes[hypercols[i].field]) + suf);
 						}
 					}
-					if(_hasRelates)
+					if(_hasRelates){
 						attributes["icon"] = "defined";
+					}
 					if(_layerDetails){
 						var fld:Object;
 						var cVal:CodedValue;
@@ -758,14 +790,16 @@
 							if (_layerDetails.typeIdField && fld.name.toUpperCase() == _layerDetails.typeIdField.toUpperCase()){
 								// replace value with feature type name
 								var featureType:FeatureType = getFeatureType(typeID);
-								if (featureType && featureType.name)
+								if (featureType && featureType.name){
 									attributes[fld.name] = featureType.name;
+								}
 							}else{
 								// replace value with coded value name if one exists
 								if (typeID){
 									var fType:FeatureType = getFeatureType(typeID);
-									if (fType)
+									if (fType){
 										cDomain = fType.domains[fld.name] as CodedValueDomain;
+									}
 								}else if(fld.domain){
 									cDomain = fld.domain as CodedValueDomain;
 								}else{
@@ -796,8 +830,9 @@
 						}
 						if(sumFormat == "num"){
 							var args:Array = _numFormat.split("|");
-							if(args[0])
+							if(args[0]){
 								numFormatter.fractionalDigits = args[0];
+							}
 							if(args[1]){
 								numFormatter.groupingSeparator = args[1];
 								numFormatter.useGrouping = true;
@@ -996,8 +1031,9 @@
 					return;
 				var searchResult:SearchResult = findSearchResultByOID(event.itemRenderer.data.oid);
 				if(!searchResult.graphic){
-					if(event.itemRenderer is HyperLinkIconColumn)
+					if(event.itemRenderer is HyperLinkIconColumn){
 						_bWidget.standaloneRelate(event.itemRenderer.data.oid);
+					}
 					return;
 				}
 				if(event.itemRenderer is HyperLinkIconColumn){
@@ -1012,23 +1048,26 @@
 							map.zoom(1 / 16, searchResult.point);
 							map.centerAt(searchResult.point);
 						}else{
-							if (map.scale > _zoomScale)
+							if (map.scale > _zoomScale){
 								map.scale = _zoomScale;
+							}
 							map.centerAt(searchResult.point);
 						}
 					}else{
 						if(isNaN(_zoomScale)){
 							map.extent = searchResult.graphic.geometry.extent.expand(_zoomPercent);
-							if (!map.extent.contains(searchResult.graphic.geometry))
+							if (!map.extent.contains(searchResult.graphic.geometry)){
 								map.level--;
+							}
 						}else{
-							if (map.scale > _zoomScale)
+							if (map.scale > _zoomScale){
 								map.scale = _zoomScale;
+							}
 							map.centerAt(searchResult.point);
 						}
 					}
+					callLater(showInfoWindow, [searchResult]);
 				}
-				callLater(showInfoWindow, [searchResult]);
             }
 			
 			private function getFileName(o:Object, c:GridColumn):String

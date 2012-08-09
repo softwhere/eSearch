@@ -32,9 +32,9 @@ package widgets.eSearch
 			
 			_titleIcon = value;
 			
-			if (iconDisplay != null)
+			if (iconDisplay != null){
 				iconDisplay.source = _titleIcon;
-			
+			}
 		}
 		
 		[Embed(source="widgets/eSearch/assets/images/resizeCursorTLBR.gif")]
@@ -90,8 +90,7 @@ package widgets.eSearch
 			const dragAmountX:Number = parent.mouseX - m_dragStartMouseX;
 			const dragAmountY:Number = parent.mouseY - m_dragStartMouseY;
 			
-			if (parent.mouseX < parent.width && parent.mouseY < parent.height)
-			{
+			if (parent.mouseX < parent.width && parent.mouseY < parent.height){
 				widgetWidth = width = Math.max(m_startWidth + dragAmountX, minWidth);
 				widgetHeight = height = Math.max(m_startHeight + dragAmountY, minHeight);
 			}
@@ -132,16 +131,14 @@ package widgets.eSearch
 		
 		private function rollOutHandler(event:MouseEvent):void
 		{
-			if (!event.buttonDown)
-			{
+			if (!event.buttonDown){
 				CursorManager.removeCursor(CursorManager.currentCursorID);
 			}
 		}
 		
 		private function rollOverHandler(event:MouseEvent):void
 		{
-			if (!event.buttonDown)
-			{
+			if (!event.buttonDown){
 				setCursor();
 			}
 		}

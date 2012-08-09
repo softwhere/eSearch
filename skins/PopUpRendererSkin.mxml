@@ -126,36 +126,27 @@
 					layerDetails = popUpInfo.featLayer ? popUpInfo.featLayer.layerDetails : null;
 
                 vGroup.removeAllElements();
-                if (popUpInfo)
-                {
-                    if (popUpInfo.title)
-                    {
+                if (popUpInfo){
+                    if (popUpInfo.title){
                         titleText.text = StringUtil.substitute(popUpInfo.title, formattedAttributes);
-                        if (titleText.text)
-                        {
+                        if (titleText.text){
                             vGroup.addElement(titleText);
                             vGroup.addElement(titleLine);
                         }
                     }
 
                     var htmlText:String;
-                    if (popUpInfo.description)
-                    {
+                    if (popUpInfo.description){
                         htmlText = StringUtil.substitute(popUpInfo.description, formattedAttributes);
-                        if (htmlText)
-                        {
+                        if (htmlText){
                             setTextFlow(descriptionText, htmlText);
                             vGroup.addElement(descriptionText);
                         }
-                    }
-                    else if (popUpInfo.popUpFieldInfos)
-                    {
+                    }else if (popUpInfo.popUpFieldInfos){
                         // make sure there's enough constraint rows
                         var constraintRows:Vector.<ConstraintRow> = keyValueGroupLayout.constraintRows; // returns a clone
-                        if (constraintRows.length < popUpInfo.popUpFieldInfos.length)
-                        {
-                            for (var i:int = constraintRows.length + 1; i <= popUpInfo.popUpFieldInfos.length; i++)
-                            {
+                        if (constraintRows.length < popUpInfo.popUpFieldInfos.length){
+                            for (var i:int = constraintRows.length + 1; i <= popUpInfo.popUpFieldInfos.length; i++){
                                 var constraintRow:ConstraintRow = new ConstraintRow();
                                 constraintRow.initialized(this, null); // required
                                 constraintRow.id = "row" + i;
@@ -166,10 +157,8 @@
 
                         keyValueGroup.removeAllElements();
                         var rowID:int = 1;
-                        for each (var fieldInfo:PopUpFieldInfo in popUpInfo.popUpFieldInfos)
-                        {
-                            if (fieldInfo.visible)
-                            {
+                        for each (var fieldInfo:PopUpFieldInfo in popUpInfo.popUpFieldInfos){
+                            if (fieldInfo.visible){
                                 var fieldLabel:Label = new Label();
                                 fieldLabel.text = fieldInfo.label || fieldInfo.fieldName;
                                 fieldLabel.left = 0;
@@ -179,13 +168,11 @@
 
                                 var fieldValue:RichEditableText;
                                 htmlText = formattedAttributes[fieldInfo.fieldName];
-                                if (htmlText)
-                                {
+                                if (htmlText){
                                     fieldValue = new RichEditableText();
                                     // convert attribute field values that just contain URLs into links
                                     var match:Array = htmlText.match(/^\s*((https?|ftp):\/\/\S+)\s*$/i);
-                                    if (match && match.length > 0)
-                                    {
+                                    if (match && match.length > 0){
                                         htmlText = '<a href="' + match[1] + '" target="_blank">' + match[1] + "</a>";
                                     }
                                     setTextFlow(fieldValue, htmlText);
@@ -198,15 +185,13 @@
                                 rowID++;
                             }
                         }
-                        if (keyValueGroup.numElements > 0)
-                        {
+                        if (keyValueGroup.numElements > 0){
                             fieldLabel.bottom = "row" + --rowID + ":5"; // add a little bottom padding to last label
                             vGroup.addElement(keyValueGroup);
                         }
                     }
 
-                    if (validMediaInfos && validMediaInfos.length > 0)
-                    {
+                    if (validMediaInfos && validMediaInfos.length > 0){
                         vGroup.addElement(mediaBrowser);
                         mediaBrowser.attributes = graphic.attributes;
                         mediaBrowser.formattedAttributes = formattedAttributes;
@@ -227,8 +212,7 @@
 						attachmentInspector.showAttachments(graphic, popUpInfo.featLayer);
 					}
 
-                    if (map && geometry)
-                    {
+                    if (map && geometry){
                         vGroup.addElement(zoomToButton);
                     }
                 }
@@ -236,11 +220,9 @@
 
             private function setTextFlow(textComp:RichEditableText, htmlText:String):void
             {
-                if (textComp && htmlText != null)
-                {
+                if (textComp && htmlText != null){
                     var textFlow:TextFlow = TextConverter.importToFlow(htmlText, TextConverter.TEXT_FIELD_HTML_FORMAT, textLayoutConfiguration);
-                    if (textFlow)
-                    {
+                    if (textFlow){
                         textFlow.addEventListener(FlowElementMouseEvent.CLICK, textFlow_linkClickHandler, false, 0, true);
                         textComp.textFlow = textFlow;
                     }
@@ -250,8 +232,7 @@
             private function textFlow_linkClickHandler(event:FlowElementMouseEvent):void
             {
                 var linkElement:LinkElement = event.flowElement as LinkElement;
-                if (linkElement && linkElement.target != "_blank")
-                {
+                if (linkElement && linkElement.target != "_blank"){
                     linkElement.target = "_blank"; // make sure target is "_blank"
                 }
             }
@@ -263,39 +244,29 @@
                 var geometry:Geometry = graphic.geometry;
 
                 var extent:Extent = geometry.extent; // returns null for MapPoint or Multipoint's with only one point
-                if (extent)
-                {
+                if (extent){
                     map.extent = extent;
                     // make sure the whole extent is visible
-                    if (!map.extent.contains(extent))
-                    {
+                    if (!map.extent.contains(extent)){
                         map.level--;
                     }
-                }
-                else
-                {
+                }else{
                     var mapPoint:MapPoint;
-                    if (geometry is MapPoint)
-                    {
+                    if (geometry is MapPoint){
                         mapPoint = geometry as MapPoint;
-                    }
-                    else if (geometry is Multipoint)
-                    {
+                    }else if (geometry is Multipoint){
                         var multipoint:Multipoint = geometry as Multipoint;
-                        if (multipoint.points && multipoint.points.length > 0)
-                        {
+                        if (multipoint.points && multipoint.points.length > 0){
                             mapPoint = multipoint.points[0];
                         }
                     }
-                    if (mapPoint)
-                    {
+                    if (mapPoint){
                         // make sure the infoWindow always points to the current (selected)feature
                         map.infoWindow.show(mapPoint);
                         // Zoom to 1/16th the size of the current extent.
                         // This is the same as calling map.zoomIn() four times.
                         map.zoom(1 / 16, mapPoint);
-                        if (!map.extent.contains(mapPoint))
-                        {
+                        if (!map.extent.contains(mapPoint)){
                             map.centerAt(mapPoint);
                         }
                     }
@@ -369,5 +340,4 @@
             <!-- elements are added in commitProperties() -->
         </s:VGroup>
     </s:Scroller>
-
 </s:SparkSkin>

@@ -59,8 +59,7 @@
         {
             var cr:Number = getStyle("cornerRadius");
             
-            if (cornerRadius != cr)
-            {
+            if (cornerRadius != cr){
                 cornerRadius = cr;
                 shadow.topRightRadiusX = shadow.topLeftRadiusX = cornerRadius;
                 fill.topRightRadiusX = fill.topLeftRadiusX = cornerRadius;
@@ -69,15 +68,15 @@
                 border.topRightRadiusX = border.topLeftRadiusX = cornerRadius;
             }
             
-            if (highlightStroke) highlightStroke.topRightRadiusX = highlightStroke.topLeftRadiusX = cornerRadius;
-            if (hldownstroke1) hldownstroke1.topRightRadiusX = hldownstroke1.topLeftRadiusX = cornerRadius;
-            if (hldownstroke2) hldownstroke2.topRightRadiusX = hldownstroke2.topLeftRadiusX = cornerRadius;
+            if (highlightStroke){ highlightStroke.topRightRadiusX = highlightStroke.topLeftRadiusX = cornerRadius;}
+            if (hldownstroke1){ hldownstroke1.topRightRadiusX = hldownstroke1.topLeftRadiusX = cornerRadius;}
+            if (hldownstroke2){ hldownstroke2.topRightRadiusX = hldownstroke2.topLeftRadiusX = cornerRadius;}
 			
-			if(labelDisplay.text == "Search Results")
+			if(labelDisplay.text == "Search Results"){
 				icon.source = SearchIcon;
-			else
+			}else{
 				icon.source = RelateIcon;
-            
+			}
             super.updateDisplayList(unscaledWidth, unscaledHeight);
         }
         

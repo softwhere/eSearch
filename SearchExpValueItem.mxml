@@ -153,7 +153,7 @@
 	</fx:Script>
 	<s:RichEditableText id="prompt" width="100%" text="{_prompt}" paddingLeft="2" selectable="true" editable="false" tabEnabled="false" tabFocusEnabled="false"/>
 	<s:TextInput id="txtSearch" width="99%" />
-	<s:DropDownList id="cbSearch" creationComplete="{cbSearch.width = _wTemplateWidth - 42; }"
+	<s:DropDownList id="cbSearch" creationComplete="{cbSearch.width = _wTemplateWidth - 62; }"
 				 change="dChange(event)" visible="false" includeInLayout="false"
 				 labelField="label">
 		<s:itemRenderer>

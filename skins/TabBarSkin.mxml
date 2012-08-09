@@ -55,11 +55,11 @@ created by the TabBarSkin use the TabBarButtonSkin class.
         {
             const numElements:int = dataGroup.numElements;
             const cornerRadius:int = hostComponent.getStyle("cornerRadius");
-            for (var i:int = 0; i < numElements; i++)
-            {
+            for (var i:int = 0; i < numElements; i++){
                 var elt:UIComponent = dataGroup.getElementAt(i) as UIComponent;
-                if (elt)
+                if (elt){
                     elt.setStyle("cornerRadius", cornerRadius);
+				}
             }
 
             super.updateDisplayList(unscaledWidth, unscaledHeight);

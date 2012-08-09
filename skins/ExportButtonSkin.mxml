@@ -41,8 +41,7 @@
 			{
 				var cr:Number = getStyle("cornerRadius");
 				
-				if (cornerRadius != cr)
-				{
+				if (cornerRadius != cr){
 					cornerRadius = cr;
 					shadow.radiusX = cornerRadius;
 					fill.radiusX = cornerRadius;

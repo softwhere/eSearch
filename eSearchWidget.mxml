@@ -323,8 +323,8 @@
 			private var overFillSymbol:Symbol;
 			
 			//Build Constants
-			protected const VERSION:String = "3.0.4";
-			protected const BUILDDATE:String = "8/8/2012";
+			protected const VERSION:String = "3.0.5";
+			protected const BUILDDATE:String = "8/9/2012";
 			
 			//Resources
 			[Embed(source="assets/images/i_about.png")]
@@ -407,8 +407,7 @@
 					for (var s:Number = 0; s < operList.length(); s++){
 						var srName:String = operList[s].name;
 						var srLabel:String = operList[s].label;
-						var spatialRelationship:Object =
-						{
+						var spatialRelationship:Object = {
 							name: srName,
 							label: srLabel
 						};
@@ -481,8 +480,7 @@
 					for (var b:int = 0; b < bufferUnitsList.length(); b++){
 						var buffUnitName:String = bufferUnitsList[b].name;
 						var buffUnitLabel:String = bufferUnitsList[b].label;
-						var bufferUnit:Object =
-						{
+						var bufferUnit:Object = {
 							name: buffUnitName,
 							label: buffUnitLabel
 						};
@@ -524,7 +522,7 @@
 								label: lyrRelLabel,
 								enableexport: lyrRelEnableExport,
 								icon: lyrRelIcon
-							}
+							};
 							configLayerRels.push(lyrRel);
 						}
 						var lyrExprList:XMLList = configXML.layers.layer[i]..expression;
@@ -545,14 +543,14 @@
 									field: valField,
 									usedomain: valDomain,
 									userlist: valUserList
-								}
+								};
 								configLayerExprsVals.push(exprVals)
 							}
-							var expr:Object ={
+							var expr:Object = {
 								label: lyrExprAlias,
 								textlabel: lyrTextLabel,
 								values: configLayerExprsVals
-							}
+							};
 							configLayerExprs.push(expr);
 						}
 						var lyrDefExpr:String = lyrList[i].definitionexpression;
@@ -569,7 +567,7 @@
 								link: lyrLink,
 								alias: lyrLinkAlias,
 								icon: lyrIcon
-							}
+							};
 							lyrLinks.push(linkObj);
 						}
 						var lyrQueryAttach:Boolean = lyrList[i].queryattachments && lyrList[i].queryattachments == "true";
@@ -632,7 +630,7 @@
 							opendg: openDG,
 							relates: configLayerRels,
 							attachments: lyrQueryAttach
-						}
+						};
 						configSearchGraphical.push(searchLayer);
 						
 						if (searchLayer.spatialsearchlayer == "true"){
@@ -662,7 +660,7 @@
 								label: tblRelLabel,
 								enableexport: tblRelEnableExport,
 								icon: tblRelIcon
-							}
+							};
 							configTableRels.push(tblRel);
 						}
 						var tblExprList:XMLList = configXML.tables.table[i]..expression;
@@ -683,14 +681,14 @@
 									field: tblField,
 									usedomain: tblDomain,
 									userlist: tblUserList
-								}
+								};
 								configTableExprsVals.push(tblexprVals)
 							}
 							var tblexpr:Object ={
 								label: tblExprAlias,
 								textlabel: tblTextLabel,
 								values: configTableExprsVals
-							}
+							};
 							configTableExprs.push(tblexpr);
 						}
 						var tblDefExpr:String = tblList[i].definitionexpression;
@@ -707,7 +705,7 @@
 								link: tblLink,
 								alias: tblLinkAlias,
 								icon: tblIcon
-							}
+							};
 							tblLinks.push(tbllinkObj);
 						}	
 						var tblEnableExport:Boolean = tblList[i].enableexport && tblList[i].enableexport == "true";
@@ -749,18 +747,10 @@
 							opendg: tblopenDG,
 							relates: configTableRels,
 							attachments: tblQueryAttach
-						}
+						};						
 						
-						if (tblExpr){
+						if (configTableExprs && configTableExprs.length > 0){
 							configSearchText.push(searchTable);
-							if(i==0){
-								qLayer = new FeatureLayer(tblURL);
-								if(configTableExprs[0].values[0].usedomain){
-									popCBwithDomain(configTableExprs[0].values[0].field, sItemVal);
-								}else if(configTableExprs[0].values[0].userlist != ""){
-									popCBwithUserList(configTableExprs[0].values[0].userlist, sItemVal);
-								}
-							}
 						}
 					}
 					
@@ -877,7 +867,9 @@
 				if(!disGrid){
 					wTemplate.addTitlebarButton(ICON_URL + "i_table.png", resultsLabel, showStateResults);
 				}
+				
 				//Setup Text Search
+				var sItemVal:SearchExpValueItem;
 				if (configSearchText.length){
 					cboLayerText.dataProvider = new ArrayCollection(configSearchText);
 					cboLayerText.width = determineDropDownWidth(configSearchText);
@@ -887,7 +879,6 @@
 					cboLayerText.selectedIndex = 0;
 					txtLabelText.text = configSearchText[0].expr[0].textlabel;
 					
-					var sItemVal:SearchExpValueItem;
 					for(v=0; v<configSearchText[0].expr[0].values.length; v++){
 						if(v == 0){
 							sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
@@ -904,6 +895,7 @@
 							sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
 							searchGroup.addElement(sItemVal);
 						}
+						
 						if(configSearchText[0].expr[0].values[v].usedomain){
 							popCBwithDomain(configSearchText[0].expr[0].values[v].field, sItemVal);
 						}else if(configSearchText[0].expr[0].values[v].userlist != ""){
@@ -1321,7 +1313,7 @@
 									enableExport: queryEnableExport,
 									widgetInteract: widgetAndGridIteract,
 									disableRelateTab: disRelatesInFixed
-								}
+								};
 								var dgconfigArr:ArrayCollection = new ArrayCollection();
 								dgconfigArr.addItem(dgConfig);
 								addSharedData("configFixedDatagrid", dgconfigArr);
@@ -1416,14 +1408,7 @@
 					}
 				}
 				searchBtn.addEventListener(MouseEvent.CLICK, equeryFeaturesText);
-				
-				for(v=0; v<configSearchText[i].expr[0].values.length; v++){
-					if(configSearchText[i].expr[0].values[v].usedomain){
-						popCBwithDomain(configSearchText[i].expr[0].values[v].field, sItemVal);
-					}else if(configSearchText[i].expr[0].values[v].userlist != ""){
-						popCBwithUserList(configSearchText[i].expr[0].values[v].userlist, sItemVal);
-					}
-				}
+
 				txtLabelText.text = configSearchText[i].expr[0].textlabel;
 				cboLayerExpr.dataProvider = new ArrayCollection(configSearchText[i].expr);
 				cboLayerExpr.width = determineDropDownWidth(configSearchText[i].expr);
@@ -2025,7 +2010,7 @@
 									disableRelateTab: disRelatesInFixed,
 									relateIcon: relateIcon,
 									relateToolTip: relateToolTip
-								}
+								};
 								var dgconfigArr:ArrayCollection = new ArrayCollection();
 								dgconfigArr.addItem(dgConfig);
 								addSharedData("configFixedDatagrid", dgconfigArr);
@@ -2364,7 +2349,7 @@
 									disableRelateTab: disRelatesInFixed,
 									relateIcon: relateIcon,
 									relateToolTip: relateToolTip
-								}
+								};
 								var dgconfigArr:ArrayCollection = new ArrayCollection();
 								dgconfigArr.addItem(dgConfig);
 								addSharedData("configFixedDatagrid", dgconfigArr);
@@ -2651,7 +2636,7 @@
 							link: link,
 							icon: linkicon,
 							alias: alias
-						}
+						};
 						lyrQLinks.push(lObj);
 					}
 					
@@ -3002,7 +2987,7 @@
 					var uVal:Object = {
 						value: uval,
 						label: ulbl
-					}
+					};
 					configUserVals.push(uVal);
 				}
 				sItemVal.setCBDataProvider(configUserVals);
@@ -3096,7 +3081,7 @@
 						var domVal:Object = {
 							value: dVal,
 							label: dLbl
-						}
+						};
 						configDomainVals.push(domVal);
 					}
 					sItemVal.setCBDataProvider(configDomainVals);
@@ -3770,7 +3755,7 @@
 								featLayer: queryLayer,
 								layerDetails: (relqueryLayer.layerDetails)?relqueryLayer.layerDetails:relqueryLayer.tableDetails,
 								enableExport: relExportEnabled
-							}
+							};
 							var dgconfigArr:ArrayCollection = new ArrayCollection();
 							dgconfigArr.addItem(dgConfig);
 							addSharedData("configRelateFixedDatagrid", dgconfigArr);

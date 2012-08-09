@@ -62,14 +62,16 @@
 
             private function itemrenderer_mouseOverHandler(event:MouseEvent):void
             {
-				if(hitTestPoint(event.stageX,event.stageY, true))
+				if(hitTestPoint(event.stageX,event.stageY, true)){
                 	dispatchEvent(new Event(SEARCH_RESULT_MOUSE_OVER, true)); // bubbles
+				}
             }
 
             private function itemrenderer_mouseOutHandler(event:MouseEvent):void
             {
-				if(!hitTestPoint(event.stageX,event.stageY, true))
+				if(!hitTestPoint(event.stageX,event.stageY, true)){
                 	dispatchEvent(new Event(SEARCH_RESULT_MOUSE_OUT, true)); // bubbles
+				}
             }
 
             private function showLink(event:MouseEvent):void
@@ -119,10 +121,12 @@
 						}
 					}
 					
-					if(searchResult.links[0] && searchResult.links[0].link)
+					if(searchResult.links[0] && searchResult.links[0].link){
 						linkGroup.includeInLayout = linkGroup.visible = true;
-					if(searchResult.relates != null)
+					}
+					if(searchResult.relates != null){
 						linkGroup.includeInLayout = linkGroup.visible = true;
+					}
 					relateicon = (searchResult.relateicon && searchResult.relateicon != null)?searchResult.relateicon:"widgets/eSearch/assets/images/i_relate.png";
 					relatetooltip = (searchResult.relatetooltip && searchResult.relatetooltip != null)?searchResult.relatetooltip:"Show relates";
 					

@@ -26,8 +26,7 @@ package widgets.eSearch
 			}
 			
 			
-			if(is_numeric(lab1) && is_numeric(lab2))
-			{
+			if(is_numeric(lab1) && is_numeric(lab2)){
 				var cVal1:Number = Number(lab1);
 				var cVal2:Number = Number(lab2);
 				if(cVal1<cVal2)   
@@ -49,7 +48,7 @@ package widgets.eSearch
 		
 		private function is_numeric(val:*):Boolean {
 			
-			if (!isNaN(Number(val))) {
+			if (!isNaN(Number(val))){
 				return true;
 			}
 			return false;

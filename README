@@ -1,4 +1,9 @@
-﻿Version 3.0.4 - 8/8/2012
+﻿Version 3.0.5 - 8/9/2012
+* Fixed bug with datagrid click when serching stanalone tables.
+* Fixed bug with dropdownlist in multi field expressions not initializing
+  properly on startup and on layer change.
+
+Version 3.0.4 - 8/8/2012
 * Fixed a few more bugs with datagrid hovering and datagrid field formatting.
 
 Version 3.0.3 - 8/7/2012
