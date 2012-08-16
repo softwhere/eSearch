@@ -5,11 +5,11 @@
 				   xmlns:viewer="com.esri.viewer.*"
 				   xmlns:Search="widgets.eSearch.*"
 				   height="200" width="800"
-				   widgetConfigLoaded="init()">
+				   widgetConfigLoaded="init()" verticalScrollPolicy="off">
 	
 	<fx:Declarations>
 		<s:Move id="panelOut" yTo="0" duration="0" startDelay="0"/>
-		<s:Move id="panelIn" yTo="175"  duration="2000"  />
+		<s:Move id="panelIn" yTo="175" duration="2000" startDelay="0"/>
 	</fx:Declarations>
 	
 	<fx:Script>
@@ -45,6 +45,8 @@
 			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
 			import mx.events.MenuEvent;
+			import mx.events.MoveEvent;
+			import mx.events.ResizeEvent;
 			import mx.managers.PopUpManager;
 			import mx.utils.ObjectUtil;
 			
@@ -53,10 +55,10 @@
 			import spark.components.Button;
 			import spark.components.DataGrid;
 			import spark.components.gridClasses.GridColumn;
+			import spark.events.GridEvent;
 			import spark.formatters.CurrencyFormatter;
 			import spark.formatters.DateTimeFormatter;
 			import spark.formatters.NumberFormatter;
-			import spark.events.GridEvent;
 			
 			import widgets.eSearch.skins.PopUpRendererSkin;
 			
@@ -137,11 +139,14 @@
 			
 			private var autoHide:Boolean;
 			
+			private var movingPanel:Boolean;
+			
 			private function init():void
 			{
 				if (configXML){
 					autoHide = configXML.autohide && configXML.autohide == "true";
 					if(autoHide){
+						movingPanel = true;
 						panelIn.target = panel;
 						panelOut.target = panel;
 						panelIn.play();
@@ -149,7 +154,6 @@
 				}
 				AppEvent.addListener(AppEvent.DATA_PUBLISH, sharedDataUpdated);
 				appWidth = FlexGlobals.topLevelApplication.width;
-				
 			}
 			
 			public function set zoomScale(value:Number):void
@@ -847,7 +851,7 @@
 				}else{
 					if (!isNaN(dateMS)){
 						//Fix the date format to use the Spark format
-						_dateFormat = _dateFormat.replace("D","d").replace("Y","y");
+						_dateFormat = _dateFormat.replace(/D/g, "d").replace(/Y/g, "y");
 						retVal = msToDate(dateMS, _dateFormat, useUTC);
 					}
 				}
@@ -1229,11 +1233,14 @@
 			
 			private function panel_rollOutHandler(event:MouseEvent):void
 			{
+				movingPanel = true;
+				panelOut.end();
 				panelIn.play();
 			}
 			
 			private function panel_rollOverHandler(event:MouseEvent):void
 			{
+				movingPanel = true;
 				panelIn.end();
 				panelOut.play();
 			}
@@ -1242,7 +1249,7 @@
 			{
 				var data:Object = event.data;
 				
-				if (data.key == "configFixedDatagrid"){
+				 if (data.key == "configFixedDatagrid"){
 					if (data.collection[0]){
 						var theObj:Object = data.collection[0];
 						mWidgetTitle = theObj.widgetTitle;
@@ -1343,7 +1350,7 @@
 							_disableRelateTab == true;
 						}
 					}
-				}
+				} 
 			}
 	
 			private function onItemRollOver(event:GridEvent):void
@@ -1506,18 +1513,30 @@
 					(event.target.columns.getItemAt(event.target.columnsLength - 1) as GridColumn).width = NaN;
 				}
 			}
+			
+			protected function panel_moveHandler(event:MoveEvent):void
+			{
+				if(movingPanel){
+					movingPanel = false;
+				}else{
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					event.target.y = 175;
+				}
+			}
+			
 		]]>
 	</fx:Script>
 	<fx:Declarations>
 		<s:RadioButtonGroup id="optiongroup"/>
 		<s:RadioButtonGroup id="roptiongroup"/>
 	</fx:Declarations>
-	<s:VGroup gap="-1" height="100%" width="100%" id="panel">
+	<s:VGroup gap="-1" height="100%" width="100%" id="panel" move="panel_moveHandler(event)">
 		<s:TabBar id="tabs" dataProvider="{vs}" skinClass="widgets.eSearch.skins.TabBarSkin"
-				  rollOut="panel_rollOutHandler(event)" 
-				  rollOver="panel_rollOverHandler(event)"/>
-		<mx:ViewStack id="vs" height="100%" width="100%" creationPolicy="all" rollOut="panel_rollOutHandler(event)" 
-					  rollOver="panel_rollOverHandler(event)">
+				  mouseOut="panel_rollOutHandler(event)" 
+				  mouseOver="panel_rollOverHandler(event)"/>
+		<mx:ViewStack id="vs" height="100%" width="100%" creationPolicy="all" mouseOut="panel_rollOutHandler(event)" 
+					  mouseOver="panel_rollOverHandler(event)">
 			<s:NavigatorContent label="Search Results" width="100%"  height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}">
 				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}">
 					<s:VGroup gap="0" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" >

@@ -652,7 +652,7 @@
 				}else{
 					if (!isNaN(dateMS)){
 						//Fix the date format to use the Spark format
-						_dateFormat = _dateFormat.replace("D","d").replace("Y","y");
+						_dateFormat = _dateFormat.replace(/D/g, "d").replace(/Y/g, "y");
 						retVal = msToDate(dateMS, _dateFormat, useUTC);
 					}
 				}

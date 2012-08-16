@@ -323,8 +323,8 @@
 			private var overFillSymbol:Symbol;
 			
 			//Build Constants
-			protected const VERSION:String = "3.0.5";
-			protected const BUILDDATE:String = "8/9/2012";
+			protected const VERSION:String = "3.0.6";
+			protected const BUILDDATE:String = "8/15/2012";
 			
 			//Resources
 			[Embed(source="assets/images/i_about.png")]
@@ -2540,21 +2540,69 @@
 							var sls:SimpleLineSymbol = new SimpleLineSymbol();
 							
 							if(isGraphicalBufferOp){
-								sfs.style = (chkNoBufferFill.selected) ? SimpleFillSymbol.STYLE_NULL : SimpleFillSymbol.STYLE_SOLID;
-								sls.style = (chkNoBufferOutline.selected)? SimpleLineSymbol.STYLE_NULL : SimpleLineSymbol.STYLE_SOLID;
-								sls.color = cpGraBufferOLColor.selectedColor;
-								sls.width = linewidth.value;
+								if(chkNoBufferFill){
+									sfs.style = (chkNoBufferFill.selected) ? SimpleFillSymbol.STYLE_NULL : SimpleFillSymbol.STYLE_SOLID;
+								}else{
+									SimpleFillSymbol.STYLE_SOLID;
+								}
+								if(chkNoBufferOutline){
+									sls.style = (chkNoBufferOutline.selected)? SimpleLineSymbol.STYLE_NULL : SimpleLineSymbol.STYLE_SOLID;
+								}else{
+									SimpleLineSymbol.STYLE_SOLID;
+								}
+								if(cpGraBufferOLColor){
+									sls.color = cpGraBufferOLColor.selectedColor;
+								}else{
+									sls.color = 0x01b9fd;
+								}
+								if(linewidth){
+									sls.width = linewidth.value;
+								}else{
+									sls.width = 1;
+								}
 								sfs.outline = sls;
-								sfs.color = cpGraBufferColor.selectedColor;
-								sfs.alpha = hsGraBufferAlpha.value;
+								if(cpGraBufferColor){
+									sfs.color = cpGraBufferColor.selectedColor;
+								}else{
+									sfs.color = 0x01b9fd;
+								}
+								if(hsGraBufferAlpha){
+									sfs.alpha = hsGraBufferAlpha.value;
+								}else{
+									sfs.alpha = 0.3;
+								}
 							}else{
-								sfs.style = (chkNoBufferFill2.selected) ? SimpleFillSymbol.STYLE_NULL : SimpleFillSymbol.STYLE_SOLID;
-								sls.style = (chkNoBufferOutline2.selected)? SimpleLineSymbol.STYLE_NULL : SimpleLineSymbol.STYLE_SOLID;
-								sls.color = cpBufferOLColor.selectedColor;
-								sls.width = linewidth2.value;
+								if(chkNoBufferFill2){
+									sfs.style = (chkNoBufferFill2.selected) ? SimpleFillSymbol.STYLE_NULL : SimpleFillSymbol.STYLE_SOLID;
+								}else{
+									SimpleFillSymbol.STYLE_SOLID;
+								}
+								if(chkNoBufferOutline2){
+									sls.style = (chkNoBufferOutline2.selected)? SimpleLineSymbol.STYLE_NULL : SimpleLineSymbol.STYLE_SOLID;
+								}else{
+									SimpleLineSymbol.STYLE_SOLID;
+								}
+								if(cpBufferOLColor){
+									sls.color = cpBufferOLColor.selectedColor;
+								}else{
+									sls.color = 0x01b9fd;
+								}
+								if(linewidth2){
+									sls.width = linewidth2.value;
+								}else{
+									sls.width = 1;
+								}
 								sfs.outline = sls;
-								sfs.color = cpBufferColor.selectedColor;
-								sfs.alpha = hsBufferAlpha.value;
+								if(cpBufferColor){
+									sfs.color = cpBufferColor.selectedColor;
+								}else{
+									sfs.color = 0x01b9fd;
+								}
+								if(hsBufferAlpha){
+									sfs.alpha = hsBufferAlpha.value;
+								}else{
+									sfs.alpha = 0.3;
+								}
 							}
 							graphic.geometry = resultEvent;
 							graphic.symbol = sfs;
@@ -2683,6 +2731,8 @@
 							if (isDateField){
 								var dateMS:Number = Number(value);
 								if (!isNaN(dateMS)){
+									//Fix the date format to use the Spark format
+									dateFormat = dateFormat.replace(/D/g, "d").replace(/Y/g, "y");
 									value = msToDate(dateMS, dateFormat, useUTC);
 								}
 							}

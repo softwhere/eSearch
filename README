@@ -1,4 +1,10 @@
-﻿Version 3.0.5 - 8/9/2012
+﻿Version 3.0.6 - 8/15/2012
+* Fixed issue with field date formatting.
+* Fixed issue with fixed datagrid that is hidden, showing when a popup is shown the first time.
+* Fixed issue where buffering would not work (spatial or graphical) until the buffer properties
+  dialog was shown at least once.
+
+Version 3.0.5 - 8/9/2012
 * Fixed bug with datagrid click when serching stanalone tables.
 * Fixed bug with dropdownlist in multi field expressions not initializing
   properly on startup and on layer change.
