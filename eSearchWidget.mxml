@@ -323,8 +323,8 @@
 			private var overFillSymbol:Symbol;
 			
 			//Build Constants
-			protected const VERSION:String = "3.0.6";
-			protected const BUILDDATE:String = "8/15/2012";
+			protected const VERSION:String = "3.0.7";
+			protected const BUILDDATE:String = "8/21/2012";
 			
 			//Resources
 			[Embed(source="assets/images/i_about.png")]
@@ -357,7 +357,7 @@
 					bufferAlphaLabel = configXML.labels.bufferalpha || "Adjust buffer alpha";
 					nobuffercolorlbl = configXML.labels.nobuffercolor || "No fill color";
 					bufferoutlinecolorlbl = configXML.labels.bufferoutlinecolor || "Outline color";
-					nobufferoutlinecolorlbl = configXML.labels.nobufferoutlinecolorlbl || "No outline color";
+					nobufferoutlinecolorlbl = configXML.labels.nobufferoutlinecolor || "No outline color";
 					bufferoutlinewidthlbl = configXML.labels.bufferoutlinewidth || "Outline Width";
 					configbuffergraTip = configXML.labels.configbuffergra || "Configure buffer graphic properties...";
 					lblTolerance = configXML.labels.addtolerance || "Add search tolerance to point selection";
@@ -1862,9 +1862,9 @@
 				queryAttachments = configSearchText[i].attachments;
 				queryEnableExport = configSearchText[i].enableexport;
 				openDataGrid = configSearchText[i].opendg;
-				var isAllInputsfilled:Boolean;
+				//var isAllInputsfilled:Boolean;
 				var sItemVal:SearchExpValueItem;
-				if(searchGroup.numElements > 1){
+				/* if(searchGroup.numElements > 1){
 					isAllInputsfilled = true;
 					for(var sgi:Number = 0; sgi < searchGroup.numElements; sgi++){
 						sItemVal = searchGroup.getElementAt(sgi) as SearchExpValueItem;
@@ -1876,11 +1876,11 @@
 				}else{
 					sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
 					isAllInputsfilled = (sItemVal.textValue !="")?true:false;
-				}
+				} */
 				
 				var fields:XMLList;
-				if ((queryLayer) && (isAllInputsfilled))
-				{
+				//if ((queryLayer) && (isAllInputsfilled))
+				if(queryLayer){
 					var query:Query = new Query();
 					var myPattern:RegExp = /\[value\]/g;
 					var expr:String = "";
@@ -1907,7 +1907,10 @@
 							}
 							expr += mExpr.replace(myPattern, uList);
 						}else{
-							expr += queryExpr.replace(myPattern, eVal);
+							if(eVal != ""){
+								//don't add the expression if there is no user input
+								expr += queryExpr.replace(myPattern, eVal);
+							}
 						}
 					}
 					
@@ -2207,9 +2210,9 @@
 					if(includeTextQuery.selected && includeTextQuery.enabled){
 						var i:Number = (cboLayerText.selectedIndex < 0) ? 0 : cboLayerText.selectedIndex;
 						var j:Number = (cboLayerExpr.selectedIndex < 0) ? 0 : cboLayerExpr.selectedIndex;
-						var isAllInputsfilled:Boolean;
+						//var isAllInputsfilled:Boolean;
 						var sItemVal:SearchExpValueItem;
-						if(searchGroup.numElements > 1){
+						/* if(searchGroup.numElements > 1){
 							isAllInputsfilled = true;
 							for(var sgi:Number = 0; sgi < searchGroup.numElements; sgi++){
 								sItemVal = searchGroup.getElementAt(sgi) as SearchExpValueItem;
@@ -2221,7 +2224,7 @@
 						}else{
 							sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
 							isAllInputsfilled = (sItemVal.textValue !="")?true:false;
-						}
+						} */
 						
 						var myPattern:RegExp = /\[value\]/g;
 						var expr:String = "";
@@ -2246,7 +2249,10 @@
 								}
 								expr += mExpr.replace(myPattern, uList);
 							}else{
-								expr += queryExpr.replace(myPattern, eVal);
+								if(eVal != ""){
+									//don't add the expression if there is no user input
+									expr += queryExpr.replace(myPattern, eVal);
+								}
 							}
 						}
 						query.where = expr;
@@ -2882,8 +2888,22 @@
 						oid: searchResult.oid,
 						content: searchResult.content,
 						title: searchResult.title
+					};
+					if(!queryLayer.layerDetails){
+						if(!queryLayer.tableDetails.objectIdField){
+							Atts["ObjectID"] = searchResult.oid;
+						}else{
+							Atts[queryLayer.tableDetails.objectIdField] = searchResult.oid;
+						}
+					}else{
+						if(!queryLayer.layerDetails.objectIdField){
+							Atts["ObjectID"] = searchResult.oid;
+						}else{
+							Atts[queryLayer.layerDetails.objectIdField] = searchResult.oid;
+						}
 					}
-					graphic.attributes = Atts;//searchResult;
+					
+					graphic.attributes = Atts;
 					result.addItem(searchResult);
 					
 					var isValidPoint:Boolean = searchResult.point && !isNaN(searchResult.point.x) && !isNaN(searchResult.point.y);

@@ -1,5 +1,9 @@
 <?xml version="1.0" ?>
-<!-- See Enhanced Search Widget Fixed Datagrid Setup.pdf for detailed explanation -->
+<!-- See Enhanced Search Widget fixed data grid setup.pdf for detailed explanation -->
 <configuration>
 	<autohide>true</autohide>
+	<labels>
+		<searchresulttab>Search Results</searchresulttab>
+		<relateresulttab>Relate Results</relateresulttab>
+	</labels>
 </configuration>

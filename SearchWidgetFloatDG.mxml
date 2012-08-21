@@ -437,7 +437,7 @@
 							data += lineSeparator;
 						}
 						j++;
-						cursor.moveNext ();
+						cursor.moveNext();
 					}
 					//set references to null:
 					dataProvider = null;

@@ -1,4 +1,12 @@
-﻿Version 3.0.6 - 8/15/2012
+﻿Version 3.0.7 - 8/21/2012
+* Tab labels are now configurable in the Fixed data grid (use the SearchWidgetFixedDG.xml).
+* Fixed nobufferoutlincolor label being ignored in the eSearchWidget.xml
+* Fixed show and hide animation on Fixed Datagrid.
+* Fixed datagrid (if autohide) will show when a search is executed and hide with results are cleared.
+* If multi field expressions are used, now all fields DO NOT have to be filled.
+* Fixed PopUp Attachment Issue.
+
+Version 3.0.6 - 8/15/2012
 * Fixed issue with field date formatting.
 * Fixed issue with fixed datagrid that is hidden, showing when a popup is shown the first time.
 * Fixed issue where buffering would not work (spatial or graphical) until the buffer properties

@@ -141,6 +141,10 @@
 			
 			private var movingPanel:Boolean;
 			
+			[Bindable] private var searchResultTab:String = "Search Results";
+			
+			[Bindable] private var relateResultTab:String = "Relate Results";
+			
 			private function init():void
 			{
 				if (configXML){
@@ -150,10 +154,19 @@
 						panelIn.target = panel;
 						panelOut.target = panel;
 						panelIn.play();
+						panelIn.addEventListener(EffectEvent.EFFECT_END, addEvent);
 					}
+					searchResultTab = configXML.labels.searchresulttab || "Search Results";
+					relateResultTab = configXML.labels.relateresulttab || "Relate Results";
 				}
 				AppEvent.addListener(AppEvent.DATA_PUBLISH, sharedDataUpdated);
 				appWidth = FlexGlobals.topLevelApplication.width;
+			}
+			
+			private function addEvent(event:Event):void
+			{
+				panelIn.removeEventListener(EffectEvent.EFFECT_END, addEvent);
+				panel.addEventListener(MoveEvent.MOVE, panel_moveHandler);
 			}
 			
 			public function set zoomScale(value:Number):void
@@ -542,8 +555,9 @@
 									data += '\"\"';
 								}
 							}
-							if(i < (columnCount -1))
+							if(i < (columnCount -1)){
 								data += csvSeparator;
+							}
 							//generate header of CSV, only if it's not genereted yet
 							if (!headerGenerated){
 								header += "\"" + dataGridColumn.headerText + "\"";
@@ -710,7 +724,7 @@
 					for ( i=0; i<resultsGrid.columnsLength; i++ ) {
 						// if the column actually exists:
 						if ( GridColumn(resultsGrid.columns.getItemAt(i)).dataField.toUpperCase() == key.toUpperCase() ) {
-							var cellMetrics2:TextLineMetrics = renderer.measureText(GridColumn(resultsGrid.columns.getItemAt(i)).headerText+"");
+							var cellMetrics2:TextLineMetrics = renderer.measureText(GridColumn(resultsGrid.columns.getItemAt(i)).headerText+"W");
 							if ( cellMetrics2.width + 18 > Number(maxLengths[key]) + 12 ) {
 								GridColumn(resultsGrid.columns.getItemAt(i)).width = cellMetrics2.width + 18;
 							} else {
@@ -1308,6 +1322,7 @@
 						var rreset:Vector.<int> = Vector.<int>([]);
 						relatesGrid.columnHeaderGroup.visibleSortIndicatorIndices = rreset;
 						_renableExport = false;
+						panel_rollOutHandler(null);
 					}
 				}
 				if (data.key == "clearFixedDatagrid"){
@@ -1320,6 +1335,7 @@
 						sumVisible = false;
 						_labelSum = "";
 						_enableExport = false;
+						panel_rollOutHandler(null);
 					}
 				}
 				if (data.key == "scrollFixedDataGrid"){
@@ -1522,6 +1538,7 @@
 					event.preventDefault();
 					event.stopImmediatePropagation();
 					event.target.y = 175;
+					panel.removeEventListener(MoveEvent.MOVE, panel_moveHandler);
 				}
 			}
 			
@@ -1531,13 +1548,13 @@
 		<s:RadioButtonGroup id="optiongroup"/>
 		<s:RadioButtonGroup id="roptiongroup"/>
 	</fx:Declarations>
-	<s:VGroup gap="-1" height="100%" width="100%" id="panel" move="panel_moveHandler(event)">
+	<s:VGroup gap="-1" height="100%" width="100%" id="panel">
 		<s:TabBar id="tabs" dataProvider="{vs}" skinClass="widgets.eSearch.skins.TabBarSkin"
 				  mouseOut="panel_rollOutHandler(event)" 
 				  mouseOver="panel_rollOverHandler(event)"/>
 		<mx:ViewStack id="vs" height="100%" width="100%" creationPolicy="all" mouseOut="panel_rollOutHandler(event)" 
 					  mouseOver="panel_rollOverHandler(event)">
-			<s:NavigatorContent label="Search Results" width="100%"  height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}">
+			<s:NavigatorContent label="{searchResultTab}" width="100%"  height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}">
 				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}">
 					<s:VGroup gap="0" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" >
 						<s:DataGrid id="resultsGrid" height="100%" width="100%"
@@ -1562,7 +1579,7 @@
 					</s:VGroup>
 				</s:SkinnableContainer>
 			</s:NavigatorContent>
-			<s:NavigatorContent label="Relate Results" width="100%" height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}" maxWidth="{appWidth}"
+			<s:NavigatorContent label="{relateResultTab}" width="100%" height="100%" backgroundColor="{getStyle('chromeColor')}" backgroundAlpha="{getStyle('backgroundAlpha')}" maxWidth="{appWidth}"
 								enabled="{_disableRelateTab}" >
 				<s:SkinnableContainer height="100%" width="100%" backgroundAlpha="{getStyle('backgroundAlpha')}" backgroundColor="{getStyle('chromeColor')}" maxWidth="{appWidth}">
 					<s:VGroup gap="0" height="100%" width="100%" horizontalAlign="center" verticalAlign="middle" maxWidth="{appWidth}">
