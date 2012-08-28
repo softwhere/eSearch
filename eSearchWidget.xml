@@ -8,9 +8,11 @@
 			<name>Louisville Zoning</name>
 			<url>http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Louisville/LOJIC_LandRecords_Louisville/MapServer/2</url>
 			<expressions>
-				<expression alias="Zoning Code" textsearchlabel="Search Zoning Code:">
+				<expression alias="Zoning Code" textsearchlabel="Search Zoning:" isValueRequired="true">
 					<values>
-						<value prompt="Example: OR1" userlist="OR1,C2,OTF,all">ZONING_CODE = '[value]'</value>
+                        <value prompt="Zoning Code: " userlist="OR1,C2,OTF,all" isValueRequired="false" prepend="AND">ZONING_CODE = '[value]'</value>
+						<value prompt="Zoning Type:" userlist="OFFICE,RESIDENTIAL,all" isValueRequired="false">upper(ZONING_TYPE) = upper('[value]')</value>
+						<value prompt="Zoning Name: RES MULTI-FAMILY" isValueRequired="false">upper(ZONING_NAME) LIKE upper('%[value]%')</value>
 					</values>
 				</expression>
 				<expression alias="Zoning Type" textsearchlabel="Search Zoning Type:">
@@ -68,11 +70,16 @@
 			<definitionexpression></definitionexpression>
 			<enableexport>false</enableexport>
 			<name>SanFransisco 311</name>
-			<url>http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/FeatureServer/0</url>
+			<url>http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/SanFrancisco/311Incidents/MapServer/0</url>
 			<expressions>
 				<expression alias="Incident Status" textsearchlabel="Search by Incident Status:">
 					<values>
-						<value prompt="Exmaple: New" field="status" usedomain="true">status = '[value]'</value>
+						<value prompt="Example: New" field="status" usedomain="true">status = '[value]'</value>
+					</values>
+				</expression>
+				<expression alias="Request ID" textsearchlabel="Search by Request ID:">
+					<values>
+						<value prompt="Example: 508844">req_id = '[value]'</value>
 					</values>
 				</expression>
 			</expressions>
@@ -102,9 +109,9 @@
 			<expressions>
 				<expression alias="Road Name and Zip" textsearchlabel="Search by Road Name and Left Zipcode and Right Zip:">
 					<values>
-						<value prompt="Exmaple: ANDREW">RD_NAME = '[value]'</value>
-						<value prompt="Exmaple: 36201">AND ZIP_L = [value]</value>
-						<value prompt="Exmaple: 36201">AND ZIP_R = [value]</value>
+						<value prompt="Example: ANDREW">RD_NAME = '[value]'</value>
+						<value prompt="Example: 36201">AND ZIP_L = [value]</value>
+						<value prompt="Example: 36201">AND ZIP_R = [value]</value>
 					</values>
 				</expression>
 				<expression alias="Road Surface" textsearchlabel="Search by Surface Type:">
@@ -114,7 +121,7 @@
 				</expression>
 				<expression alias="Open SQL" textsearchlabel="Search by Typing Full SQL:">
 					<values>
-						<value prompt="Exmaple: RD_NAME = 'ANDREW' AND ZIP_L = 36201">[value]</value>
+						<value prompt="Example: RD_NAME = 'ANDREW' AND ZIP_L = 36201">[value]</value>
 					</values>
 				</expression>
 			</expressions>
@@ -219,7 +226,7 @@
 			<expressions>
 				<expression alias="soil type" textsearchlabel="Search by soil type:">
 					<values>
-						<value prompt="Exmaple: AaA">Calhoun_Soils.MUSYM = '[value]'</value>
+						<value prompt="Example: AaA">Calhoun_Soils.MUSYM = '[value]'</value>
 					</values>
 				</expression>
 			</expressions>

@@ -37,6 +37,29 @@
 			
 			[Bindable] private var _prompt:String;
 			
+			/*
+			 * conjuction to use when this value si comb
+			 */
+			public var prepend:String = "AND";
+			
+			[Bindable] private var _isValueRequired:Boolean = true;
+			
+			// does the expression require a value
+			// if is combobox, this adds an empty entry and selects it
+			public function get isValueRequired():Boolean
+			{
+				return _isValueRequired;
+			}
+			
+			public function set isValueRequired(value:Boolean):void
+			{
+				_isValueRequired = value;
+			}
+			
+			// the text that represents "no value"
+			// defaults to ""
+			public var noValue:String = "";
+			
 			public function set wTemplateWidth(value:Number):void
 			{
 				_wTemplateWidth = value;
@@ -74,7 +97,7 @@
 			public function restrictTextBox(rangeDomain:RangeDomain):void
 			{
 				changeToTextBox();
-				txtSearch.removeEventListener(FlexEvent.ENTER, dChange);
+				txtSearch.removeEventListener(FlexEvent.ENTER, AutoSubmitSearch);
 				txtSearch.errorString = "";
 				txtSearch.restrict = "0-9\\.\\-";
 				numberValidator = new NumberValidator();
@@ -88,13 +111,19 @@
 				numberValidator.triggerEvent = "enter";
 				numberValidator.exceedsMaxError +=  " " + rangeDomain.minValue.toString() + " - " + rangeDomain.maxValue.toString();
 				numberValidator.lowerThanMinError += " " + rangeDomain.minValue.toString() + " - " + rangeDomain.maxValue.toString();
-				numberValidator.addEventListener(ValidationResultEvent.VALID, dChange);
+				numberValidator.addEventListener(ValidationResultEvent.VALID, AutoSubmitSearch);
 			}
 			
-			private function dChange(event:Event):void
+			private function RaiseValueChanged(event:Event):void
 			{
-				var eventObj:Event = new Event("dataChange"); 
-				dispatchEvent(eventObj); 
+				var eventObj:Event = new Event("valueChanged"); 
+				dispatchEvent(eventObj);
+			}
+			
+			private function AutoSubmitSearch(event:Event):void
+			{
+				var eventObj:Event = new Event("submitSearch"); 
+				dispatchEvent(eventObj);
 			}
 			
 			public function changeToTextBox():void
@@ -131,7 +160,7 @@
 			
 			public function get textValue():String
 			{
-				if (txtSearch.visible){
+				if (this.isTextBox()){
 					_textValue = txtSearch.text;
 				}else{
 					_textValue = cbSearch.selectedItem.value;
@@ -144,17 +173,68 @@
 				return txtSearch.visible;
 			}
 			
+			/*
+			* is the ui for this value a combobox (vs textbox)
+			*/
+			public function isComboBox():Boolean
+			{
+				return cbSearch.visible;
+			}
+			
+			/*
+			* has the user entered a value
+			*/
+			public function hasAValue():Boolean
+			{
+				return (this.textValue != this.noValue);
+			}
+			
+			/*
+			* makes sure the value entered by the user is is valid
+			*/
+			public function isValid():Boolean
+			{
+				if (this.isValueRequired)
+				{
+					return this.hasAValue();	
+				}
+				else
+				{
+					// value not required so anything goes
+					return true;
+				}
+			}
+			
 			protected function init(event:FlexEvent):void
 			{
-				txtSearch.addEventListener(FlexEvent.ENTER, dChange);
+				// when the user types each character in textbox fire change event
+				txtSearch.addEventListener(flash.events.Event.CHANGE, RaiseValueChanged);
+				// when new entry is selected
+				cbSearch.addEventListener(IndexChangeEvent.CHANGE, RaiseValueChanged);
+				
+				// automatically submit search when enter is pressed in text box
+				txtSearch.addEventListener(FlexEvent.ENTER, AutoSubmitSearch);
+				
+				// automatically submit search when entry is selected
+				cbSearch.addEventListener(IndexChangeEvent.CHANGE, AutoSubmitSearch);
+				
 			}
 			
 		]]>
 	</fx:Script>
-	<s:RichEditableText id="prompt" width="100%" text="{_prompt}" paddingLeft="2" selectable="true" editable="false" tabEnabled="false" tabFocusEnabled="false"/>
+	<s:HGroup horizontalAlign="left" width="100%">
+		<s:RichEditableText id="prompt" text="{_prompt}" paddingLeft="2" selectable="true" editable="false" tabEnabled="false" tabFocusEnabled="false"/>
+		<s:Label id="txtIsRequired"
+				 text="*"
+				 color="0xFF0000"
+				 includeInLayout="{txtIsRequired.visible}"
+				 visible="{_isValueRequired}"
+				 toolTip="This field is required.&#13;Enter a value to enable search button"
+				 />		
+	</s:HGroup>
 	<s:TextInput id="txtSearch" width="99%" />
 	<s:DropDownList id="cbSearch" creationComplete="{cbSearch.width = _wTemplateWidth - 62; }"
-				 change="dChange(event)" visible="false" includeInLayout="false"
+				 visible="false" includeInLayout="false"
 				 labelField="label">
 		<s:itemRenderer>
 			<fx:Component>

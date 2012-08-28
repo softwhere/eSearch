@@ -529,6 +529,7 @@
 						for (j = 0; j < lyrExprList.length(); j++){
 							var lyrExprAlias:String = lyrExprList[j].@alias;
 							var lyrTextLabel:String = lyrExprList[j].@textsearchlabel;
+							var lyrRequiresAValue:Boolean = lyrExprList[j].@isValueRequired && lyrExprList[j].@isValueRequired == "true";
 							var lyrExprVals:XMLList = lyrExprList[j]..value;
 							configLayerExprsVals = [];
 							for (v = 0; v < lyrExprVals.length(); v++){
@@ -537,19 +538,27 @@
 								var valField:String = lyrExprVals[v].@field;
 								var valUserList:String = lyrExprVals[v].@userlist;
 								var valDomain:Boolean = lyrExprVals[v].@usedomain && lyrExprVals[v].@usedomain == "true";
+								// if config is given and set to false explicitly, then make it optional (aka not required). Otherwise, default to being required
+								var isOptional:Boolean = lyrExprVals[v].@isValueRequired && lyrExprVals[v].@isValueRequired == "false";
+								var prependToValue:String =  lyrExprVals[v].@prepend;
+								
 								var exprVals:Object = {
 									prompt: valPrompt,
 									expression: valExpr,
 									field: valField,
 									usedomain: valDomain,
-									userlist: valUserList
+									userlist: valUserList,
+									isValueRequired : !isOptional,
+									prepend : prependToValue
 								};
 								configLayerExprsVals.push(exprVals)
 							}
 							var expr:Object = {
 								label: lyrExprAlias,
 								textlabel: lyrTextLabel,
-								values: configLayerExprsVals
+								values: configLayerExprsVals,
+								isValueRequired : lyrRequiresAValue
+								
 							};
 							configLayerExprs.push(expr);
 						}
@@ -667,6 +676,7 @@
 						for (j = 0; j < tblExprList.length(); j++){
 							var tblExprAlias:String = tblExprList[j].@alias;
 							var tblTextLabel:String = tblExprList[j].@textsearchlabel;
+							var tblRequiresAValue:Boolean = tblExprList[j].@isValueRequired && tblExprList[j].@isValueRequired == "true";
 							var tblExprVals:XMLList = tblExprList[j]..value;
 							configTableExprsVals = [];
 							for (v = 0; v < tblExprVals.length(); v++){
@@ -675,19 +685,26 @@
 								var tblField:String = tblExprVals[v].@field;
 								var tblUserList:String = tblExprVals[v].@userlist;
 								var tblDomain:Boolean = tblExprVals[v].@usedomain && tblExprVals[v].@usedomain == "true";
+								// if config is given and set to false explicitly, then make it optional (aka not required). Otherwise, default to being required
+								var isOptional:Boolean = tblExprVals[v].@isValueRequired && tblExprVals[v].@isValueRequired == "false";
+								var prependToValue:String =  tblExprVals[v].@prepend;
+
 								var tblexprVals:Object = {
 									prompt: tblPrompt,
 									expression: tblExpr,
 									field: tblField,
 									usedomain: tblDomain,
-									userlist: tblUserList
+									userlist: tblUserList,
+									isValueRequired : !isOptional,
+									prepend : prependToValue
 								};
 								configTableExprsVals.push(tblexprVals)
 							}
 							var tblexpr:Object ={
 								label: tblExprAlias,
 								textlabel: tblTextLabel,
-								values: configTableExprsVals
+								values: configTableExprsVals,
+								isValueRequired : tblRequiresAValue
 							};
 							configTableExprs.push(tblexpr);
 						}
@@ -880,21 +897,43 @@
 					txtLabelText.text = configSearchText[0].expr[0].textlabel;
 					
 					for(v=0; v<configSearchText[0].expr[0].values.length; v++){
+						var cfg = configSearchText[0].expr[0].values[v];
 						if(v == 0){
 							sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
 							sItemVal.changeToTextBox();
-							sItemVal.setPrompt = configSearchText[0].expr[0].values[v].prompt;
-							sItemVal.addEventListener("dataChange", valueItemEvent);
+							sItemVal.setPrompt = cfg.prompt;
+							sItemVal.isValueRequired = cfg.isValueRequired;// set the required property from the config
+							if (cfg.prepend)
+							{
+								sItemVal.prepend = cfg.prepend;
+							};
+							sItemVal.addEventListener("valueChanged", onValueChanged);
+							sItemVal.addEventListener("submitSearch", onSearchSubmitted);
 							sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
 						}else{
 							sItemVal = new SearchExpValueItem;
 							sItemVal.wTemplateWidth = wTemplate.width;
 							sItemVal.percentWidth = 100;
-							sItemVal.setPrompt = configSearchText[0].expr[0].values[v].prompt;
-							sItemVal.addEventListener("dataChange", valueItemEvent);
+							sItemVal.setPrompt = cfg.prompt;
+							sItemVal.isValueRequired = cfg.isValueRequired;// set the required property from the config
+							if (cfg.prepend)
+							{
+								sItemVal.prepend = cfg.prepend;
+							};
+							sItemVal.addEventListener("valueChanged", onValueChanged);
+							sItemVal.addEventListener("submitSearch", onSearchSubmitted);
 							sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
 							searchGroup.addElement(sItemVal);
 						}
+						
+						var cfg:Object = configSearchText[0].expr[0].values[v];
+						// set the required property from the config
+						sItemVal.isValueRequired = cfg.isValueRequired;
+						if (cfg.prepend)
+						{
+							sItemVal.prepend = cfg.prepend;
+						};
+						
 						
 						if(configSearchText[0].expr[0].values[v].usedomain){
 							popCBwithDomain(configSearchText[0].expr[0].values[v].field, sItemVal);
@@ -977,13 +1016,49 @@
 				wTemplate.visible = true;
 				wTemplate.header.addEventListener(MouseEvent.CLICK, DisplayVersion);
 				searchBtn.addEventListener(MouseEvent.CLICK, equeryFeaturesText);
+				
+				// a new (default) search form is shown
+				onSearchFormChanged();
 			}
 			
-			private function valueItemEvent(evt:Event):void
+			/* 
+			* when a new search is selected, validate the new search
+			* @method
+			* @private
+			*/
+			private function onSearchFormChanged():void
 			{
+				// when value changes, check that search criteria are valid
+				validateSearch();				
+			}
+			
+			/* 
+			* when a value is changed (such as each character in textbox or value selected from combo)
+			*  validate the Search
+			* @method
+			* @private
+			*/
+			private function onValueChanged(evt:Event):void
+			{
+				// when value changes, check that search criteria are valid
+				validateSearch();				
+			}
+			
+			/* 
+			 * when a value triggers a submit such as when Enter is pressed in text box
+			 * perform the search
+			 * @method
+			 * @private
+			 */
+			private function onSearchSubmitted(evt:Event):void
+			{
+				// TODO: validate here?
+				
+				// if single value, then automatically submit
+				// TODO: if >1 value and all are valid, then submit
 				if(searchGroup.numElements == 1){
 					equeryFeaturesText(null);
-				}
+				};
 			}
 			
 			private function equeryFeaturesText(evt:Event):void
@@ -1021,16 +1096,29 @@
 				var v:int;
 				var sItemVal:SearchExpValueItem;
 				for(v=0; v<configSearchText[slayerId].expr[exprNum].values.length; v++){
+					var cfg:Object = configSearchText[slayerId].expr[exprNum].values[v];
 					if(v == 0){
 						sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
-						sItemVal.setPrompt = configSearchText[slayerId].expr[exprNum].values[v].prompt;
+						sItemVal.setPrompt = cfg.prompt;
+						// set the required property from the config
+						sItemVal.isValueRequired = cfg.isValueRequired;
+						if (cfg.prepend)
+						{
+							sItemVal.prepend = cfg.prepend;
+						};
 						sItemVal.changeToTextBox();
 					}else{
 						sItemVal = new SearchExpValueItem;
 						sItemVal.wTemplateWidth = wTemplate.width;
 						sItemVal.percentWidth = 100;
-						sItemVal.setPrompt = configSearchText[slayerId].expr[exprNum].values[v].prompt;
-						sItemVal.addEventListener("dataChange", valueItemEvent);
+						sItemVal.setPrompt = cfg.prompt;						
+						sItemVal.isValueRequired = cfg.isValueRequired;// set the required property from the config
+						if (cfg.prepend)
+						{
+							sItemVal.prepend = cfg.prepend;
+						};
+						sItemVal.addEventListener("valueChanged", onValueChanged);
+						sItemVal.addEventListener("submitSearch", onSearchSubmitted);
 						sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
 						searchGroup.addElement(sItemVal);
 					}
@@ -1388,16 +1476,28 @@
 				var i:Number = (cboLayerText.selectedIndex < 0) ? 0 : cboLayerText.selectedIndex;
 				var sItemVal:SearchExpValueItem;
 				for(v=0; v<configSearchText[i].expr[0].values.length; v++){
+					var cfg = configSearchText[i].expr[0].values[v];
 					if(v == 0){
 						sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
-						sItemVal.setPrompt = configSearchText[i].expr[0].values[v].prompt;
+						sItemVal.setPrompt = cfg.prompt;
+						sItemVal.isValueRequired = cfg.isValueRequired;// set the required property from the config
+						if (cfg.prepend)
+						{
+							sItemVal.prepend = cfg.prepend;
+						};
 						sItemVal.changeToTextBox();
 					}else{
 						sItemVal = new SearchExpValueItem;
 						sItemVal.wTemplateWidth = wTemplate.width;
 						sItemVal.percentWidth = 100;
-						sItemVal.setPrompt = configSearchText[i].expr[0].values[v].prompt;
-						sItemVal.addEventListener("dataChange", valueItemEvent);
+						sItemVal.setPrompt = cfg.prompt;
+						sItemVal.isValueRequired = cfg.isValueRequired;// set the required property from the config
+						if (cfg.prepend)
+						{
+							sItemVal.prepend = cfg.prepend;
+						};
+						sItemVal.addEventListener("valueChanged", onValueChanged);
+						sItemVal.addEventListener("submitSearch", onSearchSubmitted);
 						sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
 						searchGroup.addElement(sItemVal);
 					}
@@ -1423,6 +1523,9 @@
 					boxTextexpr.visible = true;
 					boxTextexpr.includeInLayout = true;
 				}
+				
+				// a new (default) search form is shown for the selected layer
+				onSearchFormChanged();
 			}
 			
 			private function searchLayerExprChangedText():void
@@ -1436,16 +1539,28 @@
 				}
 				var sItemVal:SearchExpValueItem;
 				for(var v:int=0; v<configSearchText[i].expr[j].values.length; v++){
+					var cfg = configSearchText[i].expr[j].values[v];
 					if(v == 0){
 						sItemVal = searchGroup.getElementAt(0) as SearchExpValueItem;
-						sItemVal.setPrompt = configSearchText[i].expr[j].values[v].prompt;
+						sItemVal.setPrompt = cfg.prompt;
+						sItemVal.isValueRequired = cfg.isValueRequired;// set the required property from the config
+						if (cfg.prepend)
+						{
+							sItemVal.prepend = cfg.prepend;
+						};
 						sItemVal.changeToTextBox();
 					}else{
 						sItemVal = new SearchExpValueItem;
 						sItemVal.wTemplateWidth = wTemplate.width;
 						sItemVal.percentWidth = 100;
-						sItemVal.setPrompt = configSearchText[i].expr[j].values[v].prompt;
-						sItemVal.addEventListener("dataChange", valueItemEvent);
+						sItemVal.setPrompt = cfg.prompt;
+						sItemVal.isValueRequired = cfg.isValueRequired;// set the required property from the config
+						if (cfg.prepend)
+						{
+							sItemVal.prepend = cfg.prepend;
+						};
+						sItemVal.addEventListener("valueChanged", onValueChanged);
+						sItemVal.addEventListener("submitSearch", onSearchSubmitted);
 						sItemVal.addEventListener(FocusEvent.FOCUS_IN, searchGroupItem_focusInHandler);
 						searchGroup.addElement(sItemVal);
 					}
@@ -1457,6 +1572,9 @@
 				}
 				searchBtn.addEventListener(MouseEvent.CLICK, equeryFeaturesText);
 				txtLabelText.text = configSearchText[i].expr[j].textlabel;
+				
+				// new search so validate
+				onSearchFormChanged();
 			}
 			
 			private function searchLayerChangedGraphical():void
@@ -1895,6 +2013,13 @@
 						}else{
 							eVal = sItemVal.textValue;
 						}
+						
+						if (sItemVal.isValueRequired && !sItemVal.hasAValue())
+						{
+							// no value specified so skip this part of where clause
+							continue;
+						};
+						
 						if(sItemVal.textValue.toLowerCase() == "all" && !sItemVal.isTextBox()){
 							var mExpr:String = queryExpr.replace("=", "IN(") + ")";
 							var uList:String = configSearchText[i].expr[j].values[sg].userlist;
@@ -1905,12 +2030,16 @@
 							if(mExpr.indexOf("'[value]'") > -1){
 								uList = uaList.join("','");
 							}
-							expr += mExpr.replace(myPattern, uList);
-						}else{
+							var criteriaFromValue:String = mExpr.replace(myPattern, uList);
+							expr = AppendTo(expr, criteriaFromValue, sItemVal.prepend);
+						}
+						else
+						{
+							//don't add the expression if there is no user input
 							if(eVal != ""){
-								//don't add the expression if there is no user input
-								expr += queryExpr.replace(myPattern, eVal);
-							}
+								var criteriaFromValue:String = queryExpr.replace(myPattern, eVal);
+								expr = AppendTo(expr, criteriaFromValue, sItemVal.prepend);
+							};
 						}
 					}
 					
@@ -2047,6 +2176,25 @@
 					}
 				}  
 			}				
+			/*
+			 * Append string2 to string1 (if set) using conjunction 
+			 * @param String string1 the first string
+		     * @param String string2 the 2nd string
+			 * @param String conjunction string to put between the strings
+			 * @returns String
+			 */
+		   private function AppendTo(string1:String, string2:String, conjunction:String = "AND"): String 
+		   {
+			   var combined:String = "";
+			   if (string1.length > 0)
+			   {
+				   return string1 + " " + conjunction + " " + string2;
+			   }
+			   else
+			   {
+			   	 return string2;
+			   };
+		   }
 			
 			//query features graphical
 			private function queryFeaturesGraphical(geom:Geometry, querySpatialRel:String, layerConfig:Object):void
@@ -3050,6 +3198,15 @@
 				configUserVals = [];
 				
 				var uArray:Array = mx.utils.StringUtil.trimArrayElements(userList,",").split(",");
+				
+				// add an empty entry if the value is not required
+				if (!sItemVal.isValueRequired)
+				{
+					configUserVals.push({
+						value: sItemVal.noValue,
+						label: sItemVal.noValue
+					});
+				};
 				
 				for each (var val:String in uArray){
 					var uval:String = val;
@@ -4336,6 +4493,63 @@
 				return maxLength;
 			}
 			
+			/*
+			* gets the configuration object for the currently selected search expression
+			* 	@method
+			*   @private
+			*   @returns Object			
+			*/
+			private function currentSearchExpression(): Object{
+				
+				var i:Number = (cboLayerText.selectedIndex < 0) ? 0 : cboLayerText.selectedIndex;
+				var j:Number = (cboLayerExpr.selectedIndex < 0) ? 0 : cboLayerExpr.selectedIndex;
+
+				return configSearchText[i].expr[j];
+			}
+			
+			/*
+			 * checks that requirements have been met to allow a search 
+			 *  and enables the search button
+			 * 	@method
+			 *  @public		
+			*/
+			public function validateSearch():void
+			{
+				// check that child searchexpvalueitems are valid
+				
+				var sItemVal:SearchExpValueItem;
+				var isValid:Boolean = true;
+				var hasAValue:Boolean = false; // does at least one criteria have a value
+				for(var sgi:Number = 0; sgi < searchGroup.numElements; sgi++){
+					sItemVal = searchGroup.getElementAt(sgi) as SearchExpValueItem;
+					if (!sItemVal.isValid())
+					{
+						isValid = false;
+					};
+					
+					if (sItemVal.hasAValue())
+					{
+						hasAValue = true;
+					}
+				};
+				
+				var expression:Object = currentSearchExpression();
+				var isRequired:Boolean = expression.isValueRequired; // does the expression require that at least 1 value is given
+				
+				var canSearch:Boolean = false;
+				if (isRequired && !hasAValue)
+				{
+					canSearch = false;
+				}
+				else
+				{
+					canSearch = true;
+				};
+				
+				searchBtn.enabled = (canSearch && isValid);	
+			}
+			
+			
 		]]>
 	</fx:Script>
 	
@@ -4364,7 +4578,7 @@
 					  width="100%"
 					  gap="15"
 					  horizontalAlign="center"  verticalAlign="middle">
-				<s:Label id="lblExprText" text="{layerExprLabel}"/>
+				<s:Label id="lblExprText" text="{layerExprLabel}" />
 				<s:DropDownList id="cboLayerExpr" change="searchLayerExprChangedText()"/>
 			</s:HGroup>
 			<s:RichEditableText id="txtLabelText"
